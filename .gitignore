@@ -1,4 +1,6 @@
 /node_modules
 /cc
 /test/cc
+/test/test1.js
+/gl-matrix.js
 .*.swp
