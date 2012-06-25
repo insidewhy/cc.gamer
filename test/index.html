@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="cc/gamer.js"></script>
+  </head>
+  <body>
+    <p>cc.gamer test</p>
+  </body>
+  <script type="text/javascript">
+    var logPane = document.getElementsByTagName('body')[0]
+    function log(arg) {
+      var newLine = document.createElement('div')
+      newLine.innerHTML = arg
+      logPane.appendChild(newLine)
+    }
+
+    game = new cc.Game
+    log(game.hello())
+  </script>
+</html>

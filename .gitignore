@@ -1,0 +1,4 @@
+/node_modules
+/cc
+/test/cc
+.*.swp
