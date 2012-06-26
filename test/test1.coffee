@@ -27,11 +27,11 @@ getShader = (gl, id) ->
 
   shader
   if shaderScript.type is "x-shader/x-fragment"
-      shader = gl.createShader gl.FRAGMENT_SHADER
+    shader = gl.createShader gl.FRAGMENT_SHADER
   else if shaderScript.type is "x-shader/x-vertex"
-      shader = gl.createShader gl.VERTEX_SHADER
+    shader = gl.createShader gl.VERTEX_SHADER
   else
-      return null
+    return null
 
   gl.shaderSource shader, str
   gl.compileShader shader
@@ -93,8 +93,8 @@ drawScene = () ->
   mat4.perspective(90, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix)
 
   mat4.identity mvMatrix
-
   mat4.translate mvMatrix, [0.0, 0.0, -2.0]
+
   gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
   gl.vertexAttribPointer shdrPrg.vertexPositionAttribute,
     squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
@@ -103,13 +103,17 @@ drawScene = () ->
 
 window.webGLStart = (width, height) ->
   canvas = document.getElementById "game-canvas"
-  initGL canvas, width, height
-  initShaders()
-  initBuffers()
+  resources = new cc.Resources
+  resources.image 'imgtst.gif'
+  resources.onLoadStatusUpdate (cmplt) ->
+    if cmplt >= 1
+      initGL canvas, width, height
+      initShaders()
+      initBuffers()
 
-  gl.clearColor 0.0, 0.0, 0.0, 1.0
-  gl.enable gl.DEPTH_TEST
+      gl.clearColor 0.0, 0.0, 0.0, 1.0
+      gl.enable gl.DEPTH_TEST
 
-  drawScene()
+      drawScene()
 
 # vim:ts=2 sw=2
