@@ -1,6 +1,6 @@
 path   = require 'path'
 ake    = require 'cc.ake'
-bkr    = require('cc.loader').baker
+bkr    = require('cc.extend').baker
 
 do ake.nodeModulePath
 
