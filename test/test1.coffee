@@ -15,6 +15,7 @@ initGL = (canvas, width, height) ->
     gl.viewportHeight = canvas.height = height
   catch e
     alert("could not initialise WebGL")
+  return
 
 getShader = (gl, id) ->
   shaderScript = document.getElementById(id)
@@ -39,9 +40,9 @@ getShader = (gl, id) ->
 
   if not gl.getShaderParameter(shader, gl.COMPILE_STATUS)
     alert gl.getShaderInfoLog(shader)
-    return null
-
-  return shader
+    null
+  else
+    shader
 
 shdrPrg = null
 
@@ -74,8 +75,8 @@ mvMatrix = mat4.create()
 pMatrix = mat4.create()
 
 setMatrixUniforms = () ->
-    gl.uniformMatrix4fv shdrPrg.pMatrixUniform, false, pMatrix
-    gl.uniformMatrix4fv shdrPrg.mvMatrixUniform, false, mvMatrix
+  gl.uniformMatrix4fv shdrPrg.pMatrixUniform, false, pMatrix
+  gl.uniformMatrix4fv shdrPrg.mvMatrixUniform, false, mvMatrix
 
 squareVertexPositionBuffer = null
 squareVertexTextureCoordBuffer = null
@@ -152,6 +153,8 @@ window.webGLStart = (width, height) ->
       initTexture()
 
       gl.clearColor 0.0, 0.0, 0.0, 1.0
+      gl.blendFunc gl.SRC_ALPHA, gl.ONE
+      gl.enable gl.BLEND
       gl.enable gl.DEPTH_TEST
 
       drawScene()
