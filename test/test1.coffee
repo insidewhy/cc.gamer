@@ -4,7 +4,8 @@ log = (arg) ->
   newLine.innerHTML = arg
   logPane.appendChild(newLine)
 
-game = new cc.Game
+# resource loader
+resources = new cc.Resources
 
 gl = null
 initGL = (canvas, width, height) ->
@@ -61,8 +62,12 @@ initShaders = () ->
   shdrPrg.vertexPositionAttribute = gl.getAttribLocation shdrPrg, "aVertexPosition"
   gl.enableVertexAttribArray shdrPrg.vertexPositionAttribute
 
+  shdrPrg.textureCoordAttribute = gl.getAttribLocation shdrPrg, "aTextureCoord"
+  gl.enableVertexAttribArray shdrPrg.textureCoordAttribute
+
   shdrPrg.pMatrixUniform = gl.getUniformLocation shdrPrg, "uPMatrix"
   shdrPrg.mvMatrixUniform = gl.getUniformLocation shdrPrg, "uMVMatrix"
+  shdrPrg.samplerUniform = gl.getUniformLocation shdrPrg, "uSampler"
   return
 
 mvMatrix = mat4.create()
@@ -73,6 +78,7 @@ setMatrixUniforms = () ->
     gl.uniformMatrix4fv shdrPrg.mvMatrixUniform, false, mvMatrix
 
 squareVertexPositionBuffer = null
+squareVertexTextureCoordBuffer = null
 
 initBuffers = () ->
   squareVertexPositionBuffer = gl.createBuffer()
@@ -86,30 +92,64 @@ initBuffers = () ->
   squareVertexPositionBuffer.itemSize = 3
   squareVertexPositionBuffer.numItems = 4
 
+  squareVertexTextureCoordBuffer = gl.createBuffer()
+  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer
+  textureCoords = [
+    1.0, 1.0,
+    0.0, 1.0,
+    1.0, 0.0,
+    0.0, 0.0 ]
+  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW
+  squareVertexTextureCoordBuffer.itemSize = 2
+  squareVertexTextureCoordBuffer.numItems = 4
+
+imgTexture = null
+initTexture = () ->
+  imgTexture = gl.createTexture()
+  imgTexture.img = resources.images['mario.gif']
+  gl.bindTexture gl.TEXTURE_2D, imgTexture
+  gl.pixelStorei gl.UNPACK_FLIP_Y_WEBGL, true
+  gl.texImage2D gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgTexture.img
+  gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST
+  gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST
+  gl.bindTexture gl.TEXTURE_2D, null
+
 drawScene = () ->
   gl.viewport 0, 0, gl.viewportWidth, gl.viewportHeight
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
   mat4.perspective(90, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix)
 
+  # move to position to place square
   mat4.identity mvMatrix
   mat4.translate mvMatrix, [0.0, 0.0, -2.0]
 
+  # setup vertices
   gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
   gl.vertexAttribPointer shdrPrg.vertexPositionAttribute,
     squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
   setMatrixUniforms()
+
+  # setup texture
+  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer
+  gl.vertexAttribPointer shdrPrg.textureCoordAttribute, squareVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0
+
+  gl.activeTexture gl.TEXTURE0
+  gl.bindTexture gl.TEXTURE_2D, imgTexture
+  gl.uniform1i shdrPrg.samplerUniform, 0
+
+  # draw
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
 window.webGLStart = (width, height) ->
   canvas = document.getElementById "game-canvas"
-  resources = new cc.Resources
-  resources.image 'imgtst.gif'
+  resources.image 'mario.gif'
   resources.onLoadStatusUpdate (cmplt) ->
     if cmplt >= 1
       initGL canvas, width, height
       initShaders()
       initBuffers()
+      initTexture()
 
       gl.clearColor 0.0, 0.0, 0.0, 1.0
       gl.enable gl.DEPTH_TEST
