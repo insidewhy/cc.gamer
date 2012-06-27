@@ -17,25 +17,14 @@ spriteCanvas.height = 2048
 # offset into canvas texture cache of current tilesheet
 tileCoord = vec2.createFrom 0, 0
 
-# imgPath = 'mario_nes.png'
-# spriteHeight = 34
-# spriteWidth = 30
-# tileOffset = [
-#   vec2.createFrom 0, 28
-#   vec2.createFrom 1, 28
-#   vec2.createFrom 2, 28
-#   vec2.createFrom 1, 28 ]
-
-
-imgPath = 'mario.gif'
-spriteHeight = 32
+imgPath = 'chars.png'
+spriteHeight = 48
 spriteWidth = 32
 tileOffset = [
-  vec2.createFrom 0, 0
-  vec2.createFrom 0, 1
-  vec2.createFrom 1, 1
-  vec2.createFrom 0, 1 ]
-
+  vec2.createFrom 6, 5
+  vec2.createFrom 7, 5
+  vec2.createFrom 8, 5
+  vec2.createFrom 7, 5 ]
 
 gl = null
 initGL = (canvas, width, height) ->
