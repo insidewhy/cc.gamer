@@ -24,27 +24,30 @@ initShaders = () ->
   do shdrPrg.attachSpriteFragmentShader
   do shdrPrg.attachSpriteVertexShader
   do shdrPrg.link
-  do shdrPrg.getSpriteVariables
+  do shdrPrg.requestShaderVariables
   return
+
+# canvas on which to draw all sprite sheets
+spriteCanvas = document.createElement 'canvas'
+
+# i think up to 4096 should be okay
+spriteCanvas.width = 2048
+spriteCanvas.height = 2048
+
+spriteHeight = 32
+spriteWidth = 32
+tileSize = vec2.createFrom spriteWidth / spriteCanvas.width,
+                           spriteHeight / spriteCanvas.height
 
 mvMatrix = mat4.create()
 pMatrix = mat4.create()
-szVector = vec2.createFrom 0.5, 0.5
-# szVector = vec2.createFrom 1.0, 1.0
-offsets = [
+tileOffset = [
   vec2.createFrom 0, 0
   vec2.createFrom 0, 1
   vec2.createFrom 1, 1
   vec2.createFrom 0, 1 ]
 
-offsetVector = offsets[0]
 offsetIdx = 0
-
-setMatrixUniforms = () ->
-  gl.uniformMatrix4fv shdrPrg.pMatrixUniform, false, pMatrix
-  gl.uniformMatrix4fv shdrPrg.mvMatrixUniform, false, mvMatrix
-  gl.uniform2fv shdrPrg.pTextureSzUniform, szVector
-  gl.uniform2fv shdrPrg.pTextureOffsetUniform, offsetVector
 
 squareVertexPositionBuffer = null
 squareVertexTextureCoordBuffer = null
@@ -76,37 +79,29 @@ initBuffers = () ->
 imgTexture = null
 initTexture = () ->
   imgTexture = gl.createTexture()
-  imgTexture.img = resources.images['mario.gif']
+
+  # draw sprite sheet at bottom of large spriteCanvas cache
+  data = resources.images['mario.gif'].data
+  spriteCanvas.getContext('2d').drawImage(data, 0, spriteCanvas.height - data.height)
+
   gl.bindTexture gl.TEXTURE_2D, imgTexture
   gl.pixelStorei gl.UNPACK_FLIP_Y_WEBGL, true
-  gl.texImage2D gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgTexture.img.data
+  gl.texImage2D gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, spriteCanvas
   gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST
   gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST
   gl.bindTexture gl.TEXTURE_2D, null
 
 drawScene = () ->
-  gl.viewport 0, 0, gl.viewportWidth, gl.viewportHeight
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
-  mat4.perspective(90, gl.viewportWidth / gl.viewportHeight, 300.0, 600.0, pMatrix)
 
   # move to position to place square
   mat4.identity mvMatrix
   mat4.translate mvMatrix, [0.0, 0.0, -gl.viewportWidth]
 
-  # setup vertices
-  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-  gl.vertexAttribPointer shdrPrg.vertexPositionAttribute,
-    squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
-  setMatrixUniforms()
-
-  # setup texture
-  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer
-  gl.vertexAttribPointer shdrPrg.textureCoordAttribute, squareVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0
-
-  gl.activeTexture gl.TEXTURE0
-  gl.bindTexture gl.TEXTURE_2D, imgTexture
-  gl.uniform1i shdrPrg.samplerUniform, 0
+  # change tilesheet offset
+  gl.uniformMatrix4fv shdrPrg.u.mvMatrix, false, mvMatrix
+  gl.uniform2fv shdrPrg.u.tileSize, tileSize
+  gl.uniform2fv shdrPrg.u.tileOffset, tileOffset[offsetIdx]
 
   # draw
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
@@ -127,10 +122,8 @@ animate = ->
   now = new Date().getTime() / 1000
   return if now < nextFrame
 
-  if ++offsetIdx is offsets.length
+  if ++offsetIdx is tileOffset.length
     offsetIdx = 0
-
-  offsetVector = offsets[offsetIdx]
 
   vec2.createFrom 0, 0
 
@@ -156,7 +149,26 @@ window.webGLStart = (width, height) ->
       gl.enable gl.BLEND
       gl.enable gl.DEPTH_TEST
 
+      # setup texture
+      # TODO: this should change for different surfaces
+      gl.bindBuffer gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer
+      gl.vertexAttribPointer shdrPrg.a.textureCoord, squareVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0
+      gl.activeTexture gl.TEXTURE0
+      gl.bindTexture gl.TEXTURE_2D, imgTexture
+      gl.uniform1i shdrPrg.u.sampler, 0
+
+      # setup surface
+      gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
+      gl.vertexAttribPointer shdrPrg.a.vertexPosition,
+        squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
+
+      # and perspesctive
+      mat4.perspective(90, gl.viewportWidth / gl.viewportHeight, 300.0, 600.0, pMatrix)
+      gl.uniformMatrix4fv shdrPrg.u.pMatrix, false, pMatrix
+
+      # avast
+      gl.viewport 0, 0, gl.viewportWidth, gl.viewportHeight
+
       do tick
-      # do drawScene
 
 # vim:ts=2 sw=2

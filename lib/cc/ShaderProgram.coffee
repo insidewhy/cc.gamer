@@ -2,6 +2,8 @@ cc.module('cc.ShaderProgram').defines -> @set cc.Class.extend {
   init: (gl) ->
     @gl = gl
     @prgrm = @gl.createProgram()
+    @u = {} # uniforms
+    @a = {} # attributes
 
   attachSpriteFragmentShader: ->
     content = """
@@ -9,32 +11,32 @@ cc.module('cc.ShaderProgram').defines -> @set cc.Class.extend {
 
         varying vec2 vTextureCoord;
 
-        uniform vec2 vTextureSize;
-        uniform vec2 vTextureOffset;
-        uniform sampler2D uSampler;
+        uniform vec2 tileSize;
+        uniform vec2 tileOffset;
+        uniform sampler2D sampler;
 
         void main(void) {
           // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-          gl_FragColor = texture2D(uSampler,
-              vec2(vTextureCoord.s, vTextureCoord.t) * vTextureSize +
-              (vTextureSize * vTextureOffset));
+          gl_FragColor = texture2D(sampler,
+              vec2(vTextureCoord.s, vTextureCoord.t) * tileSize +
+              (tileSize * tileOffset));
         }"""
     shader = @gl.createShader @gl.FRAGMENT_SHADER
     @_attachShader shader, content
 
   attachSpriteVertexShader: ->
     content = """
-        attribute vec3 aVertexPosition;
-        attribute vec2 aTextureCoord;
+        attribute vec3 vertexPosition;
+        attribute vec2 textureCoord;
 
-        uniform mat4 uMVMatrix;
-        uniform mat4 uPMatrix;
+        uniform mat4 mvMatrix;
+        uniform mat4 pMatrix;
 
         varying vec2 vTextureCoord;
 
         void main(void) {
-          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-          vTextureCoord = aTextureCoord;
+          gl_Position = pMatrix * mvMatrix * vec4(vertexPosition, 1.0);
+          vTextureCoord = textureCoord;
         }"""
     shader = @gl.createShader @gl.VERTEX_SHADER
     @_attachShader shader, content
@@ -56,17 +58,18 @@ cc.module('cc.ShaderProgram').defines -> @set cc.Class.extend {
     @gl.useProgram @prgrm
 
   # TODO: remove this nonsense
-  getSpriteVariables: ->
-    @vertexPositionAttribute = @gl.getAttribLocation @prgrm, "aVertexPosition"
-    @gl.enableVertexAttribArray @vertexPositionAttribute
+  requestShaderVariables: ->
+    @a.vertexPosition = @gl.getAttribLocation @prgrm, "vertexPosition"
+    @gl.enableVertexAttribArray @a.vertexPosition
 
-    @textureCoordAttribute = @gl.getAttribLocation @prgrm, "aTextureCoord"
-    @gl.enableVertexAttribArray @textureCoordAttribute
+    @a.textureCoord = @gl.getAttribLocation @prgrm, "textureCoord"
+    @gl.enableVertexAttribArray @a.textureCoord
 
-    @pTextureSzUniform = @gl.getUniformLocation @prgrm, "vTextureSize"
-    @pTextureOffsetUniform = @gl.getUniformLocation @prgrm, "vTextureOffset"
-    @pMatrixUniform = @gl.getUniformLocation @prgrm, "uPMatrix"
-    @mvMatrixUniform = @gl.getUniformLocation @prgrm, "uMVMatrix"
-    @samplerUniform = @gl.getUniformLocation @prgrm, "uSampler"
+    @u.tileSize = @gl.getUniformLocation @prgrm, "tileSize"
+    @u.tileOffset = @gl.getUniformLocation @prgrm, "tileOffset"
+    @u.sampler = @gl.getUniformLocation @prgrm, "sampler"
+
+    @u.pMatrix = @gl.getUniformLocation @prgrm, "pMatrix"
+    @u.mvMatrix = @gl.getUniformLocation @prgrm, "mvMatrix"
 }
 # vim:ts=2 sw=2
