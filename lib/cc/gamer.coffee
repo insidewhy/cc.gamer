@@ -4,6 +4,7 @@ cc.module('cc.gamer').requires(
   'cc.Entity'
   'cc.Resources'
   'cc.LoadingScreen'
+  'cc.ShaderProgram'
   'cc.Game'
 ).empty()
 

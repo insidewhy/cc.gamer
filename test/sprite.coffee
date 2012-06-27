@@ -17,60 +17,14 @@ initGL = (canvas, width, height) ->
     alert("could not initialise WebGL")
   return
 
-getShader = (gl, id) ->
-  shaderScript = document.getElementById(id)
-  return null unless shaderScript
-
-  str = ""
-  k = shaderScript.firstChild
-  while k
-    str += k.textContent if k.nodeType is 3
-    k = k.nextSibling
-
-  shader
-  if shaderScript.type is "x-shader/x-fragment"
-    shader = gl.createShader gl.FRAGMENT_SHADER
-  else if shaderScript.type is "x-shader/x-vertex"
-    shader = gl.createShader gl.VERTEX_SHADER
-  else
-    return null
-
-  gl.shaderSource shader, str
-  gl.compileShader shader
-
-  if not gl.getShaderParameter(shader, gl.COMPILE_STATUS)
-    alert gl.getShaderInfoLog(shader)
-    null
-  else
-    shader
-
 shdrPrg = null
 
 initShaders = () ->
-  fragmentShader = getShader(gl, "shader-fs")
-  vertexShader = getShader(gl, "shader-vs")
-
-  shdrPrg = gl.createProgram()
-  gl.attachShader shdrPrg, vertexShader
-  gl.attachShader shdrPrg, fragmentShader
-  gl.linkProgram shdrPrg
-
-  if not gl.getProgramParameter shdrPrg, gl.LINK_STATUS
-    alert "Could not initialise shaders"
-
-  gl.useProgram shdrPrg
-
-  shdrPrg.vertexPositionAttribute = gl.getAttribLocation shdrPrg, "aVertexPosition"
-  gl.enableVertexAttribArray shdrPrg.vertexPositionAttribute
-
-  shdrPrg.textureCoordAttribute = gl.getAttribLocation shdrPrg, "aTextureCoord"
-  gl.enableVertexAttribArray shdrPrg.textureCoordAttribute
-
-  shdrPrg.pTextureSzUniform = gl.getUniformLocation shdrPrg, "vTextureSize"
-  shdrPrg.pTextureOffsetUniform = gl.getUniformLocation shdrPrg, "vTextureOffset"
-  shdrPrg.pMatrixUniform = gl.getUniformLocation shdrPrg, "uPMatrix"
-  shdrPrg.mvMatrixUniform = gl.getUniformLocation shdrPrg, "uMVMatrix"
-  shdrPrg.samplerUniform = gl.getUniformLocation shdrPrg, "uSampler"
+  shdrPrg = new cc.ShaderProgram gl
+  do shdrPrg.attachSpriteFragmentShader
+  do shdrPrg.attachSpriteVertexShader
+  do shdrPrg.link
+  do shdrPrg.getSpriteVariables
   return
 
 mvMatrix = mat4.create()
@@ -81,8 +35,7 @@ offsets = [
   vec2.createFrom 0, 0
   vec2.createFrom 0, 1
   vec2.createFrom 1, 1
-  vec2.createFrom 0, 1
-]
+  vec2.createFrom 0, 1 ]
 
 offsetVector = offsets[0]
 offsetIdx = 0
@@ -167,7 +120,7 @@ window.requestAnimFrame = do ->
          (callback, element) ->
            window.setTimeout callback, 1000/60
 
-frameRate = 0.5
+frameRate = 0.3
 nextFrame = (new Date().getTime() / 1000) + frameRate
 
 animate = ->
