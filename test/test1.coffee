@@ -66,6 +66,8 @@ initShaders = () ->
   shdrPrg.textureCoordAttribute = gl.getAttribLocation shdrPrg, "aTextureCoord"
   gl.enableVertexAttribArray shdrPrg.textureCoordAttribute
 
+  shdrPrg.pTextureSzUniform = gl.getUniformLocation shdrPrg, "vTextureSize"
+  shdrPrg.pTextureOffsetUniform = gl.getUniformLocation shdrPrg, "vTextureOffset"
   shdrPrg.pMatrixUniform = gl.getUniformLocation shdrPrg, "uPMatrix"
   shdrPrg.mvMatrixUniform = gl.getUniformLocation shdrPrg, "uMVMatrix"
   shdrPrg.samplerUniform = gl.getUniformLocation shdrPrg, "uSampler"
@@ -73,10 +75,23 @@ initShaders = () ->
 
 mvMatrix = mat4.create()
 pMatrix = mat4.create()
+szVector = vec2.createFrom 0.5, 0.5
+# szVector = vec2.createFrom 1.0, 1.0
+offsets = [
+  vec2.createFrom 0, 0
+  vec2.createFrom 0, 1
+  vec2.createFrom 1, 1
+  vec2.createFrom 0, 1
+]
+
+offsetVector = offsets[0]
+offsetIdx = 0
 
 setMatrixUniforms = () ->
   gl.uniformMatrix4fv shdrPrg.pMatrixUniform, false, pMatrix
   gl.uniformMatrix4fv shdrPrg.mvMatrixUniform, false, mvMatrix
+  gl.uniform2fv shdrPrg.pTextureSzUniform, szVector
+  gl.uniform2fv shdrPrg.pTextureOffsetUniform, offsetVector
 
 squareVertexPositionBuffer = null
 squareVertexTextureCoordBuffer = null
@@ -84,11 +99,12 @@ squareVertexTextureCoordBuffer = null
 initBuffers = () ->
   squareVertexPositionBuffer = gl.createBuffer()
   gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
+  scale = 256.0
   vertices = [
-     1.0,  1.0,  0.0,
-    -1.0,  1.0,  0.0,
-     1.0, -1.0,  0.0,
-    -1.0, -1.0,  0.0 ]
+     scale,  scale,  0.0,
+    -scale,  scale,  0.0,
+     scale, -scale,  0.0,
+    -scale, -scale,  0.0 ]
   gl.bufferData gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW
   squareVertexPositionBuffer.itemSize = 3
   squareVertexPositionBuffer.numItems = 4
@@ -110,7 +126,7 @@ initTexture = () ->
   imgTexture.img = resources.images['mario.gif']
   gl.bindTexture gl.TEXTURE_2D, imgTexture
   gl.pixelStorei gl.UNPACK_FLIP_Y_WEBGL, true
-  gl.texImage2D gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgTexture.img
+  gl.texImage2D gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imgTexture.img.data
   gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST
   gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST
   gl.bindTexture gl.TEXTURE_2D, null
@@ -119,11 +135,11 @@ drawScene = () ->
   gl.viewport 0, 0, gl.viewportWidth, gl.viewportHeight
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-  mat4.perspective(90, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix)
+  mat4.perspective(90, gl.viewportWidth / gl.viewportHeight, 300.0, 600.0, pMatrix)
 
   # move to position to place square
   mat4.identity mvMatrix
-  mat4.translate mvMatrix, [0.0, 0.0, -2.0]
+  mat4.translate mvMatrix, [0.0, 0.0, -gl.viewportWidth]
 
   # setup vertices
   gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
@@ -142,6 +158,36 @@ drawScene = () ->
   # draw
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
+window.requestAnimFrame = do ->
+  window.requestAnimationFrame or
+         window.webkitRequestAnimationFrame or
+         window.mozRequestAnimationFrame or
+         window.oRequestAnimationFrame or
+         window.msRequestAnimationFrame or
+         (callback, element) ->
+           window.setTimeout callback, 1000/60
+
+frameRate = 0.1
+nextFrame = (new Date().getTime() / 1000) + frameRate
+
+animate = ->
+  now = new Date().getTime() / 1000
+  return if now < nextFrame
+
+  if ++offsetIdx is offsets.length
+    offsetIdx = 0
+
+  offsetVector = offsets[offsetIdx]
+
+  vec2.createFrom 0, 0
+
+  nextFrame = now + frameRate
+
+tick = ->
+  requestAnimFrame tick
+  do drawScene
+  do animate
+
 window.webGLStart = (width, height) ->
   canvas = document.getElementById "game-canvas"
   resources.image 'mario.gif'
@@ -157,6 +203,7 @@ window.webGLStart = (width, height) ->
       gl.enable gl.BLEND
       gl.enable gl.DEPTH_TEST
 
-      drawScene()
+      do tick
+      # do drawScene
 
 # vim:ts=2 sw=2

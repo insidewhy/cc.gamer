@@ -1,5 +1,5 @@
 # a cache of images/sounds used by a game
-cc.module('cc.Resources').defines -> @set cc.Class.extend {
+cc.module('cc.Resources').requires('cc.Image').defines -> @set cc.Class.extend {
   init: ->
     @images = {}
     @audios = {}
@@ -20,9 +20,7 @@ cc.module('cc.Resources').defines -> @set cc.Class.extend {
     img = @images[path]
     return img if img
     ++@nToLoad
-    img = @images[path] = new Image
-    img.onload = => do @_loaded
-    img.src = path
+    img = @images[path] = new cc.Image path, => do @_loaded
     img
 
   # calls callback, first with current load status, then again with load status
