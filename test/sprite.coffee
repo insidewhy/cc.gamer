@@ -7,6 +7,36 @@ log = (arg) ->
 # resource loader
 resources = new cc.Resources
 
+# canvas on which to draw all sprite sheets
+spriteCanvas = document.createElement 'canvas'
+
+# i think up to 4096 should be okay
+spriteCanvas.width = 2048
+spriteCanvas.height = 2048
+
+# offset into canvas texture cache of current tilesheet
+tileCoord = vec2.createFrom 0, 0
+
+# imgPath = 'mario_nes.png'
+# spriteHeight = 34
+# spriteWidth = 30
+# tileOffset = [
+#   vec2.createFrom 0, 28
+#   vec2.createFrom 1, 28
+#   vec2.createFrom 2, 28
+#   vec2.createFrom 1, 28 ]
+
+
+imgPath = 'mario.gif'
+spriteHeight = 32
+spriteWidth = 32
+tileOffset = [
+  vec2.createFrom 0, 0
+  vec2.createFrom 0, 1
+  vec2.createFrom 1, 1
+  vec2.createFrom 0, 1 ]
+
+
 gl = null
 initGL = (canvas, width, height) ->
   try
@@ -27,25 +57,11 @@ initShaders = () ->
   do shdrPrg.requestShaderVariables
   return
 
-# canvas on which to draw all sprite sheets
-spriteCanvas = document.createElement 'canvas'
-
-# i think up to 4096 should be okay
-spriteCanvas.width = 2048
-spriteCanvas.height = 2048
-
-spriteHeight = 32
-spriteWidth = 32
 tileSize = vec2.createFrom spriteWidth / spriteCanvas.width,
                            spriteHeight / spriteCanvas.height
 
 mvMatrix = mat4.create()
 pMatrix = mat4.create()
-tileOffset = [
-  vec2.createFrom 0, 0
-  vec2.createFrom 0, 1
-  vec2.createFrom 1, 1
-  vec2.createFrom 0, 1 ]
 
 offsetIdx = 0
 
@@ -81,7 +97,7 @@ initTexture = () ->
   imgTexture = gl.createTexture()
 
   # draw sprite sheet at bottom of large spriteCanvas cache
-  data = resources.images['mario.gif'].data
+  data = resources.images[imgPath].data
   spriteCanvas.getContext('2d').drawImage(data, 0, spriteCanvas.height - data.height)
 
   gl.bindTexture gl.TEXTURE_2D, imgTexture
@@ -102,6 +118,7 @@ drawScene = () ->
   gl.uniformMatrix4fv shdrPrg.u.mvMatrix, false, mvMatrix
   gl.uniform2fv shdrPrg.u.tileSize, tileSize
   gl.uniform2fv shdrPrg.u.tileOffset, tileOffset[offsetIdx]
+  gl.uniform2fv shdrPrg.u.tileCoord, tileCoord
 
   # draw
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
@@ -136,7 +153,7 @@ tick = ->
 
 window.webGLStart = (width, height) ->
   canvas = document.getElementById "game-canvas"
-  resources.image 'mario.gif'
+  resources.image imgPath
   resources.onLoadStatusUpdate (cmplt) ->
     if cmplt >= 1
       initGL canvas, width, height

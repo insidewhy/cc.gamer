@@ -13,13 +13,14 @@ cc.module('cc.ShaderProgram').defines -> @set cc.Class.extend {
 
         uniform vec2 tileSize;
         uniform vec2 tileOffset;
+        uniform vec2 tileCoord;
         uniform sampler2D sampler;
 
         void main(void) {
           // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
           gl_FragColor = texture2D(sampler,
               vec2(vTextureCoord.s, vTextureCoord.t) * tileSize +
-              (tileSize * tileOffset));
+              (tileSize * tileOffset) + tileCoord);
         }"""
     shader = @gl.createShader @gl.FRAGMENT_SHADER
     @_attachShader shader, content
@@ -67,6 +68,7 @@ cc.module('cc.ShaderProgram').defines -> @set cc.Class.extend {
 
     @u.tileSize = @gl.getUniformLocation @prgrm, "tileSize"
     @u.tileOffset = @gl.getUniformLocation @prgrm, "tileOffset"
+    @u.tileCoord = @gl.getUniformLocation @prgrm, "tileCoord"
     @u.sampler = @gl.getUniformLocation @prgrm, "sampler"
 
     @u.pMatrix = @gl.getUniformLocation @prgrm, "pMatrix"
