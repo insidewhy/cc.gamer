@@ -167,7 +167,7 @@ window.requestAnimFrame = do ->
          (callback, element) ->
            window.setTimeout callback, 1000/60
 
-frameRate = 0.1
+frameRate = 0.5
 nextFrame = (new Date().getTime() / 1000) + frameRate
 
 animate = ->
