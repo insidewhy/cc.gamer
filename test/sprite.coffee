@@ -18,8 +18,8 @@ spriteCanvas.height = 2048
 tileCoord = vec2.createFrom 0, 0
 
 imgPath = 'chars.png'
-spriteHeight = 48
-spriteWidth = 32
+spriteHeight = 48.0
+spriteWidth = 32.0
 tileOffset = [
   vec2.createFrom 6, 5
   vec2.createFrom 7, 5
@@ -60,12 +60,14 @@ squareVertexTextureCoordBuffer = null
 initBuffers = () ->
   squareVertexPositionBuffer = gl.createBuffer()
   gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-  scale = 256.0
+
+  sY = spriteHeight / 2.0
+  sX = spriteWidth / 2.0
   vertices = [
-     scale,  scale,  0.0,
-    -scale,  scale,  0.0,
-     scale, -scale,  0.0,
-    -scale, -scale,  0.0 ]
+     sX,  sY,  0.0,
+    -sX,  sY,  0.0,
+     sX, -sY,  0.0,
+    -sX, -sY,  0.0 ]
   gl.bufferData gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW
   squareVertexPositionBuffer.itemSize = 3
   squareVertexPositionBuffer.numItems = 4
@@ -101,7 +103,9 @@ drawScene = () ->
 
   # move to position to place square
   mat4.identity mvMatrix
-  mat4.translate mvMatrix, [0.0, 0.0, -gl.viewportWidth]
+  # mat4.translate mvMatrix, [0.0, 0.0, (-gl.viewportHeight / 2)]
+  # zoom 2
+  mat4.translate mvMatrix, [0.0, 0.0, -gl.viewportHeight / 4]
 
   # change tilesheet offset
   gl.uniformMatrix4fv shdrPrg.u.mvMatrix, false, mvMatrix
@@ -169,7 +173,8 @@ window.webGLStart = (width, height) ->
         squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
 
       # and perspesctive
-      mat4.perspective(90, gl.viewportWidth / gl.viewportHeight, 300.0, 600.0, pMatrix)
+      # TODO: reduce interval between min/max
+      mat4.perspective(90, gl.viewportWidth / gl.viewportHeight, 1.0, 300.0, pMatrix)
       gl.uniformMatrix4fv shdrPrg.u.pMatrix, false, pMatrix
 
       # avast
