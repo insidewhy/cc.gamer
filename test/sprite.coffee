@@ -56,11 +56,13 @@ initBuffers = () ->
 
   sY = spriteHeight / 2.0
   sX = spriteWidth / 2.0
+
+  # bottom left corner of sprite at center of mvMatrix
   vertices = [
-     sX,  sY,  0.0,
-    -sX,  sY,  0.0,
-     sX, -sY,  0.0,
-    -sX, -sY,  0.0 ]
+    spriteWidth, spriteHeight, 0.0,
+    0.0,         spriteHeight, 0.0,
+    spriteWidth, 0.0,          0.0,
+    0.0,         0.0,          0.0 ]
   gl.bufferData gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW
   squareVertexPositionBuffer.itemSize = 3
   squareVertexPositionBuffer.numItems = 4
@@ -96,9 +98,12 @@ drawScene = () ->
 
   # move to position to place square
   mat4.identity mvMatrix
-  # mat4.translate mvMatrix, [0.0, 0.0, (-gl.viewportHeight / 2)]
-  # zoom 2
-  mat4.translate mvMatrix, [0.0, 0.0, -gl.viewportHeight / 4]
+  scale = 2
+  # this ensures that an object of maximum height will fit exactly in the screen
+  zDistance = -gl.viewportHeight / (2 * scale)
+
+  # move to bottom left corner
+  mat4.translate mvMatrix, [-gl.viewportWidth / (2 * scale), zDistance, zDistance]
 
   # change tilesheet offset
   gl.uniformMatrix4fv shdrPrg.u.mvMatrix, false, mvMatrix
@@ -118,8 +123,8 @@ window.requestAnimFrame = do ->
          (callback, element) ->
            window.setTimeout callback, 1000/60
 
-frameRate = 0.3
-nextFrame = (new Date().getTime() / 1000) + frameRate
+frameRate = 4 # animation updates per second
+nextFrame = (new Date().getTime() / 1000) + 1/frameRate
 
 animate = ->
   now = new Date().getTime() / 1000
@@ -130,7 +135,7 @@ animate = ->
 
   vec2.createFrom 0, 0
 
-  nextFrame = now + frameRate
+  nextFrame = now + 1/frameRate
   return
 
 tick = ->
