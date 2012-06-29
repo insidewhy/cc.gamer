@@ -14,6 +14,9 @@ spriteCanvas = document.createElement 'canvas'
 spriteCanvas.width = 2048
 spriteCanvas.height = 2048
 
+# gl shader program
+shdrPrg = null
+
 # offset into canvas texture cache of current tilesheet
 tileCoord = vec2.createFrom 0, 0
 
@@ -34,16 +37,6 @@ initGL = (canvas, width, height) ->
     gl.viewportHeight = canvas.height = height
   catch e
     alert("could not initialise WebGL")
-  return
-
-shdrPrg = null
-
-initShaders = () ->
-  shdrPrg = new cc.ShaderProgram gl
-  do shdrPrg.attachSpriteFragmentShader
-  do shdrPrg.attachSpriteVertexShader
-  do shdrPrg.link
-  do shdrPrg.requestShaderVariables
   return
 
 tileSize = vec2.createFrom spriteWidth / spriteCanvas.width,
@@ -138,6 +131,7 @@ animate = ->
   vec2.createFrom 0, 0
 
   nextFrame = now + frameRate
+  return
 
 tick = ->
   requestAnimFrame tick
@@ -150,7 +144,8 @@ window.webGLStart = (width, height) ->
   resources.onLoadStatusUpdate (cmplt) ->
     if cmplt >= 1
       initGL canvas, width, height
-      initShaders()
+      shdrPrg = new cc.SpriteShaderProgram gl
+      do shdrPrg.link
       initBuffers()
       initTexture()
 

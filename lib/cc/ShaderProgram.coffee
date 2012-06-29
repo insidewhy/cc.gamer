@@ -5,7 +5,36 @@ cc.module('cc.ShaderProgram').defines -> @set cc.Class.extend {
     @u = {} # uniforms
     @a = {} # attributes
 
-  attachSpriteFragmentShader: ->
+  _attachShader: (shader, content) ->
+    @gl.shaderSource shader, content
+    @gl.compileShader shader
+
+    if not @gl.getShaderParameter shader, @gl.COMPILE_STATUS
+      alert @gl.getShaderInfoLog shader
+    else
+      @gl.attachShader @prgrm, shader
+    return
+
+  _attribVertices: (names...) ->
+    for name in names
+      @gl.enableVertexAttribArray(@a[name] = @gl.getAttribLocation @prgrm, name)
+    return
+
+  _uniforms: (names...) ->
+    for name in names
+      @u[name] = @gl.getUniformLocation @prgrm, name
+    return
+
+  # override this to attach fragment shaders first
+  link: ->
+    @gl.linkProgram @prgrm
+    if not @gl.getProgramParameter @prgrm, @gl.LINK_STATUS
+      alert "Could not initialise shaders"
+    @gl.useProgram @prgrm
+}
+
+cc.module('cc.SpriteShaderProgram').defines -> @set cc.ShaderProgram.extend {
+  _attachSpriteFragmentShader: ->
     content = """
         precision mediump float;
 
@@ -25,7 +54,7 @@ cc.module('cc.ShaderProgram').defines -> @set cc.Class.extend {
     shader = @gl.createShader @gl.FRAGMENT_SHADER
     @_attachShader shader, content
 
-  attachSpriteVertexShader: ->
+  _attachSpriteVertexShader: ->
     content = """
         attribute vec3 vertexPosition;
         attribute vec2 textureCoord;
@@ -42,36 +71,13 @@ cc.module('cc.ShaderProgram').defines -> @set cc.Class.extend {
     shader = @gl.createShader @gl.VERTEX_SHADER
     @_attachShader shader, content
 
-  _attachShader: (shader, content) ->
-    @gl.shaderSource shader, content
-    @gl.compileShader shader
-
-    if not @gl.getShaderParameter shader, @gl.COMPILE_STATUS
-      alert @gl.getShaderInfoLog shader
-    else
-      @gl.attachShader @prgrm, shader
-    return
-
   link: ->
-    @gl.linkProgram @prgrm
-    if not @gl.getProgramParameter @prgrm, @gl.LINK_STATUS
-      alert "Could not initialise shaders"
-    @gl.useProgram @prgrm
-
-  # TODO: remove this nonsense
-  requestShaderVariables: ->
-    @a.vertexPosition = @gl.getAttribLocation @prgrm, "vertexPosition"
-    @gl.enableVertexAttribArray @a.vertexPosition
-
-    @a.textureCoord = @gl.getAttribLocation @prgrm, "textureCoord"
-    @gl.enableVertexAttribArray @a.textureCoord
-
-    @u.tileSize = @gl.getUniformLocation @prgrm, "tileSize"
-    @u.tileOffset = @gl.getUniformLocation @prgrm, "tileOffset"
-    @u.tileCoord = @gl.getUniformLocation @prgrm, "tileCoord"
-    @u.sampler = @gl.getUniformLocation @prgrm, "sampler"
-
-    @u.pMatrix = @gl.getUniformLocation @prgrm, "pMatrix"
-    @u.mvMatrix = @gl.getUniformLocation @prgrm, "mvMatrix"
+    do @_attachSpriteFragmentShader
+    do @_attachSpriteVertexShader
+    do @parent
+    @_attribVertices "vertexPosition", "textureCoord"
+    @_uniforms "tileSize", "tileOffset", "tileCoord", "sampler",
+               "pMatrix", "mvMatrix"
+    return
 }
 # vim:ts=2 sw=2

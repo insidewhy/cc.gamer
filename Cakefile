@@ -32,10 +32,6 @@ testServer = ->
   console.log "please go to http://localhost:#{port}/"
   app.listen port
 
-task 'test', 'test cc.extend', (options) ->
-  invoke 'web'
-  ake.assert testServer
-
 tryExec = (prefix, cmd) ->
   exec cmd, (err, stdout, stderr) ->
     if err
@@ -44,16 +40,16 @@ tryExec = (prefix, cmd) ->
       console.log prefix, "success"
     return
 
-task 'watch', 'start test server then watch source files and recompile as they change', (options) ->
+task 'test', 'test cc.extend', (options) ->
   invoke 'web'
   ake.assert ->
     do testServer
     ake.watch 'test',
       /.coffee$/, (fname) ->
-        tryExec "change #{fname}", 'coffee -c test'
+        tryExec "#{fname} changed: recompile tests", 'coffee -c test'
     ake.watch 'lib/cc',
       /.coffee$/, (fname) ->
-        console.log "rebuild cc/gamer.js"
+        console.log "#{fname} changed: rebuild cc/gamer.js"
         do _bakeResources
 
 
