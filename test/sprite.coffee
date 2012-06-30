@@ -42,9 +42,6 @@ initGL = (canvas, width, height) ->
 tileSize = vec2.createFrom spriteWidth / spriteCanvas.width,
                            spriteHeight / spriteCanvas.height
 
-mvMatrix = mat4.create()
-pMatrix = mat4.create()
-
 offsetIdx = 0
 
 squareVertexPositionBuffer = null
@@ -97,21 +94,18 @@ drawScene = () ->
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
   # move to position to place square
-  mat4.identity mvMatrix
   scale = 2
-  # this ensures that an object of maximum height will fit exactly in the screen
-  zDistance = -gl.viewportHeight / (2 * scale)
-
-  # move to bottom left corner
-  mat4.translate mvMatrix, [-gl.viewportWidth / (2 * scale), zDistance, zDistance]
 
   # change tilesheet offset
-  gl.uniformMatrix4fv shdrPrg.u.mvMatrix, false, mvMatrix
   gl.uniform2fv shdrPrg.u.tileSize, tileSize
   gl.uniform2fv shdrPrg.u.tileOffset, tileOffset[offsetIdx]
   gl.uniform2fv shdrPrg.u.tileCoord, tileCoord
 
   # draw
+  shdrPrg.drawAt 0.0, 0.0
+  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+  shdrPrg.drawAt 100.0, 0.0
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
 window.requestAnimFrame = do ->
@@ -149,7 +143,7 @@ window.webGLStart = (width, height) ->
   resources.onLoadStatusUpdate (cmplt) ->
     if cmplt >= 1
       initGL canvas, width, height
-      shdrPrg = new cc.SpriteShaderProgram gl
+      shdrPrg = new cc.SpriteShaderProgram gl, scale: 2
       do shdrPrg.link
       initBuffers()
       initTexture()
@@ -159,8 +153,10 @@ window.webGLStart = (width, height) ->
       gl.enable gl.BLEND
       gl.enable gl.DEPTH_TEST
 
-      # setup texture
-      # TODO: this should change for different surfaces
+      # avast
+      gl.viewport 0, 0, gl.viewportWidth, gl.viewportHeight
+
+      # a standard square texture
       gl.bindBuffer gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer
       gl.vertexAttribPointer shdrPrg.a.textureCoord, squareVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0
       gl.activeTexture gl.TEXTURE0
@@ -172,13 +168,7 @@ window.webGLStart = (width, height) ->
       gl.vertexAttribPointer shdrPrg.a.vertexPosition,
         squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
 
-      # and perspesctive
-      # TODO: reduce interval between min/max
-      mat4.perspective(90, gl.viewportWidth / gl.viewportHeight, 1.0, 300.0, pMatrix)
-      gl.uniformMatrix4fv shdrPrg.u.pMatrix, false, pMatrix
-
-      # avast
-      gl.viewport 0, 0, gl.viewportWidth, gl.viewportHeight
+      shdrPrg.perspective 90
 
       do tick
 
