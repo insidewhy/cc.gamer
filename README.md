@@ -18,3 +18,9 @@ TODO
 cc.gamer test server listening on: 8014
 please go to http://localhost:8014/
 ```
+
+# status
+* Module system: done [cc.loader](http://github.com/nuisanceofcats/cc.loader)
+* Class system: done [cc.extend](http://github.com/nuisanceofcats/cc.extend)
+* WebGL backend: in progress
+* Canvas backend: not started

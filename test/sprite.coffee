@@ -15,7 +15,7 @@ spriteCanvas.width = 2048
 spriteCanvas.height = 2048
 
 # gl shader program
-shdrPrg = null
+shdr = null
 
 # offset into canvas texture cache of current tilesheet
 tileCoord = vec2.createFrom 0, 0
@@ -30,14 +30,6 @@ tileOffset = [
   vec2.createFrom 7, 5 ]
 
 gl = null
-initGL = (canvas, width, height) ->
-  try
-    gl = canvas.getContext("experimental-webgl")
-    gl.viewportWidth = canvas.width = width
-    gl.viewportHeight = canvas.height = height
-  catch e
-    alert("could not initialise WebGL")
-  return
 
 tileSize = vec2.createFrom spriteWidth / spriteCanvas.width,
                            spriteHeight / spriteCanvas.height
@@ -93,29 +85,17 @@ initTexture = () ->
 drawScene = () ->
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-  # move to position to place square
-  scale = 2
-
   # change tilesheet offset
-  gl.uniform2fv shdrPrg.u.tileSize, tileSize
-  gl.uniform2fv shdrPrg.u.tileOffset, tileOffset[offsetIdx]
-  gl.uniform2fv shdrPrg.u.tileCoord, tileCoord
+  gl.uniform2fv shdr.u.tileSize, tileSize
+  gl.uniform2fv shdr.u.tileOffset, tileOffset[offsetIdx]
+  gl.uniform2fv shdr.u.tileCoord, tileCoord
 
   # draw
-  shdrPrg.drawAt 0.0, 0.0
+  shdr.drawAt 0.0, 0.0
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
-  shdrPrg.drawAt 100.0, 0.0
+  shdr.drawAt 100.0, 0.0
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
-
-window.requestAnimFrame = do ->
-  window.requestAnimationFrame or
-         window.webkitRequestAnimationFrame or
-         window.mozRequestAnimationFrame or
-         window.oRequestAnimationFrame or
-         window.msRequestAnimationFrame or
-         (callback, element) ->
-           window.setTimeout callback, 1000/60
 
 frameRate = 4 # animation updates per second
 nextFrame = (new Date().getTime() / 1000) + 1/frameRate
@@ -133,7 +113,7 @@ animate = ->
   return
 
 tick = ->
-  requestAnimFrame tick
+  cc.requestAnimationFrame tick
   do drawScene
   do animate
 
@@ -142,9 +122,9 @@ window.webGLStart = (width, height) ->
   resources.image imgPath
   resources.onLoadStatusUpdate (cmplt) ->
     if cmplt >= 1
-      initGL canvas, width, height
-      shdrPrg = new cc.SpriteShaderProgram gl, scale: 2
-      do shdrPrg.link
+      gl = cc.initGL canvas, width, height
+      shdr = new cc.SpriteShaderProgram gl, scale: 2
+      do shdr.link
       initBuffers()
       initTexture()
 
@@ -158,17 +138,17 @@ window.webGLStart = (width, height) ->
 
       # a standard square texture
       gl.bindBuffer gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer
-      gl.vertexAttribPointer shdrPrg.a.textureCoord, squareVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0
+      gl.vertexAttribPointer shdr.a.textureCoord, squareVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0
       gl.activeTexture gl.TEXTURE0
       gl.bindTexture gl.TEXTURE_2D, imgTexture
-      gl.uniform1i shdrPrg.u.sampler, 0
+      gl.uniform1i shdr.u.sampler, 0
 
       # setup surface
       gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-      gl.vertexAttribPointer shdrPrg.a.vertexPosition,
+      gl.vertexAttribPointer shdr.a.vertexPosition,
         squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
 
-      shdrPrg.perspective 90
+      shdr.perspective 90
 
       do tick
 
