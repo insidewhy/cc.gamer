@@ -1,19 +1,20 @@
 cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
-  init: (gl, options) ->
-    @parent gl
+  init: (options) ->
+    do @parent
     @pMatrix = mat4.create()
     @scale = options?.scale or 1
+    @refPoint = mat4.create() # reference point at bottom left corner of screen
+    @mvMatrix = mat4.create() # current draw point
+    return
 
+  attachContext: (gl) ->
+    @parent gl
     # this ensures that an object of maximum height will fit exactly in the screen
     zDistance = -@gl.viewportHeight / (2 * @scale)
 
-    # reference point at bottom left corner of screen
-    @refPoint = mat4.create()
     mat4.identity @refPoint
     mat4.translate @refPoint, [-gl.viewportWidth / (2 * @scale), zDistance, zDistance]
-
-    @mvMatrix = mat4.create()
-    mat4.set @refPoint, @mvMatrix
+    return
 
   _attachSpriteFragmentShader: ->
     content = """
@@ -52,15 +53,27 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     shader = @gl.createShader @gl.VERTEX_SHADER
     @_attachShader shader, content
 
+  # set camera perspective
   perspective: (deg) ->
     # TODO: set min/max based on current scale
     mat4.perspective(deg, @gl.viewportWidth / @gl.viewportHeight, 1.0, 300.0, @pMatrix)
     @gl.uniformMatrix4fv @u.pMatrix, false, @pMatrix
 
+  # location to draw next texture, from bottom left
+  # must call this at least once after link and before drawing
   drawAt: (x, y) ->
     mat4.translate @refPoint, [x, y, 0.0], @mvMatrix
     @gl.uniformMatrix4fv @u.mvMatrix, false, @mvMatrix
 
+  # set up initial gl options for the webgl canvas context
+  glOptions: ->
+    @gl.clearColor 0.0, 0.0, 0.0, 1.0
+    @gl.blendFunc @gl.SRC_ALPHA, @gl.ONE
+    @gl.enable @gl.BLEND
+    @gl.enable @gl.DEPTH_TEST
+    @gl.viewport 0, 0, @gl.viewportWidth, @gl.viewportHeight
+
+  # link gl program and then grab pointers to all uniforms and attributes
   link: ->
     do @_attachSpriteFragmentShader
     do @_attachSpriteVertexShader
@@ -68,8 +81,6 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @_attribVertices "vertexPosition", "textureCoord"
     @_uniforms "tileSize", "tileOffset", "tileCoord", "sampler",
                "pMatrix", "mvMatrix"
-
-    @gl.uniformMatrix4fv @u.mvMatrix, false, @mvMatrix
     return
 }
 # vim:ts=2 sw=2

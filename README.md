@@ -1,5 +1,5 @@
 # cc.gamer
-An HTML5 game engine with WebGL and canvas backends.
+An HTML5 game engine with WebGL and canvas backends. Built for sprite based games but with 3D support in WebGL mode.
 
 # installation
 To install globally:
@@ -23,4 +23,14 @@ please go to http://localhost:8014/
 * Module system: done [cc.loader](http://github.com/nuisanceofcats/cc.loader)
 * Class system: done [cc.extend](http://github.com/nuisanceofcats/cc.extend)
 * WebGL backend: in progress
-* Canvas backend: not started
+    * Spritesheet Animation: part done
+    * Pushing many Spritesheets into a WebGL texture: part done
+    * Shader API for sprites: part done
+* Canvas backend: to do
+* Core API: part done
+* Resource loading/caching: part done
+* Loading Screen: to do
+* Entity: to do
+* Game map: to do
+* Physics: to do
+* Input: to do

@@ -1,9 +1,13 @@
 cc.module('cc.ShaderProgram').defines -> @set cc.Class.extend {
-  init: (gl) ->
-    @gl = gl
-    @prgrm = @gl.createProgram()
+  init: ->
     @u = {} # uniforms
     @a = {} # attributes
+    return
+
+  # attach this shader to a gl program
+  attachContext: (@gl) ->
+    @prgrm = @gl.createProgram()
+    return
 
   _attachShader: (shader, content) ->
     @gl.shaderSource shader, content

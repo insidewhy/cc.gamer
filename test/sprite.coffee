@@ -4,18 +4,12 @@ log = (arg) ->
   newLine.innerHTML = arg
   logPane.appendChild(newLine)
 
-# resource loader
-resources = new cc.Resources
-
-# canvas on which to draw all sprite sheets
-spriteCanvas = document.createElement 'canvas'
-
-# i think up to 4096 should be okay
-spriteCanvas.width = 2048
-spriteCanvas.height = 2048
+resources = new cc.Resources               # resource loader
+# bundles all spritesheets into one huge gl texture
+spritesheets = new cc.SpriteSheetTexture
 
 # gl shader program
-shdr = null
+shdr = new cc.SpriteShaderProgram scale: 2
 
 # offset into canvas texture cache of current tilesheet
 tileCoord = vec2.createFrom 0, 0
@@ -31,8 +25,8 @@ tileOffset = [
 
 gl = null
 
-tileSize = vec2.createFrom spriteWidth / spriteCanvas.width,
-                           spriteHeight / spriteCanvas.height
+tileSize = vec2.createFrom spriteWidth / spritesheets.width,
+                           spriteHeight / spritesheets.height
 
 offsetIdx = 0
 
@@ -42,9 +36,6 @@ squareVertexTextureCoordBuffer = null
 initBuffers = () ->
   squareVertexPositionBuffer = gl.createBuffer()
   gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-
-  sY = spriteHeight / 2.0
-  sX = spriteWidth / 2.0
 
   # bottom left corner of sprite at center of mvMatrix
   vertices = [
@@ -66,21 +57,6 @@ initBuffers = () ->
   gl.bufferData gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW
   squareVertexTextureCoordBuffer.itemSize = 2
   squareVertexTextureCoordBuffer.numItems = 4
-
-imgTexture = null
-initTexture = () ->
-  imgTexture = gl.createTexture()
-
-  # draw sprite sheet at bottom of large spriteCanvas cache
-  data = resources.images[imgPath].data
-  spriteCanvas.getContext('2d').drawImage(data, 0, spriteCanvas.height - data.height)
-
-  gl.bindTexture gl.TEXTURE_2D, imgTexture
-  gl.pixelStorei gl.UNPACK_FLIP_Y_WEBGL, true
-  gl.texImage2D gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, spriteCanvas
-  gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST
-  gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST
-  gl.bindTexture gl.TEXTURE_2D, null
 
 drawScene = () ->
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -123,24 +99,20 @@ window.webGLStart = (width, height) ->
   resources.onLoadStatusUpdate (cmplt) ->
     if cmplt >= 1
       gl = cc.initGL canvas, width, height
-      shdr = new cc.SpriteShaderProgram gl, scale: 2
+      shdr.attachContext gl
+
       do shdr.link
-      initBuffers()
-      initTexture()
+      do initBuffers
+      spritesheets.addImage resources.images[imgPath].data
+      spritesheets.bindTexture gl
+      do shdr.glOptions
 
-      gl.clearColor 0.0, 0.0, 0.0, 1.0
-      gl.blendFunc gl.SRC_ALPHA, gl.ONE
-      gl.enable gl.BLEND
-      gl.enable gl.DEPTH_TEST
-
-      # avast
-      gl.viewport 0, 0, gl.viewportWidth, gl.viewportHeight
-
+      # TODO: hide this stuff
       # a standard square texture
       gl.bindBuffer gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer
       gl.vertexAttribPointer shdr.a.textureCoord, squareVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0
       gl.activeTexture gl.TEXTURE0
-      gl.bindTexture gl.TEXTURE_2D, imgTexture
+      gl.bindTexture gl.TEXTURE_2D, spritesheets.glTexture
       gl.uniform1i shdr.u.sampler, 0
 
       # setup surface
