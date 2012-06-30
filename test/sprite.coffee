@@ -18,13 +18,14 @@ imgPath = 'chars.png'
 spriteHeight = 48.0
 spriteWidth = 32.0
 tileOffset = [
-  vec2.createFrom 6, 5
-  vec2.createFrom 7, 5
-  vec2.createFrom 8, 5
-  vec2.createFrom 7, 5 ]
+  vec2.createFrom 6, 2
+  vec2.createFrom 7, 2
+  vec2.createFrom 8, 2
+  vec2.createFrom 7, 2 ]
 
 gl = null
 
+# tile size as percentage of sheet width
 tileSize = vec2.createFrom spriteWidth / spritesheets.width,
                            spriteHeight / spritesheets.height
 

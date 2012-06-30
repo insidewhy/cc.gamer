@@ -10,8 +10,8 @@ cc.module('cc.SpriteSheetTexture').defines -> @set cc.Class.extend {
 
   addImage: (data) ->
     # TODO: place intelligently and return position data
-    # current mess: just overwrites whatever is at the bottom
-    @_canvas.getContext('2d').drawImage(data, 0, @height - data.height)
+    # current mess: just overwrites data at top
+    @_canvas.getContext('2d').drawImage(data, 0, 0)
 
   # bind image data to texture
   bindTexture: (gl, textureId = 0) ->

@@ -18,21 +18,27 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
 
   _attachSpriteFragmentShader: ->
     content = """
-        precision mediump float;
+      precision mediump float;
 
-        varying vec2 vTextureCoord;
+      varying vec2 vTextureCoord;
 
-        uniform vec2 tileSize;
-        uniform vec2 tileOffset;
-        uniform vec2 tileCoord;
-        uniform sampler2D sampler;
+      uniform vec2 tileSize;   // tile size in percentage of texture size
+      uniform vec2 tileOffset; // index of tile e.g. (1,1) = (1 down, 1 right)
+      uniform vec2 tileCoord;  // offset into texture of first pixel
+      uniform sampler2D sampler;
 
-        void main(void) {
-          // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
-          gl_FragColor = texture2D(sampler,
-              vec2(vTextureCoord.s, vTextureCoord.t) * tileSize +
-              (tileSize * tileOffset) + tileCoord);
-        }"""
+      // this converts the tile coordinate system to the gl coordinate system
+      // First it flips the y-axis. Then it reverses the direction it scans
+      // for the current pixel. It also has to add one to the y-offset to make
+      // up for it being from the top left rather than the bottom right.
+      void main(void) {
+        // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        gl_FragColor = texture2D(sampler,
+          vec2(1, -1) * (
+            vec2(vTextureCoord.s, -vTextureCoord.t) * tileSize +
+            (tileSize * vec2(tileOffset.s, tileOffset.t + 1.0)) +
+            tileCoord));
+      }"""
     shader = @gl.createShader @gl.FRAGMENT_SHADER
     @_attachShader shader, content
 
