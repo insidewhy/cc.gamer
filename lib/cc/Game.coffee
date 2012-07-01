@@ -67,6 +67,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       return
 
+  spawnEntity: (type, x, y, settings) -> new (type)(this, x, y, settings)
+
   update: ->
     # TODO:
 }

@@ -1,17 +1,10 @@
-logPane = document.getElementsByTagName('body')[0]
-log = (arg) ->
-  newLine = document.createElement('div')
-  newLine.innerHTML = arg
-  logPane.appendChild(newLine)
-
 # resource loader
 resources = new cc.Resources
 
 # bundles all spritesheets into one huge gl texture
 texAtlas = new cc.TextureAtlas
 
-# gl shader program
-shdr = new cc.SpriteShaderProgram
+rndr = new cc.Renderer
 
 # offset into canvas texture cache of current tilesheet
 tileCoord = vec2.createFrom 0, 0
@@ -19,42 +12,60 @@ tileCoord = vec2.createFrom 0, 0
 imgPath = 'chars.png'
 spriteHeight = 48.0
 spriteWidth = 32.0
-tileOffset = [
-  vec2.createFrom 6, 2
-  vec2.createFrom 7, 2
-  vec2.createFrom 8, 2
-  vec2.createFrom 7, 2 ]
 
 gl = null
-offsetIdx = 0
 
 Game = cc.Game.extend {
   # called when game has started
   booted: (_gl) ->
     gl = _gl
-    # TODO: move into mainloop
-    shdr.attachContext gl
-    do shdr.link
+    rndr.start gl, game.scale
+
+    @hero = @spawnEntity HeroEntity, 0, 0
 
     do initBuffers
     texAtlas.addSpriteSheet resources.spriteSheets[imgPath]
     texAtlas.loadImageToTexture gl
-    shdr.activateTexture texAtlas
+    rndr.shdr.activateTexture texAtlas
 
     # TODO: move elsewhere
     # surface attribute
     gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-    gl.vertexAttribPointer shdr.a.vertexPosition,
+    gl.vertexAttribPointer rndr.shdr.a.vertexPosition,
       squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
-
-    shdr.perspectiveAndScale 90, game.scale
 
   update: ->
     # TODO: move drawScene/animate into framework
-    do drawScene
-    if timer.expired()
-      do timer.reset
-      offsetIdx = 0 if ++offsetIdx is tileOffset.length
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+    # change tilesheet offset
+    do @hero.update
+
+    rndr.shdr.selectTile tileSize, @hero.activeSprite.tile, tileCoord
+
+    # draw
+    rndr.shdr.drawAt 0.0, 0.0
+    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+    rndr.shdr.drawAt 10, 0, -158
+    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+    rndr.shdr.drawAt 10.0, 0, 0
+    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+    rndr.shdr.drawAt 110, 0, 0
+    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+    rndr.shdr.drawAt 100, 0
+    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+    # one with a small one on top
+    rndr.shdr.drawAt 140, 0, -128
+    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+    rndr.shdr.drawAt 140, 0
+    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
     do @parent
 }
 
@@ -80,43 +91,12 @@ initBuffers = () ->
   squareVertexPositionBuffer.itemSize = 3
   squareVertexPositionBuffer.numItems = 4
 
-drawScene = () ->
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
-  # change tilesheet offset
-  shdr.selectTile tileSize, tileOffset[offsetIdx], tileCoord
-
-  # draw
-  shdr.drawAt 0.0, 0.0
-  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
-
-  shdr.drawAt 10, 0, -158
-  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
-
-  shdr.drawAt 10.0, 0, 0
-  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
-
-  shdr.drawAt 110, 0, 0
-  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
-
-  shdr.drawAt 100, 0
-  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
-
-  # one with a small one on top
-  shdr.drawAt 140, 0, -128
-  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
-
-  shdr.drawAt 140, 0
-  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
-
-
-frameRate = 6 # animation updates per second
-
-timer = game.timer(1 / frameRate)
-
-Entity = cc.Entity.extend {
+HeroEntity = cc.Entity.extend {
   # define main sprite, with tile width and height
   spriteSheet: resources.spriteSheet imgPath, 32, 48
+  init: (game, x, y, settings) ->
+    @parent game, x, y, settings
+    @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]
 }
 
 window.webGLStart = ->
