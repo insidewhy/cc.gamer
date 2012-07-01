@@ -10,7 +10,15 @@ cc.module('cc.TextureAtlas').defines -> @set cc.Class.extend {
   addSpriteSheet: (spriteSheet) ->
     # TODO: place intelligently and update spriteSheet object
     # current mess: just overwrites data at top
-    @_canvas.getContext('2d').drawImage(spriteSheet.image.data, 0, 0)
+    x = y = 0
+    @_canvas.getContext('2d').drawImage(spriteSheet.image.data, x, y)
+
+    # TODO: add half a pixel to textureOffset?
+    spriteSheet.textureOffset = vec2.createFrom(x / @width, y / @height)
+    spriteSheet.textureTileSize =
+      vec2.createFrom spriteSheet.tileWidth  / @width,
+                      spriteSheet.tileHeight / @height
+
     return
 
   # bind image data to texture

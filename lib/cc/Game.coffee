@@ -48,7 +48,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       try
         gl = cc.initGL canvas, @width, @height
-        @renderer = new cc.Renderer gl, @scale
+        @renderer = new cc.Renderer gl, @scale, @resources
       catch e
         # TODO: fall back on canvas if there is no open GL
         alert "sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome"
@@ -71,6 +71,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
         @tick = @maxStep if @tick > @maxStep # slow down time if necessary
         @now += @tick
         now = newNow
+        do @draw
         do @update
 
       return
@@ -78,6 +79,10 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   spawnEntity: (type, x, y, settings) -> new (type)(this, x, y, settings)
 
   update: ->
-    # TODO:
+    # TODO: move all entities checking for collisions
+
+  draw: ->
+    do @renderer.clear
+    # TODO: draw backgrounds then entities
 }
 # vim:ts=2 sw=2

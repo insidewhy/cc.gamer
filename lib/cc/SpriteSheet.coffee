@@ -1,8 +1,11 @@
 cc.module('cc.SpriteSheet').defines -> @set cc.Class.extend {
-  tileWidth: 0,
-  tileHeight: 0,
+  textureOffset:   null # for webgl.. offset into texture atlas
+  textureTileSize: null # for webgl.. size of tile in texture coordinates
+
   # not to be called externally!! use Resources
-  init: (path, @tileWidth, @tileHeight, onload) ->
+  init: (path, @tileWidth, @tileHeight, onload, @offset) ->
+    # @offset is of spritesheet within a larger sprite sheet or GL texture
+    # and is optional
     @image = new cc.Image path, onload
 
   imgWidth: -> @image.data.width

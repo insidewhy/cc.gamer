@@ -1,97 +1,75 @@
 # resource loader
 resources = new cc.Resources
 
-# bundles all spritesheets into one huge gl texture
-texAtlas = new cc.TextureAtlas
-
-# offset into canvas texture cache of current tilesheet
-tileCoord = vec2.createFrom 0, 0
-
-imgPath = 'chars.png'
-spriteHeight = 48.0
-spriteWidth = 32.0
-
-gl = null
-
 Game = cc.Game.extend {
   # called when game has started
   booted: ->
-    gl = @renderer.gl
-
+    @gl = @renderer.gl
     @hero = @spawnEntity HeroEntity, 0, 0
 
-    # TODO: load spritesheets into atlas in renderer
-    texAtlas.addSpriteSheet resources.spriteSheets[imgPath]
-    texAtlas.loadImageToTexture gl
-    @renderer.shdr.activateTexture texAtlas
+    do @_initBuffers
 
-    do initBuffers
     # TODO: move elsewhere
     # surface attribute
-    gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-    gl.vertexAttribPointer @renderer.shdr.a.vertexPosition,
-      squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
+    @gl.bindBuffer @gl.ARRAY_BUFFER, @spriteVertices
+    @gl.vertexAttribPointer @renderer.shdr.a.vertexPosition,
+      @spriteVertices.itemSize, @gl.FLOAT, false, 0, 0
 
-    # tile size (as percentage of sheet width)
-    @tileSize = vec2.createFrom @hero.width  / texAtlas.width,
-                                @hero.height / texAtlas.height
+  _initBuffers: ->
+    @spriteVertices = @gl.createBuffer()
+    @gl.bindBuffer @gl.ARRAY_BUFFER, @spriteVertices
 
-  update: ->
-    # TODO: move drawScene/animate into framework
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    # bottom left corner of sprite at center of mvMatrix
+    vertices = [
+      @hero.width, @hero.height, 0.0,
+      0.0,         @hero.height, 0.0,
+      @hero.width, 0.0,          0.0,
+      0.0,         0.0,          0.0 ]
+    @gl.bufferData @gl.ARRAY_BUFFER, new Float32Array(vertices), @gl.STATIC_DRAW
+    @spriteVertices.itemSize = 3
+    @spriteVertices.numItems = 4
 
-    # change tilesheet offset
-    do @hero.update
 
-    @renderer.shdr.selectTile @tileSize, @hero.activeSprite.tile, tileCoord
+  draw: ->
+    do @parent
+
+    sprite = @hero.sprite
+    @renderer.shdr.selectTile(
+      sprite.sheet.textureTileSize, sprite.tile, sprite.sheet.textureOffset)
 
     # draw
     @renderer.shdr.drawAt 0.0, 0.0
-    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
 
     @renderer.shdr.drawAt 10, 0, -158
-    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
 
     @renderer.shdr.drawAt 10.0, 0, 0
-    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
 
     @renderer.shdr.drawAt 110, 0, 0
-    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
 
     @renderer.shdr.drawAt 100, 0
-    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
 
     # one with a small one on top
     @renderer.shdr.drawAt 140, 0, -128
-    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
 
     @renderer.shdr.drawAt 140, 0
-    gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
 
-    do @parent
+  update: ->
+    # TODO: should be done by game loop
+    do @hero.update
 }
 
 game = new Game resources, scale: 2
 
-squareVertexPositionBuffer = null
-
-initBuffers = () ->
-  squareVertexPositionBuffer = gl.createBuffer()
-  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-
-  # bottom left corner of sprite at center of mvMatrix
-  vertices = [
-    spriteWidth, spriteHeight, 0.0,
-    0.0,         spriteHeight, 0.0,
-    spriteWidth, 0.0,          0.0,
-    0.0,         0.0,          0.0 ]
-  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW
-  squareVertexPositionBuffer.itemSize = 3
-  squareVertexPositionBuffer.numItems = 4
-
 HeroEntity = cc.Entity.extend {
   # define main sprite, with tile width and height
-  spriteSheet: resources.spriteSheet imgPath, 32, 48
+  spriteSheet: resources.spriteSheet 'chars.png', 32, 48
   init: (game, x, y, settings) ->
     @parent game, x, y, settings
     @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]
