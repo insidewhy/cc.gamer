@@ -4,8 +4,6 @@ resources = new cc.Resources
 # bundles all spritesheets into one huge gl texture
 texAtlas = new cc.TextureAtlas
 
-rndr = new cc.Renderer
-
 # offset into canvas texture cache of current tilesheet
 tileCoord = vec2.createFrom 0, 0
 
@@ -17,22 +15,26 @@ gl = null
 
 Game = cc.Game.extend {
   # called when game has started
-  booted: (_gl) ->
-    gl = _gl
-    rndr.start gl, game.scale
+  booted: ->
+    gl = @renderer.gl
 
     @hero = @spawnEntity HeroEntity, 0, 0
 
-    do initBuffers
+    # TODO: load spritesheets into atlas in renderer
     texAtlas.addSpriteSheet resources.spriteSheets[imgPath]
     texAtlas.loadImageToTexture gl
-    rndr.shdr.activateTexture texAtlas
+    @renderer.shdr.activateTexture texAtlas
 
+    do initBuffers
     # TODO: move elsewhere
     # surface attribute
     gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-    gl.vertexAttribPointer rndr.shdr.a.vertexPosition,
+    gl.vertexAttribPointer @renderer.shdr.a.vertexPosition,
       squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
+
+    # tile size (as percentage of sheet width)
+    @tileSize = vec2.createFrom @hero.width  / texAtlas.width,
+                                @hero.height / texAtlas.height
 
   update: ->
     # TODO: move drawScene/animate into framework
@@ -41,39 +43,35 @@ Game = cc.Game.extend {
     # change tilesheet offset
     do @hero.update
 
-    rndr.shdr.selectTile tileSize, @hero.activeSprite.tile, tileCoord
+    @renderer.shdr.selectTile @tileSize, @hero.activeSprite.tile, tileCoord
 
     # draw
-    rndr.shdr.drawAt 0.0, 0.0
+    @renderer.shdr.drawAt 0.0, 0.0
     gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
-    rndr.shdr.drawAt 10, 0, -158
+    @renderer.shdr.drawAt 10, 0, -158
     gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
-    rndr.shdr.drawAt 10.0, 0, 0
+    @renderer.shdr.drawAt 10.0, 0, 0
     gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
-    rndr.shdr.drawAt 110, 0, 0
+    @renderer.shdr.drawAt 110, 0, 0
     gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
-    rndr.shdr.drawAt 100, 0
+    @renderer.shdr.drawAt 100, 0
     gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
     # one with a small one on top
-    rndr.shdr.drawAt 140, 0, -128
+    @renderer.shdr.drawAt 140, 0, -128
     gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
-    rndr.shdr.drawAt 140, 0
+    @renderer.shdr.drawAt 140, 0
     gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
     do @parent
 }
 
 game = new Game resources, scale: 2
-
-# tile size (as percentage of sheet width)
-tileSize = vec2.createFrom spriteWidth / texAtlas.width,
-                           spriteHeight / texAtlas.height
 
 squareVertexPositionBuffer = null
 

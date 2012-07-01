@@ -29,8 +29,8 @@ please go to http://localhost:8014/
 * Canvas backend: to do
 * Core API: part done
 * Resource loading/caching: part done
+* Entity: part done
 * Loading Screen: to do
-* Entity: to do
 * Game map: to do
 * Physics: to do
 * Input: to do

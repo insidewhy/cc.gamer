@@ -1,7 +1,7 @@
 cc.module('cc.Renderer').defines -> @set cc.Class.extend {
-  start: (gl, scale) ->
+  init: (@gl, scale) ->
     @shdr = new cc.SpriteShaderProgram
-    @shdr.attachContext gl
+    @shdr.attachContext @gl
     do @shdr.link
     @shdr.perspectiveAndScale 90, scale
     return

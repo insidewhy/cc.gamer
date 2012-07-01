@@ -1,6 +1,7 @@
 cc.module('cc.Sprite').defines -> @set cc.Class.extend {
   frames: null
   timer: null
+  sheet: null
   frame: 0   # current tile index
   tile: null # tile at current frame index
 

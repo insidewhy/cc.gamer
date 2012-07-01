@@ -3,6 +3,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   entities: []  # all alive entities in this game
   maxTick: 0.05 # slow time down if tick falls below this
   scale: 1      # zoom
+  renderer : null
 
   # dimensions in pixels, 0 = unset
   width: 0
@@ -45,8 +46,15 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       @width  = canvas.width unless @width
       @height = canvas.height unless @height
 
-      gl = cc.initGL canvas, @width, @height
-      @booted gl if @booted
+      try
+        gl = cc.initGL canvas, @width, @height
+        @renderer = new cc.Renderer gl, @scale
+      catch e
+        # TODO: fall back on canvas if there is no open GL
+        alert "sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome"
+        return
+
+      do @booted if @booted
 
       # @now = virtual time, now = time
       # virtual time starts at 0
