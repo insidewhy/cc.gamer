@@ -79,38 +79,40 @@ animate = ->
   nextFrame = now + 1/frameRate
   return
 
-tick = ->
-  cc.requestAnimationFrame tick
-  do drawScene
-  do animate
-
 Entity = cc.Entity.extend {
   # define main sprite, with tile width and height
   spriteSheet: resources.spriteSheet imgPath, 32, 48
 }
 
-window.webGLStart = (width, height) ->
-  canvas = document.getElementById "game-canvas"
-  resources.onLoadStatusUpdate (cmplt) ->
-    if cmplt >= 1
-      gl = cc.initGL canvas, width, height
-      shdr.attachContext gl
+Game = cc.Game.extend {
+  init: (_gl) ->
+    gl = _gl
+    # TODO: move into mainloop
+    shdr.attachContext gl
 
-      do initBuffers
-      do shdr.link
-      spritesheets.addSpriteSheet resources.spriteSheets[imgPath]
-      spritesheets.loadImageToTexture gl
-      do shdr.glOptions
-      shdr.activateTexture spritesheets
+    do initBuffers
+    do shdr.link
+    spritesheets.addSpriteSheet resources.spriteSheets[imgPath]
+    spritesheets.loadImageToTexture gl
+    do shdr.glOptions
+    shdr.activateTexture spritesheets
 
-      # TODO: hide this stuff
-      # setup surface
-      gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
-      gl.vertexAttribPointer shdr.a.vertexPosition,
-        squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
+    # TODO: move elsewhere
+    # surface attribute
+    gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
+    gl.vertexAttribPointer shdr.a.vertexPosition,
+      squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
 
-      shdr.perspective 90
+    shdr.perspective 90
 
-      do tick
+  update: ->
+    # TODO: move drawScene/animate into framework
+    do drawScene
+    do animate
+    do @parent
+}
+
+window.webGLStart = ->
+  cc.main "#game-canvas", Game, resources, scale: 2
 
 # vim:ts=2 sw=2

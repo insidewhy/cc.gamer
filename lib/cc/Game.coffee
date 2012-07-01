@@ -1,4 +1,5 @@
 cc.module('cc.Game').defines -> @set cc.Class.extend {
-  hello: ->
-    'welcome to new game'
+  update: ->
+    # TODO:
 }
+# vim:ts=2 sw=2
