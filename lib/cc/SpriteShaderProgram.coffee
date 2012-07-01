@@ -8,21 +8,6 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @mvMatrix = mat4.create() # reference point at bottom left corner of screen
     return
 
-  attachContext: (gl) ->
-    @parent gl
-
-    # this is the standard texture used to draw pretty much all sprites
-    @textureBuffer = gl.createBuffer()
-    gl.bindBuffer gl.ARRAY_BUFFER, @textureBuffer
-    textureCoords = [
-      1.0, 1.0,
-      0.0, 1.0,
-      1.0, 0.0,
-      0.0, 0.0 ]
-    gl.bufferData gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW
-    @textureBuffer.itemSize = 2
-    @textureBuffer.numItems = 4
-
   activateTexture: (spritesheets) ->
     @gl.bindBuffer @gl.ARRAY_BUFFER, @textureBuffer
     @gl.vertexAttribPointer @a.textureCoord, @textureBuffer.itemSize, @gl.FLOAT, false, 0, 0
@@ -95,8 +80,11 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
 
     # this ensures that an object of maximum height will fit exactly in the screen
     zDistance = -@gl.viewportHeight / (2 * @scale)
+
+    # points mvMatrix at bottom left corner at z-distance 0
     mat4.identity @mvMatrix
     mat4.translate @mvMatrix, [-@gl.viewportWidth / (2 * @scale), zDistance, zDistance]
+
     @gl.uniformMatrix4fv @u.mvMatrix, false, @mvMatrix
     this
 
@@ -119,6 +107,18 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
 
   # link gl program and then grab pointers to all uniforms and attributes
   link: ->
+    # this is the standard texture used to draw pretty much all sprites
+    @textureBuffer = @gl.createBuffer()
+    @gl.bindBuffer @gl.ARRAY_BUFFER, @textureBuffer
+    textureCoords = [
+      1.0, 1.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      0.0, 0.0 ]
+    @gl.bufferData @gl.ARRAY_BUFFER, new Float32Array(textureCoords), @gl.STATIC_DRAW
+    @textureBuffer.itemSize = 2
+    @textureBuffer.numItems = 4
+
     do @_attachSpriteFragmentShader
     do @_attachSpriteVertexShader
     do @parent

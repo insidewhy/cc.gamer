@@ -26,6 +26,7 @@ tileOffset = [
   vec2.createFrom 7, 2 ]
 
 gl = null
+offsetIdx = 0
 
 Game = cc.Game.extend {
   # called when game has started
@@ -33,9 +34,9 @@ Game = cc.Game.extend {
     gl = _gl
     # TODO: move into mainloop
     shdr.attachContext gl
+    do shdr.link
 
     do initBuffers
-    do shdr.link
     texAtlas.addSpriteSheet resources.spriteSheets[imgPath]
     texAtlas.loadImageToTexture gl
     shdr.activateTexture texAtlas
@@ -51,7 +52,9 @@ Game = cc.Game.extend {
   update: ->
     # TODO: move drawScene/animate into framework
     do drawScene
-    do animate
+    if timer.expired()
+      do timer.reset
+      offsetIdx = 0 if ++offsetIdx is tileOffset.length
     do @parent
 }
 
@@ -60,8 +63,6 @@ game = new Game resources, scale: 2
 # tile size (as percentage of sheet width)
 tileSize = vec2.createFrom spriteWidth / texAtlas.width,
                            spriteHeight / texAtlas.height
-
-offsetIdx = 0
 
 squareVertexPositionBuffer = null
 
@@ -89,6 +90,9 @@ drawScene = () ->
   shdr.drawAt 0.0, 0.0
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
+  shdr.drawAt 10, 0, -158
+  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
   shdr.drawAt 10.0, 0, 0
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
@@ -98,15 +102,17 @@ drawScene = () ->
   shdr.drawAt 100, 0
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
+  # one with a small one on top
+  shdr.drawAt 140, 0, -128
+  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+  shdr.drawAt 140, 0
+  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+
 frameRate = 6 # animation updates per second
 
 timer = game.timer(1 / frameRate)
-animate = ->
-  # console.log timer._game.now, timer._expires
-  return unless timer.expired()
-  do timer.reset
-  offsetIdx = 0 if ++offsetIdx is tileOffset.length
-  return
 
 Entity = cc.Entity.extend {
   # define main sprite, with tile width and height
