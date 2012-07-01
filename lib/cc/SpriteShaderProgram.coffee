@@ -1,4 +1,6 @@
 cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
+  gl: null
+
   init: (options) ->
     do @parent
     @pMatrix = mat4.create()
@@ -26,7 +28,7 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     gl.bufferData gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW
     @textureBuffer.itemSize = 2
     @textureBuffer.numItems = 4
-    return
+    this
 
   activateTexture: (spritesheets) ->
     @gl.bindBuffer @gl.ARRAY_BUFFER, @textureBuffer
@@ -35,7 +37,7 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @gl.activeTexture @gl.TEXTURE0
     @gl.bindTexture @gl.TEXTURE_2D, spritesheets.glTexture
     @gl.uniform1i @u.sampler, 0
-    return
+    this
 
   _attachSpriteFragmentShader: ->
     content = """
@@ -80,19 +82,25 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     shader = @gl.createShader @gl.VERTEX_SHADER
     @_attachShader shader, content
 
+  selectTile: (tileSize, tileOffset, tileCoord) ->
+    @gl.uniform2fv @u.tileSize, tileSize
+    @gl.uniform2fv @u.tileOffset, tileOffset
+    @gl.uniform2fv @u.tileCoord, tileCoord
+    this
+
   # set camera perspective
   perspective: (deg) ->
     # TODO: set min/max based on current scale
     mat4.perspective(deg, @gl.viewportWidth / @gl.viewportHeight, 1.0, 300.0, @pMatrix)
     @gl.uniformMatrix4fv @u.pMatrix, false, @pMatrix
-    return
+    this
 
   # location to draw next texture, from bottom left
   # must call this at least once after link and before drawing
   drawAt: (x, y) ->
     mat4.translate @refPoint, [x, y, 0.0], @mvMatrix
     @gl.uniformMatrix4fv @u.mvMatrix, false, @mvMatrix
-    return
+    this
 
   # set up initial gl options for the webgl canvas context
   glOptions: ->
@@ -101,7 +109,7 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @gl.enable @gl.BLEND
     @gl.enable @gl.DEPTH_TEST
     @gl.viewport 0, 0, @gl.viewportWidth, @gl.viewportHeight
-    return
+    this
 
   # link gl program and then grab pointers to all uniforms and attributes
   link: ->
@@ -111,6 +119,6 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @_attribVertices "vertexPosition", "textureCoord"
     @_uniforms "tileSize", "tileOffset", "tileCoord", "sampler",
                "pMatrix", "mvMatrix"
-    return
+    this
 }
 # vim:ts=2 sw=2
