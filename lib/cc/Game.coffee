@@ -1,4 +1,5 @@
 cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
+  now: 0       # current game world time
   entities: [] # all alive entities in this game
 
   init: (@resources) ->
@@ -36,9 +37,11 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
         @booted gl if @booted
 
         # @now = virtual time, now = time
-        # virtual time starts off the same as real time but can lag behind
-        # if any frame is delayed by more than @maxStep
-        now = @now = new Date().getTime() / 1000
+        # virtual time starts at 0
+        # it starts off as a constant offset to real time but will lag if
+        # any frame is delayed by more than @maxStep
+        @now = 0
+        now = new Date().getTime() / 1000
         # TODO: more stuff
         do mainLoop = =>
           cc.requestAnimationFrame mainLoop

@@ -95,11 +95,11 @@ drawScene = () ->
 
 frameRate = 6 # animation updates per second
 
-timer = do game.timer
+timer = game.timer(1 / frameRate)
 animate = ->
   # console.log timer._game.now, timer._expires
   return unless timer.expired()
-  timer.expiresIn(1 / frameRate)
+  do timer.rearm
   offsetIdx = 0 if ++offsetIdx is tileOffset.length
   return
 

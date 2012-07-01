@@ -5,8 +5,9 @@ cc.module('cc.Timer').defines -> @set cc.Class.extend {
   init: (@_game, @_length = 0) ->
     @_expires = if @_length then @_game.now + @_length else 0
     return
-  expiresIn: (@_length) -> @_expires = @_game.now + @_length ; this
+  expiresIn: (@_length) -> @_expires = @_game.now + @_length ; return
   expired: -> @_game.now >= @_expires
+  delta: -> @game.now - @_expires
   rearm: -> @expiresIn @_length
 }
 # vim:ts=2 sw=2
