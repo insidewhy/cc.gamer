@@ -4,7 +4,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   init: (@resources) ->
 
   # slow time down if tick falls below this
-  minTick: 0.05
+  maxTick: 0.05
 
   # create a new timer referencing this game's time
   # expiresIn: optional expiry time in seconds
@@ -12,7 +12,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
     new cc.Timer(this, expiresIn)
 
   main: (canvas, options) ->
-    @minTick = options.minTick if options.minTick
+    @maxTick = options.maxTick if options.maxTick
     if not canvas.getContext?
       if not (typeof canvas is "string")
         throw 'canvas argument must be Canvas object or selector'
@@ -35,14 +35,19 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
         gl = cc.initGL canvas, width, height
         @booted gl if @booted
 
-        @now = new Date().getTime() / 1000
+        # @now = virtual time, now = time
+        # virtual time starts off the same as real time but can lag behind
+        # if any frame is delayed by more than @maxStep
+        now = @now = new Date().getTime() / 1000
         # TODO: more stuff
         do mainLoop = =>
           cc.requestAnimationFrame mainLoop
 
           newNow = new Date().getTime() / 1000
-          @tick = newNow - @now
-          @now = newNow
+          @tick = newNow - now
+          @tick = @maxStep if @tick > @maxStep # slow down time if necessary
+          @now += @tick
+          now = newNow
           do @update
 
         return
