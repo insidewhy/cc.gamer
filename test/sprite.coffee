@@ -2,7 +2,9 @@
 resources = new cc.Resources
 
 Game = cc.Game.extend {
-  # called when game has started
+  backgroundColor: [1.0, 0.72, 0.0, 1.0] # a nice orange
+
+  # called after all resources have loaded
   booted: ->
     @gl = @renderer.gl
     @hero = @spawnEntity HeroEntity, 0, 0

@@ -93,10 +93,12 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @gl.uniform3f @u.position, x, y, z
     this
 
+  clearColor: (r, g, b, a) ->
+    @gl.clearColor r, g, b, a
+    return
+
   # set up initial gl options for the webgl canvas context
   _glOptions: ->
-    @gl.clearColor 0.2, 0.0, 0.0, 1.0 # clear black
-
     # this combination of options puts newly drawn items on top so objects
     # should be drawn further first
     @gl.enable @gl.BLEND

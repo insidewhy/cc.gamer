@@ -16,6 +16,8 @@ cc.module('cc.Renderer').defines -> @set cc.Class.extend {
 
     return
 
+  setBackgroundColor: (r, g, b, a) -> @shdr.clearColor r, g, b, a; this
+
   clear: ->
     @gl.clear(@gl.COLOR_BUFFER_BIT | @gl.DEPTH_BUFFER_BIT)
     return

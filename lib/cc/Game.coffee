@@ -4,6 +4,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   maxTick: 0.05 # slow time down if tick falls below this
   scale: 1      # zoom
   renderer : null
+  backgroundColor: [0.0, 0.0, 0.0, 1.0] # default background colour
 
   # dimensions in pixels, 0 = unset
   width: 0
@@ -49,6 +50,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       try
         gl = cc.initGL canvas, @width, @height
         @renderer = new cc.Renderer gl, @scale, @resources
+        c = @backgroundColor
+        @renderer.setBackgroundColor c[0], c[1], c[2], c[3]
       catch e
         # TODO: fall back on canvas if there is no open GL
         alert "sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome"
