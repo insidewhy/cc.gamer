@@ -1,21 +1,15 @@
 cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
   gl: null
+  scale: 1
 
-  init: (options) ->
+  init: ->
     do @parent
     @pMatrix = mat4.create()
-    @scale = options?.scale or 1
-    @refPoint = mat4.create() # reference point at bottom left corner of screen
-    @mvMatrix = mat4.create() # current draw point
+    @mvMatrix = mat4.create() # reference point at bottom left corner of screen
     return
 
   attachContext: (gl) ->
     @parent gl
-    # this ensures that an object of maximum height will fit exactly in the screen
-    zDistance = -@gl.viewportHeight / (2 * @scale)
-
-    mat4.identity @refPoint
-    mat4.translate @refPoint, [-gl.viewportWidth / (2 * @scale), zDistance, zDistance]
 
     # this is the standard texture used to draw pretty much all sprites
     @textureBuffer = gl.createBuffer()
@@ -28,7 +22,6 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     gl.bufferData gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW
     @textureBuffer.itemSize = 2
     @textureBuffer.numItems = 4
-    this
 
   activateTexture: (spritesheets) ->
     @gl.bindBuffer @gl.ARRAY_BUFFER, @textureBuffer
@@ -72,11 +65,12 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
 
         uniform mat4 mvMatrix;
         uniform mat4 pMatrix;
+        uniform vec3 position;
 
         varying vec2 vTextureCoord;
 
         void main(void) {
-          gl_Position = pMatrix * mvMatrix * vec4(vertexPosition, 1.0);
+          gl_Position = pMatrix * mvMatrix * vec4(vertexPosition + position, 1.0);
           vTextureCoord = textureCoord;
         }"""
     shader = @gl.createShader @gl.VERTEX_SHADER
@@ -89,17 +83,21 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     this
 
   # set camera perspective
-  perspective: (deg) ->
+  perspectiveAndScale: (deg, @scale = 1) ->
     # TODO: set min/max based on current scale
     mat4.perspective(deg, @gl.viewportWidth / @gl.viewportHeight, 1.0, 300.0, @pMatrix)
     @gl.uniformMatrix4fv @u.pMatrix, false, @pMatrix
+
+    # this ensures that an object of maximum height will fit exactly in the screen
+    zDistance = -@gl.viewportHeight / (2 * @scale)
+    mat4.identity @mvMatrix
+    mat4.translate @mvMatrix, [-@gl.viewportWidth / (2 * @scale), zDistance, zDistance]
+    @gl.uniformMatrix4fv @u.mvMatrix, false, @mvMatrix
     this
 
   # location to draw next texture, from bottom left
-  # must call this at least once after link and before drawing
   drawAt: (x, y) ->
-    mat4.translate @refPoint, [x, y, 0.0], @mvMatrix
-    @gl.uniformMatrix4fv @u.mvMatrix, false, @mvMatrix
+    @gl.uniform3f @u.position, x, y, 0
     this
 
   # set up initial gl options for the webgl canvas context
@@ -118,7 +116,7 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     do @parent
     @_attribVertices "vertexPosition", "textureCoord"
     @_uniforms "tileSize", "tileOffset", "tileCoord", "sampler",
-               "pMatrix", "mvMatrix"
+               "pMatrix", "mvMatrix", "position"
     this
 }
 # vim:ts=2 sw=2

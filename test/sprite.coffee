@@ -11,7 +11,7 @@ resources = new cc.Resources
 texAtlas = new cc.TextureAtlas
 
 # gl shader program
-shdr = new cc.SpriteShaderProgram scale: 2
+shdr = new cc.SpriteShaderProgram
 
 # offset into canvas texture cache of current tilesheet
 tileCoord = vec2.createFrom 0, 0
@@ -47,7 +47,7 @@ Game = cc.Game.extend {
     gl.vertexAttribPointer shdr.a.vertexPosition,
       squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0
 
-    shdr.perspective 90
+    shdr.perspectiveAndScale 90, game.scale
 
   update: ->
     # TODO: move drawScene/animate into framework
@@ -56,7 +56,7 @@ Game = cc.Game.extend {
     do @parent
 }
 
-game = new Game resources
+game = new Game resources, scale: 2
 
 # tile size (as percentage of sheet width)
 tileSize = vec2.createFrom spriteWidth / texAtlas.width,
@@ -109,6 +109,7 @@ Entity = cc.Entity.extend {
 }
 
 window.webGLStart = ->
-  game.main "#game-canvas", scale: 2
+  # game.main(document.getElementById "game-canvas")
+  game.main "#game-canvas"
 
 # vim:ts=2 sw=2
