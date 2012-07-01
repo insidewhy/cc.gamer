@@ -23,4 +23,18 @@ cc.module('cc.Core').defines ->
       alert("could not initialise WebGL")
       null
 
+  cc.main = (canvas, gameClass, options) ->
+    if not canvas.getContext?
+      if not (canvas instanceof String)
+        throw 'canvas argument must be Canvas object or selector'
+
+      if canvas[0] == '#'
+        canvas = document.getElementById canvas[1..]
+      else
+        canvas = document.getElementById canvas
+
+      throw "could not find canvas" if not canvas.getContext?
+    # TODO:
+
+
 # vim:ts=2 sw=2

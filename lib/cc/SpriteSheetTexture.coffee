@@ -8,13 +8,14 @@ cc.module('cc.SpriteSheetTexture').defines -> @set cc.Class.extend {
     @_canvas.width = @width
     @_canvas.height = @height
 
-  addImage: (data) ->
-    # TODO: place intelligently and return position data
+  addSpriteSheet: (spriteSheet) ->
+    # TODO: place intelligently and update spriteSheet object
     # current mess: just overwrites data at top
-    @_canvas.getContext('2d').drawImage(data, 0, 0)
+    @_canvas.getContext('2d').drawImage(spriteSheet.image.data, 0, 0)
+    return
 
   # bind image data to texture
-  bindTexture: (gl, textureId = 0) ->
+  loadImageToTexture: (gl, textureId = 0) ->
     @glTexture = gl.createTexture()
     gl.bindTexture gl.TEXTURE_2D, @glTexture
     gl.pixelStorei gl.UNPACK_FLIP_Y_WEBGL, true
@@ -22,6 +23,7 @@ cc.module('cc.SpriteSheetTexture').defines -> @set cc.Class.extend {
     gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST
     gl.texParameteri gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST
     gl.bindTexture gl.TEXTURE_2D, null
+    return
 
 }
 # vim:ts=2 sw=2

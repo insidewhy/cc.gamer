@@ -4,7 +4,9 @@ log = (arg) ->
   newLine.innerHTML = arg
   logPane.appendChild(newLine)
 
-resources = new cc.Resources               # resource loader
+# resource loader
+resources = new cc.Resources
+
 # bundles all spritesheets into one huge gl texture
 spritesheets = new cc.SpriteSheetTexture
 
@@ -32,7 +34,6 @@ tileSize = vec2.createFrom spriteWidth / spritesheets.width,
 offsetIdx = 0
 
 squareVertexPositionBuffer = null
-squareVertexTextureCoordBuffer = null
 
 initBuffers = () ->
   squareVertexPositionBuffer = gl.createBuffer()
@@ -47,17 +48,6 @@ initBuffers = () ->
   gl.bufferData gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW
   squareVertexPositionBuffer.itemSize = 3
   squareVertexPositionBuffer.numItems = 4
-
-  squareVertexTextureCoordBuffer = gl.createBuffer()
-  gl.bindBuffer gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer
-  textureCoords = [
-    1.0, 1.0,
-    0.0, 1.0,
-    1.0, 0.0,
-    0.0, 0.0 ]
-  gl.bufferData gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW
-  squareVertexTextureCoordBuffer.itemSize = 2
-  squareVertexTextureCoordBuffer.numItems = 4
 
 drawScene = () ->
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
@@ -94,28 +84,26 @@ tick = ->
   do drawScene
   do animate
 
+Entity = cc.Entity.extend {
+  # define main sprite, with tile width and height
+  spriteSheet: resources.spriteSheet imgPath, 32, 48
+}
+
 window.webGLStart = (width, height) ->
   canvas = document.getElementById "game-canvas"
-  resources.image imgPath
   resources.onLoadStatusUpdate (cmplt) ->
     if cmplt >= 1
       gl = cc.initGL canvas, width, height
       shdr.attachContext gl
 
-      do shdr.link
       do initBuffers
-      spritesheets.addImage resources.images[imgPath].data
-      spritesheets.bindTexture gl
+      do shdr.link
+      spritesheets.addSpriteSheet resources.spriteSheets[imgPath]
+      spritesheets.loadImageToTexture gl
       do shdr.glOptions
+      shdr.activateTexture spritesheets
 
       # TODO: hide this stuff
-      # a standard square texture
-      gl.bindBuffer gl.ARRAY_BUFFER, squareVertexTextureCoordBuffer
-      gl.vertexAttribPointer shdr.a.textureCoord, squareVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0
-      gl.activeTexture gl.TEXTURE0
-      gl.bindTexture gl.TEXTURE_2D, spritesheets.glTexture
-      gl.uniform1i shdr.u.sampler, 0
-
       # setup surface
       gl.bindBuffer gl.ARRAY_BUFFER, squareVertexPositionBuffer
       gl.vertexAttribPointer shdr.a.vertexPosition,

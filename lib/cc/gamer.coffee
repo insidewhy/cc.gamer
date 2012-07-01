@@ -7,6 +7,7 @@ cc.module('cc.gamer').requires(
   'cc.LoadingScreen'
   'cc.SpriteShaderProgram'
   'cc.SpriteSheetTexture'
+  'cc.SpriteSheet'
   'cc.Game'
 ).empty()
 

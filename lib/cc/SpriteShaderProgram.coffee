@@ -14,6 +14,27 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
 
     mat4.identity @refPoint
     mat4.translate @refPoint, [-gl.viewportWidth / (2 * @scale), zDistance, zDistance]
+
+    # this is the standard texture used to draw pretty much all sprites
+    @textureBuffer = gl.createBuffer()
+    gl.bindBuffer gl.ARRAY_BUFFER, @textureBuffer
+    textureCoords = [
+      1.0, 1.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      0.0, 0.0 ]
+    gl.bufferData gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW
+    @textureBuffer.itemSize = 2
+    @textureBuffer.numItems = 4
+    return
+
+  activateTexture: (spritesheets) ->
+    @gl.bindBuffer @gl.ARRAY_BUFFER, @textureBuffer
+    @gl.vertexAttribPointer @a.textureCoord, @textureBuffer.itemSize, @gl.FLOAT, false, 0, 0
+    # TODO: read idx from spritesheets object
+    @gl.activeTexture @gl.TEXTURE0
+    @gl.bindTexture @gl.TEXTURE_2D, spritesheets.glTexture
+    @gl.uniform1i @u.sampler, 0
     return
 
   _attachSpriteFragmentShader: ->
@@ -64,20 +85,23 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     # TODO: set min/max based on current scale
     mat4.perspective(deg, @gl.viewportWidth / @gl.viewportHeight, 1.0, 300.0, @pMatrix)
     @gl.uniformMatrix4fv @u.pMatrix, false, @pMatrix
+    return
 
   # location to draw next texture, from bottom left
   # must call this at least once after link and before drawing
   drawAt: (x, y) ->
     mat4.translate @refPoint, [x, y, 0.0], @mvMatrix
     @gl.uniformMatrix4fv @u.mvMatrix, false, @mvMatrix
+    return
 
   # set up initial gl options for the webgl canvas context
   glOptions: ->
-    @gl.clearColor 0.0, 0.0, 0.0, 1.0
+    @gl.clearColor 0.0, 0.0, 0.0, 1.0 # clear black
     @gl.blendFunc @gl.SRC_ALPHA, @gl.ONE
     @gl.enable @gl.BLEND
     @gl.enable @gl.DEPTH_TEST
     @gl.viewport 0, 0, @gl.viewportWidth, @gl.viewportHeight
+    return
 
   # link gl program and then grab pointers to all uniforms and attributes
   link: ->
