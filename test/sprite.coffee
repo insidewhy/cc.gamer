@@ -38,7 +38,6 @@ Game = cc.Game.extend {
     do shdr.link
     texAtlas.addSpriteSheet resources.spriteSheets[imgPath]
     texAtlas.loadImageToTexture gl
-    do shdr.glOptions
     shdr.activateTexture texAtlas
 
     # TODO: move elsewhere
@@ -90,7 +89,13 @@ drawScene = () ->
   shdr.drawAt 0.0, 0.0
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
-  shdr.drawAt 100.0, 0.0
+  shdr.drawAt 10.0, 0, 0
+  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+  shdr.drawAt 110, 0, 0
+  gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
+
+  shdr.drawAt 100, 0
   gl.drawArrays gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems
 
 frameRate = 6 # animation updates per second
@@ -99,7 +104,7 @@ timer = game.timer(1 / frameRate)
 animate = ->
   # console.log timer._game.now, timer._expires
   return unless timer.expired()
-  do timer.rearm
+  do timer.reset
   offsetIdx = 0 if ++offsetIdx is tileOffset.length
   return
 

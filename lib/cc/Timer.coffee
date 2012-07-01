@@ -1,13 +1,10 @@
 cc.module('cc.Timer').defines -> @set cc.Class.extend {
   # do not call.. use game.timer
-  # length = time in seconds until expiry
-  # now = current time in seconds (reference to game.now)
-  init: (@_game, @_length = 0) ->
-    @_expires = if @_length then @_game.now + @_length else 0
-    return
-  expiresIn: (@_length) -> @_expires = @_game.now + @_length ; return
-  expired: -> @_game.now >= @_expires
-  delta: -> @game.now - @_expires
-  rearm: -> @expiresIn @_length
+  # duration = time in seconds until expiry
+  init: (@_game, duration = 0) -> @expiresIn duration; return
+  expiresIn: (@duration) -> @expires = @_game.now + @duration ; return
+  expired: -> @_game.now >= @expires
+  delta: -> @game.now - @expires
+  reset: -> @expiresIn @duration
 }
 # vim:ts=2 sw=2

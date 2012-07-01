@@ -48,12 +48,14 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
       // for the current pixel. It also has to add one to the y-offset to make
       // up for it being from the top left rather than the bottom right.
       void main(void) {
-        // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        // gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
         gl_FragColor = texture2D(sampler,
           vec2(1, -1) * (
             vec2(vTextureCoord.s, -vTextureCoord.t) * tileSize +
             (tileSize * vec2(tileOffset.s, tileOffset.t + 1.0)) +
             tileCoord));
+        /*
+        */
       }"""
     shader = @gl.createShader @gl.FRAGMENT_SHADER
     @_attachShader shader, content
@@ -76,10 +78,13 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     shader = @gl.createShader @gl.VERTEX_SHADER
     @_attachShader shader, content
 
-  selectTile: (tileSize, tileOffset, tileCoord) ->
+  # tileSize units is percentage of texture size
+  # tileOffset from top left at [0, 0]
+  # sheetOffset in texture coordinates: [0->1, 0->1]
+  selectTile: (tileSize, tileOffset, sheetOffset) ->
     @gl.uniform2fv @u.tileSize, tileSize
     @gl.uniform2fv @u.tileOffset, tileOffset
-    @gl.uniform2fv @u.tileCoord, tileCoord
+    @gl.uniform2fv @u.tileCoord, sheetOffset
     this
 
   # set camera perspective
@@ -96,18 +101,21 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     this
 
   # location to draw next texture, from bottom left
-  drawAt: (x, y) ->
-    @gl.uniform3f @u.position, x, y, 0
+  drawAt: (x, y, z = 0) ->
+    @gl.uniform3f @u.position, x, y, z
     this
 
   # set up initial gl options for the webgl canvas context
-  glOptions: ->
-    @gl.clearColor 0.0, 0.0, 0.0, 1.0 # clear black
-    @gl.blendFunc @gl.SRC_ALPHA, @gl.ONE
+  _glOptions: ->
+    @gl.clearColor 0.2, 0.0, 0.0, 1.0 # clear black
+
+    # this combination of options puts newly drawn items on top so objects
+    # should be drawn further first
     @gl.enable @gl.BLEND
-    @gl.enable @gl.DEPTH_TEST
+    @gl.blendFunc @gl.SRC_ALPHA, @gl.ONE_MINUS_SRC_ALPHA
+    @gl.disable @gl.DEPTH_TEST
     @gl.viewport 0, 0, @gl.viewportWidth, @gl.viewportHeight
-    this
+    return
 
   # link gl program and then grab pointers to all uniforms and attributes
   link: ->
@@ -117,6 +125,7 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @_attribVertices "vertexPosition", "textureCoord"
     @_uniforms "tileSize", "tileOffset", "tileCoord", "sampler",
                "pMatrix", "mvMatrix", "position"
+    do @_glOptions
     this
 }
 # vim:ts=2 sw=2
