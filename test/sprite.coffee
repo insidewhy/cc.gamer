@@ -8,7 +8,7 @@ log = (arg) ->
 resources = new cc.Resources
 
 # bundles all spritesheets into one huge gl texture
-spritesheets = new cc.SpriteSheetTexture
+texAtlas = new cc.TextureAtlas
 
 # gl shader program
 shdr = new cc.SpriteShaderProgram scale: 2
@@ -36,10 +36,10 @@ Game = cc.Game.extend {
 
     do initBuffers
     do shdr.link
-    spritesheets.addSpriteSheet resources.spriteSheets[imgPath]
-    spritesheets.loadImageToTexture gl
+    texAtlas.addSpriteSheet resources.spriteSheets[imgPath]
+    texAtlas.loadImageToTexture gl
     do shdr.glOptions
-    shdr.activateTexture spritesheets
+    shdr.activateTexture texAtlas
 
     # TODO: move elsewhere
     # surface attribute
@@ -59,8 +59,8 @@ Game = cc.Game.extend {
 game = new Game resources
 
 # tile size (as percentage of sheet width)
-tileSize = vec2.createFrom spriteWidth / spritesheets.width,
-                           spriteHeight / spritesheets.height
+tileSize = vec2.createFrom spriteWidth / texAtlas.width,
+                           spriteHeight / texAtlas.height
 
 offsetIdx = 0
 

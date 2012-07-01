@@ -1,6 +1,5 @@
-# a sprite texture is a large texture that contains further smaller
-# spritesheets of various sizes.
-cc.module('cc.SpriteSheetTexture').defines -> @set cc.Class.extend {
+# a large texture that contains further smaller spritesheets of various sizes.
+cc.module('cc.TextureAtlas').defines -> @set cc.Class.extend {
   # both width and height must be the same and a power of 2
   # i think up to 4096 should be okay
   init: (@width = 2048, @height = 2048) ->
