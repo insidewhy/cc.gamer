@@ -23,4 +23,7 @@ cc.module('cc.Core').defines ->
       alert("could not initialise WebGL")
       null
 
+  # random integer between min and max inclusive
+  cc.rand = (min, max) -> Math.floor(Math.random() * (max - min + 1)) + min
+
 # vim:ts=2 sw=2

@@ -28,14 +28,22 @@ HeroEntity = cc.Entity.extend {
   # define main sprite, with tile width and height
   spriteSheet: resources.spriteSheet 'chars.png', 32, 48
   init: (game, x, y, settings) ->
+    @v.x = 150
+    @timer = game.timer 1 # time 1 second of game time
     @parent game, x, y, settings
     @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]
 
   update: ->
     do @parent
-    if @v.x is 0
-      @v.x = 150
+    if @timer.expired()
+      # if one second of game time has passed
+      @v.x = cc.rand -300, 300
+      @v.y = cc.rand -75, 75
+      do @timer.reset # then reset the timer
 
+    do @_keepInView
+
+  _keepInView: ->
     # if at edge then turn back
     maxX = @game.maxX - @width
     if @pos.x > maxX
@@ -57,11 +65,14 @@ HeroEntity = cc.Entity.extend {
 ImpostorEntity = HeroEntity.extend {
   init: (game, x, y, settings) ->
     # skip hero init
+    @v.x = 20
     cc.Entity.prototype.init.call this, game, x, y, settings
     @addSprite 'walk', 0.1, [ 27, 28, 29, 28 ]
 
   update: ->
     cc.Entity.prototype.update.call this
+    do @_keepInView
+
 }
 
 window.webGLStart = ->
