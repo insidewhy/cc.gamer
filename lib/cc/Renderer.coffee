@@ -18,8 +18,18 @@ cc.module('cc.Renderer').defines -> @set cc.Class.extend {
 
   setBackgroundColor: (r, g, b, a) -> @shdr.clearColor r, g, b, a; this
 
+  selectSprite: (sprite) ->
+    @shdr.selectTile(
+      sprite.sheet.textureTileSize, sprite.tile, sprite.sheet.textureOffset)
+    this
+
+  drawSprite: (x, y, z = 0.0) ->
+    @shdr.drawAt x, y, z
+    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @shdr.spriteVertices.numItems
+    this
+
   clear: ->
     @gl.clear(@gl.COLOR_BUFFER_BIT | @gl.DEPTH_BUFFER_BIT)
-    return
+    this
 }
 # vim:ts=2 sw=2

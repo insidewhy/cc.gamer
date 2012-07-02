@@ -35,6 +35,11 @@ cc.module('cc.Entity').defines -> @set cc.Class.extend {
     return
 
   draw: ->
+    # @game.renderer.shdr.setTileSize @sprite.width, @sprite.height
+    @game.renderer.shdr.setTileSize @width, @height
+    @game.renderer.selectSprite @sprite
+    @game.renderer.drawSprite @pos.x, @pos.y, 0.0
+    return
 
 }
 # vim:ts=2 sw=2

@@ -6,61 +6,22 @@ Game = cc.Game.extend {
 
   # called after all resources have loaded
   booted: ->
-    @gl = @renderer.gl
     @hero = @spawnEntity HeroEntity, 0, 0
-
-    do @_initBuffers
-
-    # TODO: move elsewhere
-    # surface attribute
-    @gl.bindBuffer @gl.ARRAY_BUFFER, @spriteVertices
-    @gl.vertexAttribPointer @renderer.shdr.a.vertexPosition,
-      @spriteVertices.itemSize, @gl.FLOAT, false, 0, 0
-
-  _initBuffers: ->
-    @spriteVertices = @gl.createBuffer()
-    @gl.bindBuffer @gl.ARRAY_BUFFER, @spriteVertices
-
-    # bottom left corner of sprite at center of mvMatrix
-    vertices = [
-      @hero.width, @hero.height, 0.0,
-      0.0,         @hero.height, 0.0,
-      @hero.width, 0.0,          0.0,
-      0.0,         0.0,          0.0 ]
-    @gl.bufferData @gl.ARRAY_BUFFER, new Float32Array(vertices), @gl.STATIC_DRAW
-    @spriteVertices.itemSize = 3
-    @spriteVertices.numItems = 4
-
+    return
 
   draw: ->
     do @parent
+    do @hero.draw # entity draws sprite at bottom left
 
-    sprite = @hero.sprite
-    @renderer.shdr.selectTile(
-      sprite.sheet.textureTileSize, sprite.tile, sprite.sheet.textureOffset)
-
-    # draw
-    @renderer.shdr.drawAt 0.0, 0.0
-    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
-
-    @renderer.shdr.drawAt 10, 0, -158
-    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
-
-    @renderer.shdr.drawAt 10.0, 0, 0
-    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
-
-    @renderer.shdr.drawAt 110, 0, 0
-    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
-
-    @renderer.shdr.drawAt 100, 0
-    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
-
-    # one with a small one on top
-    @renderer.shdr.drawAt 140, 0, -128
-    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
-
-    @renderer.shdr.drawAt 140, 0
-    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @spriteVertices.numItems
+    # take advantage of the fact that the previous hero draw has left
+    # its image in the gl texture attribute and draw some more copies
+    # var various locations
+    @renderer.drawSprite 10, 0, -158
+    @renderer.drawSprite 10.0, 0
+    @renderer.drawSprite 110, 0
+    @renderer.drawSprite 100, 0
+    @renderer.drawSprite 140, 0, -128
+    @renderer.drawSprite 140, 0
 
   update: ->
     # TODO: should be done by game loop

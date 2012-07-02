@@ -17,6 +17,10 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @gl.uniform1i @u.sampler, 0
     this
 
+  setTileSize: (width, height) ->
+    @gl.uniform2f @u.spriteSize, width, height
+    return
+
   _attachSpriteFragmentShader: ->
     content = """
       precision mediump float;
@@ -54,10 +58,13 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
         uniform mat4 pMatrix;
         uniform vec3 position;
 
+        uniform vec2 spriteSize;
+
         varying vec2 vTextureCoord;
 
         void main(void) {
-          gl_Position = pMatrix * mvMatrix * vec4(vertexPosition + position, 1.0);
+          gl_Position = pMatrix * mvMatrix *
+            vec4(vec3(spriteSize, 1.0) * vertexPosition + position, 1.0);
           vTextureCoord = textureCoord;
         }"""
     shader = @gl.createShader @gl.VERTEX_SHADER
@@ -121,13 +128,35 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @textureBuffer.itemSize = 2
     @textureBuffer.numItems = 4
 
+    # create the tile used for all square sprites
+    @spriteVertices = @gl.createBuffer()
+    @gl.bindBuffer @gl.ARRAY_BUFFER, @spriteVertices
+
+    # bottom left corner of sprite at center of mvMatrix
+    vertices = [
+      1.0, 1.0, 0.0,
+      0.0, 1.0, 0.0,
+      1.0, 0.0, 0.0,
+      0.0, 0.0, 0.0 ]
+    @gl.bufferData @gl.ARRAY_BUFFER, new Float32Array(vertices), @gl.STATIC_DRAW
+    @spriteVertices.itemSize = 3
+    @spriteVertices.numItems = 4
+
     do @_attachSpriteFragmentShader
     do @_attachSpriteVertexShader
     do @parent
     @_attribVertices "vertexPosition", "textureCoord"
     @_uniforms "tileSize", "tileOffset", "tileCoord", "sampler",
-               "pMatrix", "mvMatrix", "position"
+               "pMatrix", "mvMatrix", "position",
+               "spriteSize"
+
     do @_glOptions
+
+    # send shape to vertex
+    @gl.bindBuffer @gl.ARRAY_BUFFER, @spriteVertices
+    @gl.vertexAttribPointer @a.vertexPosition,
+      @spriteVertices.itemSize, @gl.FLOAT, false, 0, 0
+
     this
 }
 # vim:ts=2 sw=2
