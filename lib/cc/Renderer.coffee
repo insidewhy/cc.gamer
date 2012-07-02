@@ -23,8 +23,9 @@ cc.module('cc.Renderer').defines -> @set cc.Class.extend {
       sprite.sheet.textureTileSize, sprite.tile, sprite.sheet.textureOffset)
     this
 
-  drawSprite: (x, y, z = 0.0) ->
+  drawSprite: (x, y, z, flipX) ->
     @shdr.drawAt x, y, z
+    @shdr.flipX flipX
     @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @shdr.spriteVertices.numItems
     this
 

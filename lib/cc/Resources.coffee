@@ -1,13 +1,11 @@
 # a cache of images/sounds used by a game
 cc.module('cc.Resources').requires('cc.Image').defines -> @set cc.Class.extend {
-  init: ->
-    @images = {}       # images including spriteSheets
-    @spriteSheets = {} # subset of images that are spriteSheets
-    @audios = {}
-    @completeCallbacks = []
-    @nToLoad = 0
-    @nLoaded = 0
-    return
+  images: {}       # images including spriteSheets
+  spriteSheets: {} # subset of images that are spriteSheets
+  audios: {}
+  completeCallbacks: []
+  nToLoad: 0
+  nLoaded: 0
 
   # from 0 to 1.. percentage of media loaded (by number of files)
   completeness: -> if 0 is @nToLoad then 1 else @nLoaded / @nToLoad

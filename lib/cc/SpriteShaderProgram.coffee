@@ -32,19 +32,25 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
       uniform vec2 tileCoord;  // offset into texture of first pixel
       uniform sampler2D sampler;
 
+      uniform bool flipX;
+
       // this converts the tile coordinate system to the gl coordinate system
       // First it flips the y-axis. Then it reverses the direction it scans
       // for the current pixel. It also has to add one to the y-offset to make
       // up for it being from the top left rather than the bottom right.
       void main(void) {
-        // gl_FragColor = vec4(0.9, 0.9, 0.9, 1.0);
+        vec2 _tileOffset = vec2(tileOffset.s, tileOffset.t + 1.0);
+        vec2 _texCoord   = vec2(vTextureCoord.s, -vTextureCoord.t);
+        if (flipX) {
+          _texCoord.s = -_texCoord.s;
+          _tileOffset.s += 1.0;
+        }
+
+        float offset = 1.0;
+
         gl_FragColor = texture2D(sampler,
           vec2(1, -1) * (
-            vec2(vTextureCoord.s, -vTextureCoord.t) * tileSize +
-            (tileSize * vec2(tileOffset.s, tileOffset.t + 1.0)) +
-            tileCoord));
-        /*
-        */
+            (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));
       }"""
     shader = @gl.createShader @gl.FRAGMENT_SHADER
     @_attachShader shader, content
@@ -59,6 +65,9 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
         uniform vec3 position;
 
         uniform vec2 spriteSize;
+
+        // to project y onto x.. multiply position by this
+        // const mat3 shear = mat3(1,0,0, 0,0,1, 0,-1,0);
 
         varying vec2 vTextureCoord;
 
@@ -98,6 +107,10 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
   # location to draw next texture, from bottom left
   drawAt: (x, y, z = 0) ->
     @gl.uniform3f @u.position, x, y, z
+    this
+
+  flipX: (flip) ->
+    @gl.uniform1i @u.flipX, flip
     this
 
   clearColor: (r, g, b, a) ->
@@ -148,7 +161,7 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @_attribVertices "vertexPosition", "textureCoord"
     @_uniforms "tileSize", "tileOffset", "tileCoord", "sampler",
                "pMatrix", "mvMatrix", "position",
-               "spriteSize"
+               "spriteSize", "flipX"
 
     do @_glOptions
 

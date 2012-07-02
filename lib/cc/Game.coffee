@@ -67,7 +67,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       # @now = virtual time, now = time
       # virtual time starts at 0
       # it starts off as a constant offset to real time but will lag if
-      # any frame is delayed by more than @maxStep
+      # any frame is delayed by more than @maxTick
       @now = 0
       now = new Date().getTime() / 1000
       # TODO: more stuff
@@ -76,7 +76,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
         newNow = new Date().getTime() / 1000
         @tick = newNow - now
-        @tick = @maxStep if @tick > @maxStep # slow down time if necessary
+        @tick = @maxTick if @tick > @maxTick # slow down time if necessary
         @now += @tick
         now = newNow
         do @update

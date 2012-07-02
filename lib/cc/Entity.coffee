@@ -2,6 +2,7 @@ cc.module('cc.Entity').defines -> @set cc.Class.extend {
   width: 0
   height:0
   sprites: {}
+  # pos: { x: 0, y: 0, z: 0 } # position
   v: { x: 0, y: 0 }        # velocity
   maxV: { x: 200, y: 100 } # maximum velocity
   a: { x: 200, y: 100 }    # acceleration
@@ -10,7 +11,7 @@ cc.module('cc.Entity').defines -> @set cc.Class.extend {
 
   # not to be called externally!! use Game.spawnEntity
   init: (@game, x, y, settings) ->
-    @pos = x: x, y: y
+    @pos = x: x, y: y, z: 0
     return
 
   # set current active sprite
@@ -45,7 +46,7 @@ cc.module('cc.Entity').defines -> @set cc.Class.extend {
     # @game.renderer.shdr.setTileSize @sprite.width, @sprite.height
     @game.renderer.shdr.setTileSize @width, @height
     @game.renderer.selectSprite @sprite
-    @game.renderer.drawSprite @pos.x, @pos.y, 0.0
+    @game.renderer.drawSprite @pos.x, @pos.y, @pos.z, @v.x < 0
     return
 
 }
