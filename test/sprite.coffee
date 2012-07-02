@@ -10,8 +10,8 @@ Game = cc.Game.extend {
     return
 
   draw: ->
+    # parent will draw @hero from the entities array
     do @parent
-    do @hero.draw # entity draws sprite at bottom left
 
     # take advantage of the fact that the previous hero draw has left
     # its image in the gl texture attribute and draw some more copies
@@ -24,9 +24,7 @@ Game = cc.Game.extend {
     @renderer.drawSprite 140, 0
 
   update: ->
-    # TODO: should be done by game loop
     do @parent
-    do @hero.update
 }
 
 game = new Game resources, scale: 2

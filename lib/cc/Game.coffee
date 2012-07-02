@@ -79,13 +79,18 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       return
 
-  spawnEntity: (type, x, y, settings) -> new (type)(this, x, y, settings)
+  spawnEntity: (type, x, y, settings) ->
+    entity = new (type)(this, x, y, settings)
+    @entities.push entity
+    entity
 
   update: ->
-    # TODO: move all entities checking for collisions
+    # TODO: ordering, collision checking
+    do entity.update for entity in @entities
 
   draw: ->
     do @renderer.clear
-    # TODO: draw backgrounds then entities
+    # TODO: draw backgrounds here
+    do entity.draw for entity in @entities
 }
 # vim:ts=2 sw=2
