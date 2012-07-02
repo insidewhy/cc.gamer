@@ -50,13 +50,13 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       try
         gl = cc.initGL canvas, @width, @height
         @renderer = new cc.Renderer gl, @scale, @resources
-        c = @backgroundColor
-        @renderer.setBackgroundColor c[0], c[1], c[2], c[3]
       catch e
         # TODO: fall back on canvas if there is no open GL
         alert "sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome"
         return
 
+      c = @backgroundColor
+      @renderer.setBackgroundColor c[0], c[1], c[2], c[3]
       do @booted if @booted
 
       # @now = virtual time, now = time
@@ -74,8 +74,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
         @tick = @maxStep if @tick > @maxStep # slow down time if necessary
         @now += @tick
         now = newNow
-        do @draw
         do @update
+        do @draw
 
       return
 

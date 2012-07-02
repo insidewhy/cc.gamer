@@ -25,6 +25,7 @@ Game = cc.Game.extend {
 
   update: ->
     # TODO: should be done by game loop
+    do @parent
     do @hero.update
 }
 

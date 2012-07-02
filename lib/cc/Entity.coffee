@@ -22,11 +22,12 @@ cc.module('cc.Entity').defines -> @set cc.Class.extend {
   # spritesheet
   addSprite: (name, frameLength, frames) ->
     @sprites[name] = sprite = new cc.Sprite @spriteSheet, frameLength, frames
-    @setSprite name if not @sprite
-    if not @width
-      @width = sprite.sheet.tileWidth
-    if not @height
-      @height = sprite.sheet.tileHeight
+    if not @sprite
+      @setSprite name
+      if not @width
+        @width = sprite.sheet.tileWidth
+      if not @height
+        @height = sprite.sheet.tileHeight
 
     sprite
 
