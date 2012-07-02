@@ -7,8 +7,30 @@ To install globally:
 sudo npm install -g cc.gamer
 ```
 
+# about cc.gamer
+
+After trying a dozen open source html5 game engines I couldn't find one that was simple, bug free, extensible and fast. Most of them only seem to contain one of these criteria and the best two or three at the most. [ImpactJS](http://impactjs.com/) is great and does all that but unfortunately it is closed source :( cc.gamer provides a fully functional sprite based game environment with a liberal license (MIT). It has a super fast WebGL backend for browsers that support it and will have a canvas fallback soon.
+
+cc.gamer is written in CoffeeScript but distributed in both minified and readable compiled JavaScript formats neither of which depend on CoffeeScript in any way.
+
+
 # usage
+
+## starting out
+
+cc.gamer uses the [cc.loader](http://github.com/nuisanceofcats/cc.loader) module system which provides a similar API to [ImpactJS' module system](http://impactjs.com/) but written in coffeescript and with several extensions. It isn't necessary to use it for your own project but if you wish you can read about it [here](http://github.com/nuisanceofcats/cc.loader).
+
+cc.gamer uses [cc.extend](http://github.com/nuisanceofcats/cc.extend) to structure its classes. This provides an API similar to [ImpactJS' class system](http://impactjs.com/) but written in coffeescript and without support for singletons.
+
+cc.gamer games use an instance of the Resources class from which to load resources instead of using singletons. cc.gamer also relies much less on global data with most game state being a member of the main game class. Object references are used to pass references to game state around.
+
+## first game with cc.gamer
+
 TODO
+
+# status
+* Module system: done
+* Class system: done [cc.extend](http://github.com/nuisanceofcats/cc.extend)
 
 # testing
 ```
