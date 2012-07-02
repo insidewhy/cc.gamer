@@ -2,6 +2,9 @@ cc.module('cc.Entity').defines -> @set cc.Class.extend {
   width: 0
   height:0
   sprites: {}
+  v: { x: 0, y: 0 }        # velocity
+  maxV: { x: 200, y: 100 } # maximum velocity
+  a: { x: 200, y: 100 }    # acceleration
   sprite: null         # currently displayed sprite
   # spriteSheet: null  # must be defined in deriving class
 
@@ -32,7 +35,10 @@ cc.module('cc.Entity').defines -> @set cc.Class.extend {
     sprite
 
   update: ->
-    do @sprite.update
+    # TODO: increase v by acceleration up to maxV
+    @pos.x += @v.x * @game.tick if @v.x
+    @pos.y += @v.y * @game.tick if @v.y
+    do @sprite.update if @sprite
     return
 
   draw: ->

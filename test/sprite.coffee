@@ -6,35 +6,62 @@ Game = cc.Game.extend {
 
   # called after all resources have loaded
   booted: ->
+    @impostors = [
+      # 10, 0, -158
+      @spawnEntity ImpostorEntity, 10.0, 0
+      @spawnEntity ImpostorEntity, 110, 0
+      @spawnEntity ImpostorEntity, 100, 0
+      # 140, 0, -128
+      @spawnEntity ImpostorEntity, 140, 0 ]
+
     @hero = @spawnEntity HeroEntity, 0, 0
     return
 
-  draw: ->
-    # parent will draw @hero from the entities array
-    do @parent
-
-    # take advantage of the fact that the previous hero draw has left
-    # its image in the gl texture attribute and draw some more copies
-    # var various locations
-    @renderer.drawSprite 10, 0, -158
-    @renderer.drawSprite 10.0, 0
-    @renderer.drawSprite 110, 0
-    @renderer.drawSprite 100, 0
-    @renderer.drawSprite 140, 0, -128
-    @renderer.drawSprite 140, 0
-
-  update: ->
-    do @parent
+  # draw: ->
+  # update: ->
 }
 
 game = new Game resources, scale: 2
 
 HeroEntity = cc.Entity.extend {
+  # TODO: add timer for random velocity
   # define main sprite, with tile width and height
   spriteSheet: resources.spriteSheet 'chars.png', 32, 48
   init: (game, x, y, settings) ->
     @parent game, x, y, settings
     @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]
+
+  update: ->
+    do @parent
+    if @v.x is 0
+      @v.x = 150
+
+    # if at edge then turn back
+    maxX = @game.maxX - @width
+    if @pos.x > maxX
+      @pos.x = maxX
+      @v.x = -@v.x
+    else if @pos.x < 0
+      @pos.x = 0
+      @v.x = -@v.x
+
+    maxY = @game.maxY - @height
+    if @pos.y > maxY
+      @pos.y = maxY
+      @v.y = -@v.y
+    else if @pos.y < 0
+      @pos.y = 0
+      @v.y = -@v.y
+}
+
+ImpostorEntity = HeroEntity.extend {
+  init: (game, x, y, settings) ->
+    # skip hero init
+    cc.Entity.prototype.init.call this, game, x, y, settings
+    @addSprite 'walk', 0.1, [ 27, 28, 29, 28 ]
+
+  update: ->
+    cc.Entity.prototype.update.call this
 }
 
 window.webGLStart = ->

@@ -3,6 +3,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   entities: []  # all alive entities in this game
   maxTick: 0.05 # slow time down if tick falls below this
   scale: 1      # zoom
+  maxX: 0       # max x-pixel TODO: move to Viewport class?
+  maxY: 0       # max y-pixel
   renderer : null
   backgroundColor: [0.0, 0.0, 0.0, 1.0] # default background colour
 
@@ -50,6 +52,9 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       try
         gl = cc.initGL canvas, @width, @height
         @renderer = new cc.Renderer gl, @scale, @resources
+
+        @maxX = gl.viewportWidth / @scale
+        @maxY = gl.viewportHeight / @scale
       catch e
         # TODO: fall back on canvas if there is no open GL
         alert "sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome"
