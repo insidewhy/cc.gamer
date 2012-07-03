@@ -70,7 +70,9 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       # any frame is delayed by more than @maxTick
       @now = 0
       now = new Date().getTime() / 1000
-      # TODO: more stuff
+
+      do @_initPhysics
+
       do mainLoop = =>
         cc.requestAnimationFrame mainLoop
 
@@ -83,6 +85,25 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
         do @draw
 
       return
+
+  _initPhysics: ->
+    @worker = new Worker('cc/physics.js')
+    @worker.onmessage = (event) => @_onPhysicsWorkerMessage event.data
+    @worker.onerror = (event) => @_onPhysicsWorkerError event
+    # TODO:
+    # @worker.postMessage entities
+
+  _onPhysicsWorkerMessage: (msg) ->
+    if msg.log and console.log
+      console.log "from worker:", msg.log
+    return
+
+  _onPhysicsWorkerError: (event) ->
+    # TODO: fall back on in renderer physics for IE9?
+    if console.log
+      console.log "worker error:", event.message
+    return
+
 
   spawnEntity: (type, x, y, settings) ->
     entity = new (type)(this, x, y, settings)

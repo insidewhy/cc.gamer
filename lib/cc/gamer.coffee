@@ -11,6 +11,9 @@ cc.module('cc.gamer').requires(
   'cc.SpriteSheet'
   'cc.Game'
   'cc.Renderer'
+
+  # TODO: consider splitting out into separate file
+  'cc.PhysicsWorker'
 ).empty()
 
 # vim:ts=2 sw=2

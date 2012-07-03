@@ -11,7 +11,7 @@ sudo npm install -g cc.gamer
 
 After trying a dozen open source html5 game engines I couldn't find one that was simple, bug free, extensible and fast. Most of them only seem to contain one of these criteria and the best two or three at the most. [ImpactJS](http://impactjs.com/) is great and does all that but unfortunately it is closed source :( cc.gamer provides a fully functional sprite based game environment with a liberal license (MIT). It has a fast WebGL backend for browsers that support it and will have a canvas fallback soon. The WebGL canvas can support things like arbitrary zoom in games and many sprites and effects.
 
-This library is for creating retro sprite based games based on tiles but the WebGL backend does have support for 3D features.
+This library is for creating retro sprite based games based on tiles but the WebGL backend does have support for some limited 3D features. The physics engine runs in a web worker process such that cc.gamer may take advantage of multiple cores.
 
 It is written in CoffeeScript but distributed in both minified and readable compiled JavaScript formats neither of which depend on CoffeeScript in any way.
 
@@ -41,6 +41,13 @@ TODO
 cc.gamer test server listening on: 8014
 please go to http://localhost:8014/
 ```
+
+# developing
+```
+% npm test
+```
+
+The test system will automatically reload and re-generate cc/gamer.js as you edit the code.
 
 # status
 * Module system: done [cc.loader](http://github.com/nuisanceofcats/cc.loader)
