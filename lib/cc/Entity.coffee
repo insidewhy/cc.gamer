@@ -1,17 +1,13 @@
-cc.module('cc.Entity').defines -> @set cc.Class.extend {
-  width: 0
-  height:0
+cc.module('cc.Entity').parent('cc.EntityPhysics').jClass {
   sprites: {}
-  # pos: { x: 0, y: 0, z: 0 } # position
-  v:    { x: 0, y: 0 }        # velocity
-  maxV: { x: 200, y: 100 } # maximum velocity
-  a:    { x: 0, y: 0 }     # acceleration
   sprite: null         # currently displayed sprite
   # spriteSheet: null  # must be defined in deriving class
 
   # not to be called externally!! use Game.spawnEntity
   init: (@game, x, y, settings) ->
-    @pos = x: x, y: y, z: 0
+    @_setPos x, y
+    # does not call parent.. only sets x and y the rest come from the
+    # physics client
     return
 
   # set current active sprite
@@ -36,9 +32,8 @@ cc.module('cc.Entity').defines -> @set cc.Class.extend {
     sprite
 
   update: ->
-    # TODO: increase v by acceleration up to maxV
-    @pos.x += @v.x * @game.tick if @v.x
-    @pos.y += @v.y * @game.tick if @v.y
+    # TODO: push into web worker thread
+    @_step @game.tick unless @game.useWebWorker and false
     do @sprite.update if @sprite
     return
 

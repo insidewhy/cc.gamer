@@ -37,7 +37,7 @@ HeroEntity = cc.Entity.extend {
     do @parent
     if @timer.expired()
       # if one second of game time has passed
-      @v.x = cc.rand -300, 300
+      @v.x = cc.rand -200, 200
       @v.y = cc.rand -75, 75
       do @timer.reset # then reset the timer
 

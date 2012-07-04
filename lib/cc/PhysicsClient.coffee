@@ -20,10 +20,7 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
     # entities = all entities in current world (e.g. added by boot override)
     data = {}
     for own id, entity of entities
-      data[id] = [ entity.width, entity.height,
-                   entity.pos.x, entity.pos.y,
-                   entity.v.x, entity.v.y,
-                   entity.a.x, entity.a.y ]
+      data[id] = do entity.compressedPhysicsForNew
 
     @worker.postMessage entities: data
 
@@ -47,4 +44,3 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
     return
 }
 # vim:ts=2 sw=2
-

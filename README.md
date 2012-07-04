@@ -1,5 +1,5 @@
 # cc.gamer
-A high performance sprite based open source HTML5 game engine. It uses WebGL if available for graphics and takes advantage of multiple core processors by using Web Workers.
+A high performance sprite based open source HTML5 game engine. It uses WebGL if available for graphics and takes advantage of multiple core processors by using Web Workers when avaible.
 
 # installation
 To install globally:
@@ -23,11 +23,12 @@ cc.gamer uses the [cc.loader](http://github.com/nuisanceofcats/cc.loader) module
 
 cc.gamer uses [cc.extend](http://github.com/nuisanceofcats/cc.extend) to structure its classes. This provides an API similar to [ImpactJS' class system](http://impactjs.com/) but written in coffeescript and without support for singletons.
 
-cc.gamer games use an instance of the Resources class from which to load resources instead of using singletons. cc.gamer also relies much less on global data with most game state being a member of the main game class. Object references are used to pass references to game state around.
 
 ## first game with cc.gamer
 
-TODO
+cc.gamer games use an instance of the Resources class to load sprites, sound and...
+
+TODO describe cc.Resources
 
 # status
 * Module system: done

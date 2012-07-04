@@ -14,6 +14,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   box2dScale: 30 # how much to scale pixels down by for box2d
   entityCount: 0 # counter used to generate id for each entity
   renderer : null
+  useWebWorker: true  # whether to use web worker thread.
+  # will be set to false by main if it determines workers are not available
   backgroundColor: [0.0, 0.0, 0.0, 1.0] # default background colour
 
   # dimensions in pixels, 0 = unset
@@ -95,8 +97,11 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
     @entities.push entity
     @entitiesById[entity.id] = @_newEntities[entity.id] = entity
 
+  # update.. only to be called when running the physics engine in the main
+  # javascript process. when a web worker is used the physics data is
+  # retrieved via messaging
   update: ->
-    # TODO: ordering, collision checking
+    # TODO: use physics thread classes
     do entity.update for entity in @entities
 
   draw: ->
