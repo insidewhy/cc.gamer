@@ -5,6 +5,9 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
   init: (@pixelScale = 30, @_onUpdate) ->
     cc.onVisibilityChange (state) => @worker.postMessage enabled: not state
 
+  config: (opts) ->
+    @worker.postMessage config: opts
+
   run: ->
     @worker = new Worker('cc/physics.js')
     @worker.onmessage = (event) => @_onMessage event.data
@@ -34,7 +37,7 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
       console.log "from worker:", msg.log
     else if msg.update
       # TODO: extract data into entity
-      do @_onUpdate
+      @_onUpdate msg.tick
     return
 
   _onError: (event) ->

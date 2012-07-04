@@ -1,5 +1,5 @@
 # cc.gamer
-A sprite based HTML5 game engine with WebGL and canvas backends.
+A high performance sprite based open source HTML5 game engine. It uses WebGL if available for graphics and takes advantage of multiple core processors by using Web Workers.
 
 # installation
 To install globally:
@@ -9,9 +9,9 @@ sudo npm install -g cc.gamer
 
 # about cc.gamer
 
-After trying a dozen open source html5 game engines I couldn't find one that was simple, bug free, extensible and fast. Most of them only seem to contain one of these criteria and the best two or three at the most. [ImpactJS](http://impactjs.com/) is great and does all that but unfortunately it is closed source :( cc.gamer provides a fully functional sprite based game environment with a liberal license (MIT). It has a fast WebGL backend for browsers that support it and will have a canvas fallback soon. The WebGL canvas can support things like arbitrary zoom in games and many sprites and effects.
+After trying a dozen open source html5 game engines I was disappointed than none seemed as good as the commercial effort [ImpactJS](http://impactjs.com/). cc.gamer provides a fully functional sprite based game environment with a liberal license (MIT). It has a fast WebGL graphics backend for browsers that support it and will have a canvas fallback soon. The physics engine runs in a Web Worker process to avoid blocking the graphics engine and to take advantage of processors with multiple cores.
 
-This library is for creating retro sprite based games based on tiles but the WebGL backend does have support for some limited 3D features. The physics engine runs in a web worker process such that cc.gamer may take advantage of multiple cores.
+This library is for creating retro sprite based games based on tiles but the WebGL backend does have support for some 3D features.
 
 It is written in CoffeeScript but distributed in both minified and readable compiled JavaScript formats neither of which depend on CoffeeScript in any way.
 
@@ -48,6 +48,12 @@ please go to http://localhost:8014/
 ```
 
 The test system will automatically reload and re-generate cc/gamer.js as you edit the code.
+
+# dependencies
+All dependencies are included in cc.gamer.js. They incude the excellent:
+
+* [box2dweb](http://code.google.com/p/box2dweb/)
+* [gl-matrix](https://github.com/toji/gl-matrix)
 
 # status
 * Module system: done [cc.loader](http://github.com/nuisanceofcats/cc.loader)

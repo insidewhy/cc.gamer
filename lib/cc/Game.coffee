@@ -1,9 +1,13 @@
 cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   now: 0        # current game world time
+  tick: 1       # length of previous frame
+  # tick is set to 0 after each draw to avoid two draws with no output, so
+  # it starts at 1 so the first draw can run
   entities: []      # all alive entities in this game
   entitiesById: {}  # same as above but hashed by id
   _newEntities: {}  # entities that haven't been sent to the physics worker
   maxTick: 0.05 # slow time down if tick falls below this
+  # maxTick must be set before main is called for the physic client to get it
   scale: 1      # zoom
   maxX: 0       # max x-pixel TODO: move to Viewport class?
   maxY: 0       # max y-pixel
@@ -18,7 +22,10 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
   # options are optional, @resources is the resource loader
   init: (@resources, options) ->
-    @physicsClient = new cc.PhysicsClient @box2dScale, => do @update
+    @physicsClient = new cc.PhysicsClient @box2dScale, (tick) =>
+      @tick = tick
+      @now += tick
+      do @update
     @setOptions options
 
   setOptions: (options) ->
@@ -69,26 +76,14 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       @renderer.setBackgroundColor c[0], c[1], c[2], c[3]
       do @booted if @booted
 
-      # @now = virtual time, now = time
-      # virtual time starts at 0
-      # it starts off as a constant offset to real time but will lag if
-      # any frame is delayed by more than @maxTick
-      @now = 0
-      now = new Date().getTime() / 1000
-
       do @physicsClient.run
+      @physicsClient.config maxTick: @maxTick
       @physicsClient.sendNewEntities @_newEntities
       @_newEntities = {}
 
       do mainLoop = =>
-        do @physicsClient.signalPaint
         cc.requestAnimationFrame mainLoop
-
-        newNow = new Date().getTime() / 1000
-        @tick = newNow - now
-        @tick = @maxTick if @tick > @maxTick # slow down time if necessary
-        @now += @tick
-        now = newNow
+        do @physicsClient.signalPaint
         # do @update # done by worker thread
         do @draw
 
@@ -105,8 +100,10 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
     do entity.update for entity in @entities
 
   draw: ->
+    return unless @tick
     do @renderer.clear
     # TODO: draw backgrounds here
     do entity.draw for entity in @entities
+    @tick = 0
 }
 # vim:ts=2 sw=2
