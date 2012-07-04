@@ -27,6 +27,9 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
 
     entities.length = 0
 
+  signalPaint: ->
+    @worker.postMessage p: 1
+
   _onMessage: (msg) ->
     if msg.log and console.log
       console.log "from worker:", msg.log

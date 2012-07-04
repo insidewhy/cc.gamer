@@ -79,6 +79,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       @physicsClient.sendNewEntities @_newEntities
 
       do mainLoop = =>
+        do @physicsClient.signalPaint
         cc.requestAnimationFrame mainLoop
 
         newNow = new Date().getTime() / 1000
