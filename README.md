@@ -59,7 +59,10 @@ The test system will automatically reload and re-generate cc/gamer.js as you edi
 * Canvas backend: to do
 * Core API: part done
 * Resource loading/caching: part done
-* Physics: part done
+* Physics:
+    * Run physics engine in web worker: part done
+    * Positioning, velocity and acceleration: part done
+    * Collision detection: to do (plan to use box2d)
 * Entity: part done
 * Loading Screen: to do
 * Game map: to do

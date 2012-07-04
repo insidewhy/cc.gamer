@@ -11,6 +11,7 @@ cc.module('cc.gamer').requires(
   'cc.SpriteSheet'
   'cc.Game'
   'cc.Renderer'
+  'cc.PhysicsClient'
 
   # TODO: consider splitting out into separate file
   'cc.PhysicsWorker'

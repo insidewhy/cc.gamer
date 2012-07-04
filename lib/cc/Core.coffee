@@ -23,6 +23,23 @@ cc.module('cc.Core').defines ->
       alert("could not initialise WebGL")
       null
 
+  cc.onVisibilityChange = (callback) ->
+    if document.hidden?
+      visibilityChange = "visibilitychange"
+    else if document.mozHidden?
+      hidden = "mozHidden"
+      visibilityChange = "mozvisibilitychange"
+    else if document.msHidden?
+      hidden = "msHidden"
+      visibilityChange = "msvisibilitychange"
+    else if document.webkitHidden?
+      hidden = "webkitHidden"
+      visibilityChange = "webkitvisibilitychange"
+
+    document.addEventListener visibilityChange,
+      => callback document[hidden]
+      false
+
   # random integer between min and max inclusive
   cc.rand = (min, max) -> Math.floor(Math.random() * (max - min + 1)) + min
 

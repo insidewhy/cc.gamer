@@ -1,10 +1,13 @@
 cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   now: 0        # current game world time
-  entities: []  # all alive entities in this game
+  entities: []      # all alive entities in this game
+  _newEntities: []  # entities that haven't been sent to the physics worker
   maxTick: 0.05 # slow time down if tick falls below this
   scale: 1      # zoom
   maxX: 0       # max x-pixel TODO: move to Viewport class?
   maxY: 0       # max y-pixel
+  box2dScale: 30 # how much to scale pixels down by for box2d
+  entityCount: 0 # counter used to generate id for each entity
   renderer : null
   backgroundColor: [0.0, 0.0, 0.0, 1.0] # default background colour
 
@@ -14,6 +17,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
   # options are optional, @resources is the resource loader
   init: (@resources, options) ->
+    @physicsClient = new cc.PhysicsClient @box2dScale, => do @update
     @setOptions options
 
   setOptions: (options) ->
@@ -71,7 +75,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       @now = 0
       now = new Date().getTime() / 1000
 
-      do @_initPhysics
+      do @physicsClient.run
+      @physicsClient.sendNewEntities @_newEntities
 
       do mainLoop = =>
         cc.requestAnimationFrame mainLoop
@@ -81,33 +86,16 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
         @tick = @maxTick if @tick > @maxTick # slow down time if necessary
         @now += @tick
         now = newNow
-        do @update
+        # do @update # done by worker thread
         do @draw
 
       return
 
-  _initPhysics: ->
-    @worker = new Worker('cc/physics.js')
-    @worker.onmessage = (event) => @_onPhysicsWorkerMessage event.data
-    @worker.onerror = (event) => @_onPhysicsWorkerError event
-    # TODO:
-    # @worker.postMessage entities
-
-  _onPhysicsWorkerMessage: (msg) ->
-    if msg.log and console.log
-      console.log "from worker:", msg.log
-    return
-
-  _onPhysicsWorkerError: (event) ->
-    # TODO: fall back on in renderer physics for IE9?
-    if console.log
-      console.log "worker error:", event.message
-    return
-
-
   spawnEntity: (type, x, y, settings) ->
     entity = new (type)(this, x, y, settings)
+    entity.id = ++@entityCount
     @entities.push entity
+    @_newEntities.push entity # for the physics worker
     entity
 
   update: ->
