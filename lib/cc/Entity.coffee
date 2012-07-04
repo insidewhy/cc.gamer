@@ -3,9 +3,9 @@ cc.module('cc.Entity').defines -> @set cc.Class.extend {
   height:0
   sprites: {}
   # pos: { x: 0, y: 0, z: 0 } # position
-  v: { x: 0, y: 0 }        # velocity
+  v:    { x: 0, y: 0 }        # velocity
   maxV: { x: 200, y: 100 } # maximum velocity
-  a: { x: 200, y: 100 }    # acceleration
+  a:    { x: 0, y: 0 }     # acceleration
   sprite: null         # currently displayed sprite
   # spriteSheet: null  # must be defined in deriving class
 

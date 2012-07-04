@@ -1,7 +1,8 @@
 cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   now: 0        # current game world time
   entities: []      # all alive entities in this game
-  _newEntities: []  # entities that haven't been sent to the physics worker
+  entitiesById: {}  # same as above but hashed by id
+  _newEntities: {}  # entities that haven't been sent to the physics worker
   maxTick: 0.05 # slow time down if tick falls below this
   scale: 1      # zoom
   maxX: 0       # max x-pixel TODO: move to Viewport class?
@@ -77,6 +78,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       do @physicsClient.run
       @physicsClient.sendNewEntities @_newEntities
+      @_newEntities = {}
 
       do mainLoop = =>
         do @physicsClient.signalPaint
@@ -96,8 +98,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
     entity = new (type)(this, x, y, settings)
     entity.id = ++@entityCount
     @entities.push entity
-    @_newEntities.push entity # for the physics worker
-    entity
+    @entitiesById[entity.id] = @_newEntities[entity.id] = entity
 
   update: ->
     # TODO: ordering, collision checking

@@ -15,13 +15,12 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
   sendNewEntities: (entities) ->
     # TODO:
     # entities = all entities in current world (e.g. added by boot override)
-    #            modified into box2d address space
     data = {}
-    for entity in entities
-      data[entity.id] = [ entity.width, entity.height,
-                          entity.pos.x, entity.pos.y,
-                          entity.v.x, entity.v.y,
-                          entity.a.x, entity.a.y ]
+    for own id, entity of entities
+      data[id] = [ entity.width, entity.height,
+                   entity.pos.x, entity.pos.y,
+                   entity.v.x, entity.v.y,
+                   entity.a.x, entity.a.y ]
 
     @worker.postMessage entities: data
 
