@@ -4,17 +4,19 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
   # pixelScale: how much to scale a pixel down by to get its size in metres
   init: (@pixelScale = 30, @_onUpdate) ->
     cc.onVisibilityChange (state) => @worker.postMessage enabled: not state
+    return
 
   config: (opts) ->
     @worker.postMessage config: opts
+    return
 
   run: ->
     @worker = new Worker('cc/physics.js')
     @worker.onmessage = (event) => @_onMessage event.data
     @worker.onerror = (event) => @_onError event
+    return
 
   # sends new entity data to physics worker thread
-  # sets array length to 0
   sendNewEntities: (entities) ->
     # TODO:
     # entities = all entities in current world (e.g. added by boot override)
@@ -23,11 +25,11 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
       data[id] = do entity.compressedPhysicsForNew
 
     @worker.postMessage entities: data
-
-    entities.length = 0
+    return
 
   signalPaint: ->
     @worker.postMessage p: 1
+    return
 
   _onMessage: (msg) ->
     if msg.log and console.log

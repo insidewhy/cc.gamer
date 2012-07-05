@@ -16,7 +16,7 @@ cc.module('cc.Sprite').defines -> @set cc.Class.extend {
   update: ->
     if @timer.expired()
       do @timer.reset
-      @frame = 0 if ++@frame is @frames.length
+      @frame = (@frame + 1) % @frames.length
       @tile = @frames[@frame]
     return
 

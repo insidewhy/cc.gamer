@@ -103,6 +103,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   update: ->
     # TODO: use physics thread classes
     do entity.update for entity in @entities
+    return
 
   draw: ->
     return unless @tick
@@ -110,5 +111,6 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
     # TODO: draw backgrounds here
     do entity.draw for entity in @entities
     @tick = 0
+    return
 }
 # vim:ts=2 sw=2

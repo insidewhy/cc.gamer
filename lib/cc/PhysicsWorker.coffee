@@ -22,10 +22,12 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
 
     # TODO: send data for positions that have moved
     self.postMessage update: @entities, tick: @tick
+    return
 
   init: ->
     @_clockUpdate = new Date().getTime() / 1000
     self.onmessage = (event) => @onMessage event.data
+    return
 
   onMessage: (data) ->
     if data.p

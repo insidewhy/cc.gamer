@@ -12,16 +12,19 @@ cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
 
   _setPos: (x, y) ->
     @pos = x: x, y: y, z: 0
+    return
 
   init: (@width, @height, px, py, vx, vy, ax, ay) ->
     @pos.x = px ; @pos.y = py
     @v.x   = vx ; @v.y   = vy
     @a.x   = ax ; @a.y   = ay
+    return
 
   _step: (tick) ->
     # TODO: increase v by acceleration up to maxV
     @pos.x += @v.x * @game.tick if @v.x
     @pos.y += @v.y * @game.tick if @v.y
+    return
 
   # compress physics for new entity
   compressedPhysicsForNew: ->
