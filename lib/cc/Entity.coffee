@@ -37,6 +37,23 @@ cc.module('cc.Entity').parent('cc.EntityPhysics').jClass {
     do @sprite.update if @sprite
     return
 
+  # mark that physics have changed and need to be sent back to physics worker
+  # if you don't call this after overriding or changing properties manually
+  # then the web worker thread will miss them
+  mark: ->
+    @game._hasUpdateEntities = true
+    @game._updateEntities[@id] = this
+
+  setV: (vx, vy) ->
+    @v.x = vx
+    @v.y = vy
+    do @mark
+
+  setPos: (px, py) ->
+    @pos.x = px
+    @pos.y = py
+    do @mark
+
   draw: ->
     # @game.renderer.shdr.setTileSize @sprite.width, @sprite.height
     @game.renderer.shdr.setTileSize @width, @height

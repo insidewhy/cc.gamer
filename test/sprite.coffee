@@ -37,29 +37,34 @@ HeroEntity = cc.Entity.extend {
     do @parent
     if @timer.expired()
       # if one second of game time has passed
-      @v.x = cc.rand -200, 200
-      @v.y = cc.rand -75, 75
+      @setV cc.rand(-200, 200), cc.rand(-75, 75)
+      do @mark # tell worker thread velocity has been overridden
       do @timer.reset # then reset the timer
 
     do @_keepInView
 
   _keepInView: ->
     # if at edge then turn back
+    # TODO: do this in engine with some kinda bounciness factor
     maxX = @game.maxX - @width
     if @pos.x > maxX
       @pos.x = maxX
       @v.x = -@v.x
+      do @mark
     else if @pos.x < 0
       @pos.x = 0
       @v.x = -@v.x
+      do @mark
 
     maxY = @game.maxY - @height
     if @pos.y > maxY
       @pos.y = maxY
       @v.y = -@v.y
+      do @mark
     else if @pos.y < 0
       @pos.y = 0
       @v.y = -@v.y
+      do @mark
 }
 
 ImpostorEntity = HeroEntity.extend {

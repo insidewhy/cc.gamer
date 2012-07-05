@@ -18,13 +18,20 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
 
   # sends new entity data to physics worker thread
   sendNewEntities: (entities) ->
-    # TODO:
     # entities = all entities in current world (e.g. added by boot override)
     data = {}
     for own id, entity of entities
       data[id] = do entity.compressedPhysicsForNew
 
-    @worker.postMessage entities: data
+    @worker.postMessage n: data
+    return
+
+  sendUpdateEntities: (entities) ->
+    data = {}
+    for own id, entity of entities
+      data[id] = do entity.compressedPhysics
+
+    @worker.postMessage u: data
     return
 
   signalPaint: ->

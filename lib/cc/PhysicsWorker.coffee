@@ -33,9 +33,15 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
     if data.p
       # client signalled is painting
       do @update
-    else if data.entities
-      for own id, ent of data.entities
-        @entities[id] = ent
+    else if data.n
+      for own id, ent of data.n
+        @entities[id] = entity = new cc.EntityPhysics ent
+        entity.id = id
+    else if data.u
+      for own id, uent of data.u
+        entity = @entities[id]
+        continue unless entity
+        entity.uncompressPhysics uent
     else if data.enabled?
       @enabled = data.enabled
     else if data.config?

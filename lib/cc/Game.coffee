@@ -6,6 +6,9 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   entities: []      # all alive entities in this game
   entitiesById: {}  # same as above but hashed by id
   _newEntities: {}  # entities that haven't been sent to the physics worker
+  _hasNewEntities: false # if _newEntities has a single entry
+  _updateEntities: {}  # entities that have been updated
+  _hasUpdateEntities: false # if _updateEntities has a single entry
   maxTick: 0.05 # slow time down if tick falls below this
   # maxTick must be set before main is called for the physic client to get it
   scale: 1      # zoom
@@ -80,7 +83,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       do @physicsClient.run
       @physicsClient.config maxTick: @maxTick
-      @physicsClient.sendNewEntities @_newEntities
+      @physicsClient.sendNewEntities @_newEntities if @_hasNewEntities
       @_newEntities = {}
 
       do mainLoop = =>
@@ -92,6 +95,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       return
 
   spawnEntity: (type, x, y, settings) ->
+    @_hasNewEntities = true
     entity = new (type)(this, x, y, settings)
     entity.id = ++@entityCount
     @entities.push entity
@@ -103,6 +107,16 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   update: ->
     # TODO: use physics thread classes
     do entity.update for entity in @entities
+
+    # entities spawned/movements made by entities' update methods
+    if @_hasNewEntities
+      @physicsClient.sendNewEntities @_newEntities
+      @_newEntities = {}
+    if @_hasUpdateEntities
+      @physicsClient.sendUpdateEntities @_updateEntities
+      @_hasUpdateEntities = false
+      @_updateEntities = {}
+
     return
 
   draw: ->

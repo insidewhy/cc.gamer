@@ -14,10 +14,9 @@ cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
     @pos = x: x, y: y, z: 0
     return
 
-  init: (@width, @height, px, py, vx, vy, ax, ay) ->
-    @pos.x = px ; @pos.y = py
-    @v.x   = vx ; @v.y   = vy
-    @a.x   = ax ; @a.y   = ay
+  init: (p) ->
+    @pos = {}
+    [ @width, @height, @pos.x, @pos.y, @v.x, @v.y, @a.x, @a.y ] = p
     return
 
   _step: (tick) ->
