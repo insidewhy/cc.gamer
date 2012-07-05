@@ -67,7 +67,7 @@ All dependencies are included in cc.gamer.js. They incude the excellent:
 * Core API: part done
 * Resource loading/caching: part done
 * Physics:
-    * Run physics engine in web worker: part done
+    * Run physics engine in web worker: done
     * Positioning, velocity and acceleration: part done
     * Collision detection: to do (plan to use box2d)
 * Entity: part done

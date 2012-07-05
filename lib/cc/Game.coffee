@@ -27,7 +27,11 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
   # options are optional, @resources is the resource loader
   init: (@resources, options) ->
-    @physicsClient = new cc.PhysicsClient @box2dScale, (tick) =>
+    @physicsClient = new cc.PhysicsClient @box2dScale, (data, tick) =>
+      for own id, uent of data
+        entity = @entitiesById[id]
+        entity.uncompressPhysics uent if entity
+
       @tick = tick
       @now += tick
       do @update
@@ -105,7 +109,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   # javascript process. when a web worker is used the physics data is
   # retrieved via messaging
   update: ->
-    # TODO: use physics thread classes
+    # update intercepts
     do entity.update for entity in @entities
 
     # entities spawned/movements made by entities' update methods

@@ -20,8 +20,13 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
     @now += @tick
     @_clockUpdate = clock
 
-    # TODO: send data for positions that have moved
-    self.postMessage update: @entities, tick: @tick
+    # TODO: limit to only those that have moved?
+    data = {}
+    for own id, ent of @entities
+      ent._step @tick # move according to physics
+      data[id] = do ent.compressedPhysics
+
+    self.postMessage update: data, tick: @tick
     return
 
   init: ->
@@ -40,8 +45,7 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
     else if data.u
       for own id, uent of data.u
         entity = @entities[id]
-        continue unless entity
-        entity.uncompressPhysics uent
+        entity.uncompressPhysics uent if entity
     else if data.enabled?
       @enabled = data.enabled
     else if data.config?

@@ -32,8 +32,7 @@ cc.module('cc.Entity').parent('cc.EntityPhysics').jClass {
     sprite
 
   update: ->
-    # TODO: push into web worker thread
-    @_step @game.tick unless @game.useWebWorker and false
+    @_step @game.tick unless @game.useWebWorker
     do @sprite.update if @sprite
     return
 

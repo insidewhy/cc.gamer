@@ -36,10 +36,11 @@ HeroEntity = cc.Entity.extend {
   update: ->
     do @parent
     if @timer.expired()
-      # if one second of game time has passed
+      # if one second of game time has passed update velocity
       @setV cc.rand(-200, 200), cc.rand(-75, 75)
-      do @mark # tell worker thread velocity has been overridden
-      do @timer.reset # then reset the timer
+      # setV updates the entities v.x and v.y and marks it to
+      # be overridden by the physics thread
+      do @timer.reset # rearm the timer for another second
 
     do @_keepInView
 
@@ -50,7 +51,7 @@ HeroEntity = cc.Entity.extend {
     if @pos.x > maxX
       @pos.x = maxX
       @v.x = -@v.x
-      do @mark
+      do @mark # tell worker thread physics have been overridden
     else if @pos.x < 0
       @pos.x = 0
       @v.x = -@v.x

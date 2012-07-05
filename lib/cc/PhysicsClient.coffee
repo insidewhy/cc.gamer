@@ -42,8 +42,7 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
     if msg.log and console.log
       console.log "from worker:", msg.log
     else if msg.update
-      # TODO: extract data into entity
-      @_onUpdate msg.tick
+      @_onUpdate msg.update, msg.tick
     return
 
   _onError: (event) ->

@@ -21,8 +21,8 @@ cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
 
   _step: (tick) ->
     # TODO: increase v by acceleration up to maxV
-    @pos.x += @v.x * @game.tick if @v.x
-    @pos.y += @v.y * @game.tick if @v.y
+    @pos.x += @v.x * tick if @v.x
+    @pos.y += @v.y * tick if @v.y
     return
 
   # compress physics for new entity
