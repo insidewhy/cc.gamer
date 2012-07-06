@@ -73,7 +73,10 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
 
         void main(void) {
           gl_Position = pMatrix * mvMatrix *
-            vec4(vec3(spriteSize, 1.0) * vertexPosition + position, 1.0);
+            vec4(
+              vec3(spriteSize, 1.0) * vertexPosition +
+                vec3(position.x, -position.y - spriteSize.y, position.z),
+              1.0);
           vTextureCoord = textureCoord;
         }"""
     shader = @gl.createShader @gl.VERTEX_SHADER
@@ -97,9 +100,9 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     # this ensures that an object of maximum height will fit exactly in the screen
     zDistance = -@gl.viewportHeight / (2 * @scale)
 
-    # points mvMatrix at bottom left corner at z-distance 0
+    # points mvMatrix at top left corner at z-distance 0
     mat4.identity @mvMatrix
-    mat4.translate @mvMatrix, [-@gl.viewportWidth / (2 * @scale), zDistance, zDistance]
+    mat4.translate @mvMatrix, [-@gl.viewportWidth / (2 * @scale), -zDistance, zDistance]
 
     @gl.uniformMatrix4fv @u.mvMatrix, false, @mvMatrix
     this

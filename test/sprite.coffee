@@ -58,11 +58,11 @@ HeroEntity = cc.Entity.extend {
       do @mark
 
     maxY = @game.maxY - @height
-    if @pos.y > maxY
+    if @pos.y > maxY # bottom
       @pos.y = maxY
       @v.y = -@v.y
       do @mark
-    else if @pos.y < 0
+    else if @pos.y < 0 # above top
       @pos.y = 0
       @v.y = -@v.y
       do @mark
