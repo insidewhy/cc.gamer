@@ -31,6 +31,7 @@ HeroEntity = cc.Entity.extend {
     @v.x = 150
     @timer = game.timer 1 # time 1 second of game time
     @parent game, x, y, settings
+    @pos.y = 100
     @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]
 
   update: ->
