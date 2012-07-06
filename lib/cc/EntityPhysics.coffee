@@ -19,6 +19,7 @@ cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
     [ @width, @height, @pos.x, @pos.y, @v.x, @v.y, @a.x, @a.y ] = p
     return
 
+  # TODO: remove this
   _step: (tick) ->
     # TODO: increase v by acceleration up to maxV
     @pos.x += @v.x * tick if @v.x

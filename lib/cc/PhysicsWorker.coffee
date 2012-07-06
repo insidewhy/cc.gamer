@@ -20,9 +20,10 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
     @now += @tick
     @_clockUpdate = clock
 
-    # TODO: limit to only those that have moved?
+
     data = {}
-    for own id, ent of @entities
+    for own id, ent of @entities # TODO: possible to limit only to moved?
+      # TODO: don't step.. b2World will move entities
       ent._step @tick # move according to physics
       data[id] = do ent.compressedPhysics
 
@@ -30,6 +31,7 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
     return
 
   init: ->
+    @world = new cc.Box2dWorld
     @_clockUpdate = new Date().getTime() / 1000
     self.onmessage = (event) => @onMessage event.data
     return
@@ -40,7 +42,7 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
       do @update
     else if data.n
       for own id, ent of data.n
-        @entities[id] = entity = new cc.EntityPhysics ent
+        @entities[id] = entity = new cc.Box2dEntityPhysics ent, @world
         entity.id = id
     else if data.u
       for own id, uent of data.u

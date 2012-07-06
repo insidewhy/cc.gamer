@@ -14,6 +14,8 @@ cc.module('cc.gamer').requires(
   'cc.PhysicsClient'
 
   # TODO: consider splitting out into separate file
+  'cc.Box2dEntityPhysics'
+  'cc.Box2dWorld'
   'cc.PhysicsWorker'
 ).empty()
 
