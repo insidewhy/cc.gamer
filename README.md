@@ -66,10 +66,11 @@ All dependencies are included in cc.gamer.js. They incude the excellent:
 * Canvas backend: to do
 * Core API: part done
 * Resource loading/caching: part done
-* Physics:
+* Physics (using Box2D js):
     * Run physics engine in web worker: done
-    * Positioning, velocity and acceleration: part done
-    * Collision detection: to do (plan to use box2d)
+    * Collision detection: done
+    * Positioning and velocity: done
+    * Acceleration: todo
 * Entity: part done
 * Loading Screen: to do
 * Game map: to do

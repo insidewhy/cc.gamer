@@ -20,13 +20,7 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
     @now += @tick
     @_clockUpdate = clock
 
-
-    data = {}
-    for own id, ent of @entities # TODO: possible to limit only to moved?
-      # TODO: don't step.. b2World will move entities
-      ent._step @tick # move according to physics
-      data[id] = do ent.compressedPhysics
-
+    data = @world.update @tick
     self.postMessage update: data, tick: @tick
     return
 
