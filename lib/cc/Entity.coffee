@@ -37,7 +37,6 @@ cc.module('cc.Entity').parent('cc.EntityPhysics').jClass {
           @hitbox.offset.x = Math.ceil((@width - @hitbox.width) / 2)
         if not @hitbox.offset.y
           @hitbox.offset.y = Math.ceil((@height - @hitbox.height) / 2)
-        console.log @hitbox.offset.x, @hitbox.offset.y
 
     sprite
 

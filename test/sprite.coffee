@@ -53,21 +53,21 @@ HeroEntity = cc.Entity.extend {
     maxX = @game.maxX - @width
     if @pos.x > maxX
       @pos.x = maxX
-      @v.x = -@v.x
+      @v.x = -@v.x unless @v.x < 0
       do @mark # tell worker thread physics have been overridden
     else if @pos.x < 0
       @pos.x = 0
-      @v.x = -@v.x
+      @v.x = -@v.x unless @v.x > 0
       do @mark
 
     maxY = @game.maxY - @height
     if @pos.y > maxY # bottom
       @pos.y = maxY
-      @v.y = -@v.y
+      @v.y = -@v.y unless @v.y < 0
       do @mark
     else if @pos.y < 0 # above top
       @pos.y = 0
-      @v.y = -@v.y
+      @v.y = -@v.y unless @v.y > 0
       do @mark
 }
 
