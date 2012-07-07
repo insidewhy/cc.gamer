@@ -34,14 +34,14 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
     if data.p
       # client signalled is painting
       do @update
-    else if data.n
-      for own id, ent of data.n
-        @entities[id] = entity = new cc.Box2dEntityPhysics ent, @world
-        entity.id = id
-    else if data.u
-      for own id, uent of data.u
+    else if data.e
+      for own id, uent of data.e
         entity = @entities[id]
-        entity.uncompressPhysics uent if entity
+        if entity
+          entity.uncompressPhysics uent
+        else
+          @entities[id] = entity = new cc.Box2dEntityPhysics uent, @world
+          entity.id = id
     else if data.enabled?
       @enabled = data.enabled
     else if data.config?

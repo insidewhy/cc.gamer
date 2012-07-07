@@ -1,11 +1,8 @@
 cc.module('cc.Box2dEntityPhysics').defines -> @set cc.Class.extend {
   init: (p, @world) ->
     s = @world.scale
-    @width = p[0] / s
-    @height = p[1] / s
-    @a =
-      x: p[6] / s
-      y: p[7] / s
+    @width = p[6] / s
+    @height = p[7] / s
 
     @_fixDef = new b2FixtureDef
     @_fixDef.density = 1.0
@@ -19,10 +16,14 @@ cc.module('cc.Box2dEntityPhysics').defines -> @set cc.Class.extend {
     @_bodyDef.type = b2Body.b2_dynamicBody
 
     # b2 uses centre position so adjust..
-    @_bodyDef.position.Set(p[2] / @world.scale + @width / 2,
-                           p[3] / @world.scale - @height / 2)
+    @_bodyDef.position.Set(p[0] / s + @width / 2,
+                           p[1] / s - @height / 2)
 
-    @_bodyDef.linearVelocity.Set(p[4] / s, p[5] / s)
+    @_bodyDef.linearVelocity.Set(p[2] / s, p[3] / s)
+
+    @a =
+      x: p[4] / s
+      y: p[5] / s
 
     # TODO: support entities without fixed rotation
     @_bodyDef.fixedRotation = true

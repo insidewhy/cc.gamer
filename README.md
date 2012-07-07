@@ -65,6 +65,7 @@ All dependencies are included in cc.gamer.js. They incude the excellent:
 * Physics (using Box2D js):
     * Run physics engine in web worker: done
     * Collision detection: done
+        * Optional hibbox size/offset: done
         * Masks to control what Entities collide with what other entities: done
     * Positioning and velocity: done
     * Acceleration: todo

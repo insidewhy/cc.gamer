@@ -5,8 +5,6 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   # it starts at 1 so the first draw can run
   entities: []      # all alive entities in this game
   entitiesById: {}  # same as above but hashed by id
-  _newEntities: {}  # entities that haven't been sent to the physics worker
-  _hasNewEntities: false # if _newEntities has a single entry
   _updateEntities: {}  # entities that have been updated
   _hasUpdateEntities: false # if _updateEntities has a single entry
   maxTick: 0.05 # slow time down if tick falls below this
@@ -87,8 +85,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       do @physicsClient.run
       @physicsClient.config maxTick: @maxTick
-      @physicsClient.sendNewEntities @_newEntities if @_hasNewEntities
-      @_newEntities = {}
+      @physicsClient.sendEntities @_updateEntities if @_hasUpdateEntities
+      @_updateEntities = {}
 
       do mainLoop = =>
         cc.requestAnimationFrame mainLoop
@@ -99,11 +97,11 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       return
 
   spawnEntity: (type, x, y, settings) ->
-    @_hasNewEntities = true
+    @_hasUpdateEntities = true
     entity = new (type)(this, x, y, settings)
     entity.id = ++@entityCount
     @entities.push entity
-    @entitiesById[entity.id] = @_newEntities[entity.id] = entity
+    @entitiesById[entity.id] = @_updateEntities[entity.id] = entity
 
   # update.. only to be called when running the physics engine in the main
   # javascript process. when a web worker is used the physics data is
@@ -113,11 +111,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
     do entity.update for entity in @entities
 
     # entities spawned/movements made by entities' update methods
-    if @_hasNewEntities
-      @physicsClient.sendNewEntities @_newEntities
-      @_newEntities = {}
     if @_hasUpdateEntities
-      @physicsClient.sendUpdateEntities @_updateEntities
+      @physicsClient.sendEntities @_updateEntities
       @_hasUpdateEntities = false
       @_updateEntities = {}
 

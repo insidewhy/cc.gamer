@@ -10,25 +10,14 @@ cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
   maxV: { x: 200, y: 100 } # maximum velocity
   a:    { x: 0, y: 0 }     # acceleration
   # optional - hitbox: { width, height, offset { x, y } }
+  _knownByPhysicsServer: false
 
   _setPos: (x, y) ->
     @pos = x: x, y: y, z: 0
     return
 
-  init: (p) ->
-    @pos = {}
-    [ @width, @height, @pos.x, @pos.y, @v.x, @v.y, @a.x, @a.y ] = p
-    return
-
-  # TODO: remove this
-  _step: (tick) ->
-    # TODO: increase v by acceleration up to maxV
-    @pos.x += @v.x * tick if @v.x
-    @pos.y += @v.y * tick if @v.y
-    return
-
   # compress physics for new entity
-  compressedPhysicsForNew: ->
+  _compressedPhysicsForNew: ->
     x      = @pos.x
     y      = @pos.y
     width  = @width
@@ -38,11 +27,15 @@ cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
       y     += @hitbox.offset.y
       width  = @hitbox.width
       height = @hitbox.height
-    [ width, height, x, y, @v.x, @v.y, @a.x, @a.y, @category, @mask ]
+    [ x, y, @v.x, @v.y, @a.x, @a.y, width, height, @category, @mask ]
 
   # compressed physics for update
   # TODO: rotation
   compressedPhysics: ->
+    if not @_knownByPhysicsServer
+      @_knownByPhysicsServer = true
+      return do @_compressedPhysicsForNew
+
     x = @pos.x
     y = @pos.y
     if @hitbox
