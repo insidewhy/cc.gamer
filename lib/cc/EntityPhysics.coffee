@@ -38,7 +38,7 @@ cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
       y     += @hitbox.offset.y
       width  = @hitbox.width
       height = @hitbox.height
-    [ width, height, x, y, @v.x, @v.y, @a.x, @a.y ]
+    [ width, height, x, y, @v.x, @v.y, @a.x, @a.y, @category, @mask ]
 
   # compressed physics for update
   # TODO: rotation

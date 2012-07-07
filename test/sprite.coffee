@@ -26,6 +26,8 @@ game = new Game resources, scale: 2
 HeroEntity = cc.Entity.extend {
   # TODO: add timer for random velocity
   # define main sprite, with tile width and height
+  category: 1,
+  mask: 2, # what categories this collides with
   spriteSheet: resources.spriteSheet 'chars.png', 32, 48
   hitbox: { width: 24, height: 40 }
   init: (game, x, y, settings) ->
@@ -72,6 +74,8 @@ HeroEntity = cc.Entity.extend {
 }
 
 ImpostorEntity = HeroEntity.extend {
+  category: 2,
+  mask: 1,
   init: (game, x, y, settings) ->
     # skip hero init
     @v.x = 20

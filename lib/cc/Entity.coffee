@@ -1,6 +1,8 @@
 cc.module('cc.Entity').parent('cc.EntityPhysics').jClass {
   sprites: {}
   sprite: null         # currently displayed sprite
+  category: 1 # mask defining what can collide with this
+  mask: 1     # mask defining what this can collide with
   # spriteSheet: null  # must be defined in deriving class
 
   # not to be called externally!! use Game.spawnEntity
