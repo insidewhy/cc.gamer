@@ -16,7 +16,7 @@ cc.module('cc.Entity').parent('cc.EntityPhysics').jClass {
   setSprite: (name) ->
     @sprite = @sprites[name]
     @sprite.timer = new cc.Timer @game
-    @sprite.timer.expiresIn @sprite.frameLength
+    @sprite.timer.setDuration @sprite.frameLength
     @sprite
 
   # name of sprite, length of frame, indexes of frames in sprite

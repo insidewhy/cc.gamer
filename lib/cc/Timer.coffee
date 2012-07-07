@@ -1,17 +1,20 @@
 cc.module('cc.Timer').defines -> @set cc.Class.extend {
+  # TODO: offset
   # do not call.. use game.timer
   # duration = time in seconds until expiry
-  init: (@_game, duration = 0) -> @expiresIn duration; return
-  expiresIn: (@duration) -> @expires = @_game.now + @duration ; return
+  init: (@_game, @duration = 0) ->
+    if @duration then do @reset else do @pause
+    return
+
   expired: -> @_game.now >= @expires
   delta: -> @game.now - @expires
-  reset: -> @expiresIn @duration ; return
+  setDuration: (@duration) -> do @reset ; return
 
   # set timer to expire at end of world
   pause: -> @expires = Number.MAX_VALUE ; return
 
-  # schedule expiration for next duration
-  unpause: ->
+  # duration is synched to the game world when reset
+  reset: ->
     @expires = Math.floor(@_game.now / @duration) * @duration + @duration
     return
 }
