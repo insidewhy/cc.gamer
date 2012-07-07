@@ -19,15 +19,25 @@ cc.module('cc.Entity').parent('cc.EntityPhysics').jClass {
 
   # name of sprite, length of frame, indexes of frames in sprite
   # if the entity width/height are not set they are taken from the
-  # spritesheet
+  # first added sprite
   addSprite: (name, frameLength, frames) ->
     @sprites[name] = sprite = new cc.Sprite @spriteSheet, frameLength, frames
     if not @sprite
       @setSprite name
+      return if @width and @height
+
       if not @width
         @width = sprite.sheet.tileWidth
       if not @height
         @height = sprite.sheet.tileHeight
+
+      if @hitbox
+        @hitbox.offset = {} unless @hitbox.offset
+        if not @hitbox.offset.x
+          @hitbox.offset.x = Math.ceil((@width - @hitbox.width) / 2)
+        if not @hitbox.offset.y
+          @hitbox.offset.y = Math.ceil((@height - @hitbox.height) / 2)
+        console.log @hitbox.offset.x, @hitbox.offset.y
 
     sprite
 

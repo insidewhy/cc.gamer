@@ -27,11 +27,13 @@ HeroEntity = cc.Entity.extend {
   # TODO: add timer for random velocity
   # define main sprite, with tile width and height
   spriteSheet: resources.spriteSheet 'chars.png', 32, 48
+  hitbox: { width: 24, height: 40 }
   init: (game, x, y, settings) ->
     @v.x = 150
+    @v.y = -100
     @timer = game.timer 1 # time 1 second of game time
     @parent game, x, y, settings
-    @pos.y = 100
+    @pos.y = 80
     @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]
 
   update: ->
