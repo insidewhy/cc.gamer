@@ -30,10 +30,6 @@ cc.gamer games use an instance of the Resources class to load sprites, sound and
 
 TODO describe cc.Resources
 
-# status
-* Module system: done
-* Class system: done [cc.extend](http://github.com/nuisanceofcats/cc.extend)
-
 # testing
 ```
 % git clone git://github.com/nuisanceofcats/cc.gamer.git
