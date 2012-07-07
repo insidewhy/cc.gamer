@@ -74,8 +74,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
         gl = cc.initGL canvas, @width, @height
         @renderer = new cc.Renderer gl, @scale, @resources
 
-        @maxX = gl.viewportWidth / @scale
-        @maxY = gl.viewportHeight / @scale
+        @maxX = gl.viewportWidth / @scale + cc.ZERO
+        @maxY = gl.viewportHeight / @scale + cc.ZERO
       catch e
         # TODO: fall back on canvas if there is no open GL
         alert "sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome"

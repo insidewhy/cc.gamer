@@ -57,7 +57,7 @@ HeroEntity = cc.Entity.extend {
       @pos.x = maxX
       @v.x = -@v.x unless @v.x < 0
       do @mark # tell worker thread physics have been overridden
-    else if @pos.x < 0
+    else if @pos.x < -cc.ZERO
       @pos.x = 0
       @v.x = -@v.x unless @v.x > 0
       do @mark
@@ -67,7 +67,7 @@ HeroEntity = cc.Entity.extend {
       @pos.y = maxY
       @v.y = -@v.y unless @v.y < 0
       do @mark
-    else if @pos.y < 0 # above top
+    else if @pos.y < -cc.ZERO # above top
       @pos.y = 0
       @v.y = -@v.y unless @v.y > 0
       do @mark
@@ -85,7 +85,6 @@ ImpostorEntity = HeroEntity.extend {
   update: ->
     cc.Entity.prototype.update.call this
     do @_keepInView
-
 }
 
 window.webGLStart = ->

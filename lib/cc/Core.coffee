@@ -40,6 +40,8 @@ cc.module('cc.Core').defines ->
       => callback document[hidden]
       false
 
+  cc.ZERO = 0.0000001
+
   # random integer between min and max inclusive
   cc.rand = (min, max) -> Math.floor(Math.random() * (max - min + 1)) + min
 
