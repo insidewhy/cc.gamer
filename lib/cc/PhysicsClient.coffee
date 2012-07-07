@@ -6,7 +6,7 @@ cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
     cc.onVisibilityChange (state) => @worker.postMessage enabled: not state
     return
 
-  config: (opts) ->
+  sendConfig: (opts) ->
     @worker.postMessage config: opts
     return
 

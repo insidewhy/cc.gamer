@@ -68,6 +68,7 @@ All dependencies are included in cc.gamer.js. They incude the excellent:
         * Optional hibbox size/offset: done
         * Masks to control what Entities collide with what other entities: done
     * Positioning and velocity: done
+    * Gravity: done
     * Acceleration: todo
 * Entity: part done
 * Loading Screen: to do

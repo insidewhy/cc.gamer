@@ -3,6 +3,7 @@ resources = new cc.Resources
 
 Game = cc.Game.extend {
   backgroundColor: [1.0, 0.72, 0.0, 1.0] # a nice orange
+  gravity: { x: 0, y: 2 }
 
   # called after all resources have loaded
   booted: ->
@@ -42,7 +43,7 @@ HeroEntity = cc.Entity.extend {
     do @parent
     if @timer.expired()
       # if one second of game time has passed update velocity
-      @setV cc.rand(-200, 200), cc.rand(-75, 75)
+      @setV cc.rand(-200, 200), cc.rand(0, 200)
       # setV updates the entities v.x and v.y and marks it to
       # be overridden by the physics thread
       do @timer.reset # rearm the timer for another second

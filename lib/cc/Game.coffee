@@ -8,6 +8,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   _updateEntities: {}  # entities that have been updated
   _hasUpdateEntities: false # if _updateEntities has a single entry
   maxTick: 0.05 # slow time down if tick falls below this
+  gravity: { x: 0, y: 0 }  # world gravity
   # maxTick must be set before main is called for the physic client to get it
   scale: 1      # zoom
   maxX: 0       # max x-pixel TODO: move to Viewport class?
@@ -84,7 +85,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       do @booted if @booted
 
       do @physicsClient.run
-      @physicsClient.config maxTick: @maxTick
+      @physicsClient.sendConfig maxTick: @maxTick, gravity: @gravity
       @physicsClient.sendEntities @_updateEntities if @_hasUpdateEntities
       @_updateEntities = {}
 

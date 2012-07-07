@@ -1,8 +1,10 @@
 # object used by physics worker thread to do all processing
 cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
+  # stuff copied from the Game object of the main process
   entities: {}
   enabled: true
-  maxTick: 0.05    # slow time down if tick falls below this
+  maxTick: 0.05
+  # timing
   now: 0           # current game time
   _clockUpdate: 0  # last time by clock the game updated
   tick: 0          # length between previous update and this one
@@ -46,6 +48,8 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
       @enabled = data.enabled
     else if data.config?
       @maxTick = data.config.maxTick if data.config.maxTick
+      if data.config.gravity
+        @world.setGravity data.config.gravity
     return
 }
 # vim:ts=2 sw=2
