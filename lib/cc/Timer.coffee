@@ -5,6 +5,14 @@ cc.module('cc.Timer').defines -> @set cc.Class.extend {
   expiresIn: (@duration) -> @expires = @_game.now + @duration ; return
   expired: -> @_game.now >= @expires
   delta: -> @game.now - @expires
-  reset: -> @expiresIn @duration
+  reset: -> @expiresIn @duration ; return
+
+  # set timer to expire at end of world
+  pause: -> @expires = Number.MAX_VALUE ; return
+
+  # schedule expiration for next duration
+  unpause: ->
+    @expires = Math.floor(@_game.now / @duration) * @duration + @duration
+    return
 }
 # vim:ts=2 sw=2
