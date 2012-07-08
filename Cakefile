@@ -20,9 +20,8 @@ task 'web', 'build cc/gamer.js for use in websites', (options) ->
     fs.mkdirSync 'cc' unless fs.existsSync 'cc'),
     """([ -f cc/gl-matrix.js ] || wget https://raw.github.com/toji/gl-matrix/master/gl-matrix.js -P cc) &&
     [ -f cc/box2d.js ] || (
-      wget -c http://box2dweb.googlecode.com/files/Box2dWeb-#{box2dVersion}.zip -O cc/box2d.zip &&
-      unzip cc/box2d.zip -d cc && rm cc/*.html &&
-      mv cc/Box2dWeb-#{box2dVersion.replace /(\d)(\w\.)/, "$1.$2" }.js cc/box2d.js) &&
+      wget -c https://raw.github.com/kripken/box2d.js/master/box2d.js -O cc/box2d.js &&
+      echo ';' >> cc/box2d.js) &&
     coffee -c test""",
     ->
       do _bakeResources
