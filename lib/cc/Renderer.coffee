@@ -1,9 +1,8 @@
 cc.module('cc.Renderer').defines -> @set cc.Class.extend {
-  init: (@gl, scale, resources) ->
+  init: (@gl, resources) ->
     @shdr = new cc.SpriteShaderProgram
     @shdr.attachContext @gl
     do @shdr.link
-    @shdr.perspectiveAndScale 90, scale
 
     # bundles all spritesheets into one huge gl texture
     # TODO: handle need for multiple texture maps
@@ -14,6 +13,10 @@ cc.module('cc.Renderer').defines -> @set cc.Class.extend {
     @texAtlas.loadImageToTexture @gl
     @shdr.activateTexture @texAtlas
 
+    return
+
+  setScale: (scale) ->
+    @shdr.perspectiveAndScale 90, scale
     return
 
   setBackgroundColor: (r, g, b, a) -> @shdr.clearColor r, g, b, a; this

@@ -7,22 +7,28 @@ Game = cc.Game.extend {
 
   # called after all resources have loaded
   booted: ->
-    @impostors = [
-      # 10, 0, -158
-      @spawnEntity ImpostorEntity, 10.0, 0
-      @spawnEntity ImpostorEntity, 110, 0
-      @spawnEntity ImpostorEntity, 100, 0
-      # 140, 0, -128
-      @spawnEntity ImpostorEntity, 140, 0 ]
+    @scaleTimer = game.timer 10
+    i = 0
+    loop
+      break if i > 70
+      @spawnEntity ImpostorEntity, cc.rand(0, 300), cc.rand(0, 300)
+      ++i
 
     @hero = @spawnEntity HeroEntity, 0, 0
     return
+
+  update: ->
+    if @scaleTimer.expired()
+      @setScale if @scale == 2 then 1 else 2
+      do @scaleTimer.reset
+
+    do @parent
 
   # draw: ->
   # update: ->
 }
 
-game = new Game resources, scale: 2
+game = new Game resources, scale: 1
 
 HeroEntity = cc.Entity.extend {
   # TODO: add timer for random velocity

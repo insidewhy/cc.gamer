@@ -53,6 +53,14 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   timer: (expiresIn) ->
     new cc.Timer(this, expiresIn)
 
+  # change scale of game.
+  # can do this while the game is running.
+  setScale: (@scale) ->
+    @renderer.setScale @scale
+    @maxX = @width / @scale + cc.ZERO
+    @maxY = @height / @scale + cc.ZERO
+    return
+
   main: (canvas, options) ->
     @setOptions options
     if not canvas.getContext?
@@ -76,14 +84,13 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       try
         gl = cc.initGL canvas, @width, @height
-        @renderer = new cc.Renderer gl, @scale, @resources
-
-        @maxX = gl.viewportWidth / @scale + cc.ZERO
-        @maxY = gl.viewportHeight / @scale + cc.ZERO
+        @renderer = new cc.Renderer gl, @resources
       catch e
         # TODO: fall back on canvas if there is no open GL
         alert "sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome"
         return
+
+      @setScale @scale
 
       c = @backgroundColor
       @renderer.setBackgroundColor c[0], c[1], c[2], c[3]

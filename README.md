@@ -74,3 +74,6 @@ All dependencies are included in cc.gamer.js. They incude the excellent:
 * Loading Screen: to do
 * Game map: to do
 * Input: to do
+
+# notes
+* The box2d web project (which is a port of action script's box2d) seems to provide the best performance. cc.gamer also works with the box2d 2.2 port from llvm bytecode via emscripten in the "emscripten" branch.
