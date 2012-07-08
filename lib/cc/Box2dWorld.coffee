@@ -21,7 +21,7 @@ cc.module('cc.Box2dWorld').defines -> @set cc.Class.extend {
       if ent
         data[ent.id] = do ent.compressedPhysics
 
-      b = b.m_next
+      b = b.GetNext()
 
     data
 }
