@@ -88,8 +88,21 @@ ImpostorEntity = HeroEntity.extend {
     do @_keepInView
 }
 
+cons = null
+now = null
+
 window.webGLStart = ->
   # game.main(document.getElementById "game-canvas")
+  cons = document.getElementById 'console'
+  cons.innerHTML = 0
+  now = new Date().getTime()
+  setInterval(
+    ->
+      _now = new Date().getTime()
+      cons.innerHTML = Math.floor game.ticks / ((_now - now) / 1000)
+      now = _now
+      game.ticks = 0
+    1000)
   game.main "#game-canvas"
 
 # vim:ts=2 sw=2

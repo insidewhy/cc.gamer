@@ -1,6 +1,7 @@
 cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   now: 0        # current game world time
   tick: 1       # length of previous frame
+  ticks: 0      # the number of ticks that have been rendered
   # tick is set to 0 after each draw to avoid two draws with no output, so
   # it starts at 1 so the first draw can run
   entities: []      # all alive entities in this game
@@ -121,6 +122,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
   draw: ->
     return unless @tick
+    ++@ticks
     do @renderer.clear
     # TODO: draw backgrounds here
     do entity.draw for entity in @entities
