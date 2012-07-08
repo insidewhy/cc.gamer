@@ -3,7 +3,7 @@
 # The physics updating part of the code is only used by the main thread in
 # case Web Workers aren't available (IE9, some mobile browsers).
 cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
-  # pos: { x: 0, y: 0, z: 0 } # position
+  pos: { x: 0, y: 0, z: 0 } # position
   width:  0
   height: 0
   v:    { x: 0, y: 0 }     # velocity
@@ -13,7 +13,8 @@ cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
   _knownByPhysicsServer: false
 
   _setPos: (x, y) ->
-    @pos = x: x, y: y, z: 0
+    @pos.x = x
+    @pos.y = y
     return
 
   # compress physics for new entity

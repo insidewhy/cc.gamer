@@ -1,5 +1,5 @@
 # cc.gamer
-A high performance sprite based open source HTML5 game engine. It uses WebGL if available for graphics and takes advantage of multiple core processors by using Web Workers when avaible.
+A high performance sprite based open source HTML5 game engine. It uses WebGL if available for graphics and takes advantage of multiple core processors by using Web Workers when available. Super accurate physics using Box2D are provided.
 
 # installation
 To install globally:
@@ -60,17 +60,19 @@ All dependencies are included in cc.gamer.js. They incude the excellent:
     * Pushing many Spritesheets into a WebGL texture: part done
     * Shader API for sprites: part done
 * Canvas backend: to do
-* Core API: part done
 * Resource loading/caching: part done
 * Physics (using Box2D js):
     * Run physics engine in web worker: done
     * Collision detection: done
-        * Optional hibbox size/offset: done
-        * Masks to control what Entities collide with what other entities: done
     * Positioning and velocity: done
     * Gravity: done
     * Acceleration: todo
-* Entity: part done
+* Entity:
+    * Masks to control what Entities it can collide with.
+    * Velocity/Position/Acceleration updating: done
+    * Spritesheet animations: done
+    * Optional hitbox: done
+    * Collision events: todo
 * Loading Screen: to do
 * Game map: to do
 * Input: to do
