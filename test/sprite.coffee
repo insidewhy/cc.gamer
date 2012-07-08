@@ -99,9 +99,9 @@ window.webGLStart = ->
   setInterval(
     ->
       _now = new Date().getTime()
-      cons.innerHTML = Math.floor game.ticks / ((_now - now) / 1000)
+      cons.innerHTML = (Math.floor game.ticks / ((_now - now) / 1000)) + " : " + game.updates + " : " + game.skips
       now = _now
-      game.ticks = 0
+      game.ticks = game.skips = game.updates = 0
     1000)
   game.main "#game-canvas"
 

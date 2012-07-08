@@ -1,7 +1,6 @@
 cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   now: 0        # current game world time
   tick: 1       # length of previous frame
-  ticks: 0      # the number of ticks that have been rendered
   # tick is set to 0 after each draw to avoid two draws with no output, so
   # it starts at 1 so the first draw can run
   entities: []      # all alive entities in this game
@@ -20,6 +19,11 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   useWebWorker: true  # whether to use web worker thread.
   # will be set to false by main if it determines workers are not available
   backgroundColor: [0.0, 0.0, 0.0, 1.0] # default background colour
+
+  # time logging
+  ticks: 0      # the number of ticks that have been rendered
+  skips: 0      # the number of ticks that were skipped due to lagging physics
+  updates: 0    # number of updates from physics client
 
   # dimensions in pixels, 0 = unset
   width: 0
@@ -110,6 +114,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   # retrieved via messaging
   update: ->
     # update intercepts
+    ++@updates
     do entity.update for entity in @entities
 
     # entities spawned/movements made by entities' update methods
@@ -121,12 +126,13 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
     return
 
   draw: ->
-    return unless @tick
-    ++@ticks
-    do @renderer.clear
-    # TODO: draw backgrounds here
-    do entity.draw for entity in @entities
-    @tick = 0
-    return
+    if not @tick
+      ++@skips
+    else
+      ++@ticks
+      do @renderer.clear
+      # TODO: draw backgrounds here
+      do entity.draw for entity in @entities
+      @tick = 0
 }
 # vim:ts=2 sw=2
