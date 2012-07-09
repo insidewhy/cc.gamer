@@ -9,6 +9,9 @@ cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
   v:    { x: 0, y: 0 }     # velocity
   maxV: { x: 200, y: 100 } # maximum velocity
   a:    { x: 0, y: 0 }     # acceleration
+  bounciness: 0.5          # box2d restitution
+  friction:   0.5
+  density:    1.0
   # optional - hitbox: { width, height, offset { x, y } }
   _knownByPhysicsServer: false
 
@@ -28,7 +31,8 @@ cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
       y     += @hitbox.offset.y
       width  = @hitbox.width
       height = @hitbox.height
-    [ x, y, @v.x, @v.y, @a.x, @a.y, width, height, @category, @mask ]
+    [ x, y, @v.x, @v.y, @a.x, @a.y, width, height, @category, @mask,
+      @bounciness, @friction, @density ]
 
   # compressed physics for update
   # TODO: rotation
