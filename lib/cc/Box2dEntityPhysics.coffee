@@ -8,8 +8,8 @@ cc.module('cc.Box2dEntityPhysics').defines -> @set cc.Class.extend {
     @_fixDef.filter.categoryBits = p[8]
     @_fixDef.filter.maskBits = p[9]
     @_fixDef.restitution = p[10]
-    @_fixDef.density = p[11]
-    @_fixDef.friction = p[12]
+    @_fixDef.friction = p[11]
+    @_fixDef.density = p[12]
 
     @_bodyDef = new b2BodyDef
     @_bodyDef.userData = this
