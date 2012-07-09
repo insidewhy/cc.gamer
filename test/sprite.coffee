@@ -35,6 +35,7 @@ HeroEntity = cc.Entity.extend {
   # define main sprite, with tile width and height
   bounciness: 0.5
   category: 1
+  density: 2
   mask: 2 # what categories this collides with
   spriteSheet: resources.spriteSheet 'chars.png', 32, 48
   hitbox: { width: 24, height: 40 }
@@ -82,6 +83,7 @@ HeroEntity = cc.Entity.extend {
 }
 
 ImpostorEntity = HeroEntity.extend {
+  density: 0
   category: 2
   mask: 1
   init: (game, x, y, settings) ->
