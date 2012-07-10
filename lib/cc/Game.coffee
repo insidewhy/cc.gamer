@@ -103,7 +103,6 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       do mainLoop = =>
         cc.requestAnimationFrame mainLoop
-        do @physicsClient.signalPaint
         # do @update # done by worker thread
         do @draw
 
@@ -136,6 +135,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
     if not @tick
       ++@skips
     else
+      do @physicsClient.signalPaint
       ++@ticks
       do @renderer.clear
       # TODO: draw backgrounds here

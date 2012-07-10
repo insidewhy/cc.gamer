@@ -46,6 +46,7 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
           entity.id = id
     else if data.enabled?
       @enabled = data.enabled
+      do @update if @enabled
     else if data.config?
       @maxTick = data.config.maxTick if data.config.maxTick
       if data.config.gravity
