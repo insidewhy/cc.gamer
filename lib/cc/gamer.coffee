@@ -12,6 +12,7 @@ cc.module('cc.gamer').requires(
   'cc.Game'
   'cc.Renderer'
   'cc.PhysicsClient'
+  'cc.Input'
 
   # TODO: consider splitting out into separate file
   'cc.Box2dEntityPhysics'

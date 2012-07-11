@@ -2,12 +2,27 @@
 resources = new cc.Resources
 
 Game = cc.Game.extend {
-  backgroundColor: [1.0, 0.72, 0.0, 1.0] # a nice orange
+  # setting overrides used as configuration
+  backgroundColor: [1.0, 0.72, 0.0, 1.0]
   gravity: { x: 0, y: 2 }
+
+  autopilot: false # custom setting for this game
 
   # called after all resources have loaded
   booted: ->
-    @scaleTimer = game.timer 10
+    @input.bind cc.key.z,     'left'
+    @input.bind cc.key.left,  'left'
+    @input.bind cc.key.c,     'right'
+    @input.bind cc.key.right, 'right'
+    @input.bind cc.key.x,     'down'
+    @input.bind cc.key.down,  'down'
+    @input.bind cc.key.s,     'up'
+    @input.bind cc.key.up,    'up'
+    @input.bind cc.key.r,     'up' # for colemak users :)
+
+    @input.bind cc.key.a,     'toggle_autopilot'
+    @input.bind cc.key.t,     'toggle_scale'
+
     i = 0
     loop
       break if i > 70
@@ -18,9 +33,11 @@ Game = cc.Game.extend {
     return
 
   update: ->
-    if @scaleTimer.expired()
+    if @input.pressed.toggle_scale
       @setScale if @scale == 2 then 1 else 2
-      do @scaleTimer.reset
+
+    if @input.pressed.toggle_autopilot
+      @autopilot = ! @autopilot
 
     do @parent
 
@@ -40,8 +57,6 @@ HeroEntity = cc.Entity.extend {
   spriteSheet: resources.spriteSheet 'chars.png', 32, 48
   hitbox: { width: 24, height: 40 }
   init: (game, x, y, settings) ->
-    @v.x = 150
-    @v.y = -100
     @timer = game.timer 1 # time 1 second of game time
     @parent game, x, y, settings
     @pos.y = 80
@@ -49,12 +64,24 @@ HeroEntity = cc.Entity.extend {
 
   update: ->
     do @parent
+    if @game.input.released.toggle_autopilot
+      @setV 0, 0
+
     if @timer.expired()
       # if one second of game time has passed update velocity
-      @setV cc.rand(-200, 200), cc.rand(0, 200)
+      @setV cc.rand(-200, 200), cc.rand(-200, 100) if @game.autopilot
       # setV updates the entities v.x and v.y and marks it to
       # be overridden by the physics thread
       do @timer.reset # rearm the timer for another second
+
+    if @game.input.state.left
+      @setV -200, 0
+    else if @game.input.state.right
+      @setV 200, 0
+    else if @game.input.state.up
+      @setV 0, -200
+    else if @game.input.state.down
+      @setV 0, 200
 
     do @_keepInView
 
@@ -96,9 +123,6 @@ ImpostorEntity = HeroEntity.extend {
     cc.Entity.prototype.update.call this
     do @_keepInView
 }
-
-cons = null
-now = null
 
 window.webGLStart = ->
   # game.main(document.getElementById "game-canvas")

@@ -25,6 +25,7 @@ cc.module('cc.Core').defines ->
 
   cc.onVisibilityChange = (callback) ->
     if document.hidden?
+      hidden = "hidden"
       visibilityChange = "visibilitychange"
     else if document.mozHidden?
       hidden = "mozHidden"

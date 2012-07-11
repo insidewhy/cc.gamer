@@ -15,7 +15,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   maxY: 0       # max y-pixel
   box2dScale: 30 # how much to scale pixels down by for box2d
   entityCount: 0 # counter used to generate id for each entity
-  renderer : null
+  renderer: null
+  input:    null
   useWebWorker: true  # whether to use web worker thread.
   # will be set to false by main if it determines workers are not available
   backgroundColor: [0.0, 0.0, 0.0, 1.0] # default background colour
@@ -40,6 +41,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       @now += tick
       do @update
     @setOptions options
+    @input = new cc.Input
 
   setOptions: (options) ->
     return unless options
@@ -94,6 +96,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       c = @backgroundColor
       @renderer.setBackgroundColor c[0], c[1], c[2], c[3]
+      do @input.enable
       do @booted if @booted
 
       do @physicsClient.run
@@ -129,6 +132,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       @_hasUpdateEntities = false
       @_updateEntities = {}
 
+    do @input.update
     return
 
   draw: ->
