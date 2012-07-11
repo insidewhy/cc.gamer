@@ -26,9 +26,13 @@ Game = cc.Game.extend {
 
     i = 0
     loop
-      break if i > 70
       @spawnEntity ImpostorEntity, cc.rand(0, 300), cc.rand(0, 300)
-      ++i
+      break if ++i > 40
+
+    i = 0
+    loop
+      @spawnEntity FriendEntity, cc.rand(0, 300), cc.rand(0, 300)
+      break if ++i > 10
 
     @hero = @spawnEntity HeroEntity, 0, 0
     return
@@ -126,6 +130,15 @@ ImpostorEntity = HeroEntity.extend {
   update: ->
     cc.Entity.prototype.update.call this
     do @_keepInView
+}
+
+FriendEntity = ImpostorEntity.extend {
+  category: 6
+  mask: 5
+  init: (game, x, y, settings) ->
+    @v.x = -20
+    cc.Entity.prototype.init.call this, game, x, y, settings
+    @addSprite 'walk', 0.1, [ 81, 82, 83, 82 ]
 }
 
 window.webGLStart = ->
