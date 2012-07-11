@@ -11,6 +11,7 @@ Game = cc.Game.extend {
   # called after all resources have loaded
   booted: ->
     @input.bind cc.key.z,     'left'
+    @input.bind cc.key.z,     'left'
     @input.bind cc.key.left,  'left'
     @input.bind cc.key.c,     'right'
     @input.bind cc.key.right, 'right'
@@ -18,10 +19,10 @@ Game = cc.Game.extend {
     @input.bind cc.key.down,  'down'
     @input.bind cc.key.s,     'up'
     @input.bind cc.key.up,    'up'
-    @input.bind cc.key.r,     'up' # for colemak users :)
 
     @input.bind cc.key.a,     'toggle_autopilot'
     @input.bind cc.key.t,     'toggle_scale'
+    @input.bind cc.key.r,     'reload'
 
     i = 0
     loop
@@ -33,6 +34,9 @@ Game = cc.Game.extend {
     return
 
   update: ->
+    if @input.pressed.reload
+      window.history.go 0
+
     if @input.pressed.toggle_scale
       @setScale if @scale == 2 then 1 else 2
 
