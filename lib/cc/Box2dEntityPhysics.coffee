@@ -53,7 +53,13 @@ cc.module('cc.Box2dEntityPhysics').defines -> @set cc.Class.extend {
   uncompressPhysics: (p) ->
     s = @world.scale
     @_body.SetPosition new b2Vec2(p[0] / s + @width / 2, p[1] / s - @height / 2)
-    @_body.SetLinearVelocity new b2Vec2(p[2] / s, p[3] / s)
+
+    # @_body.SetLinearVelocity new b2Vec2(p[2] / s, p[3] / s)
+    v = @_body.GetLinearVelocity()
+    m = @_body.GetMass()
+    @_body.ApplyImpulse new b2Vec2(m * (p[2] / s - v.x),
+                                   m * (p[3] / s - v.y)), @_body.GetWorldCenter()
+
     @a.x = p[4] / s
     @a.y = p[5] / s
     return
