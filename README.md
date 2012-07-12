@@ -2,7 +2,26 @@
 A high performance sprite based open source HTML5 game engine. It uses WebGL if available for graphics and takes advantage of multiple core processors by using Web Workers when available. Super accurate physics using Box2D are provided.
 
 # installation
-To install globally:
+Source files:
+
+* [http://ccg.chilon.net/cc/gamer.js]
+* [http://ccg.chilon.net/cc/physics.js]
+
+We need to distribute two files to enable use of the Web Worker API.
+
+To include in a web page:
+
+```html
+<script source="cc/gamer.js"></script>
+```
+
+In order to take advantage of multi-core CPUs you must download the files and host them on your own server. Otherwise single-threaded mode can be used with the following line:
+
+```html
+<script source="http://ccg.chilon.net/cc/gamer.js"></script>
+```
+
+To install globally on your system using npm:
 ```
 sudo npm install -g cc.gamer
 ```
