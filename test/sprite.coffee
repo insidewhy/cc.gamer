@@ -10,6 +10,8 @@ Game = cc.Game.extend {
 
   # called after all resources have loaded
   booted: ->
+    @input.fallthrough = true # allow e.g. error console shortcut
+
     @input.bind cc.key.z,     'left'
     @input.bind cc.key.z,     'left'
     @input.bind cc.key.left,  'left'
@@ -39,7 +41,7 @@ Game = cc.Game.extend {
 
   update: ->
     if @input.pressed.reload
-      window.history.go 0
+      document.location.reload true
 
     if @input.pressed.toggle_scale
       @setScale if @scale == 2 then 1 else 2

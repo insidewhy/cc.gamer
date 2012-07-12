@@ -31,6 +31,8 @@ cc.module('cc.Input').defines ->
     backslash:    220
   }
 
+  fallthrough: false # whether to allow user commands to fall through
+
   for i in ['A'.charCodeAt(0) .. 'Z'.charCodeAt(0)]
     char = String.fromCharCode i
     key[char.toLowerCase()] = i
@@ -60,8 +62,10 @@ cc.module('cc.Input').defines ->
       if bind
         @pressed[bind] = code
         @state[bind]   = code
-      do e.stopPropagation
-      do e.preventDefault
+
+      unless @fallthrough
+        do e.stopPropagation
+        do e.preventDefault
       return
 
     release: (e) ->
