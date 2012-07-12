@@ -4,10 +4,10 @@ A high performance sprite based open source HTML5 game engine. It uses WebGL if 
 # installation
 Source files:
 
-* [http://ccg.chilon.net/cc/gamer.js]
-* [http://ccg.chilon.net/cc/physics.js]
+* [http://ccg.chilon.net/cc/gamer.js](http://ccg.chilon.net/cc/gamer.js)
+* [http://ccg.chilon.net/cc/physics.js](http://ccg.chilon.net/cc/physics.js)
 
-We need to distribute two files to enable use of the Web Worker API.
+The physics.js has to be distributed in a separate file to run in the Web Worker API.
 
 To include in a web page:
 
