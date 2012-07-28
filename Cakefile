@@ -7,11 +7,14 @@ fs      = require 'fs'
 do ake.nodeModulePath
 
 _bakeResources = ->
-  bkr.bake 'lib/cc/gamer.coffee', 'cc/gamer.js',
-    doNotMinify: true, doNotCompileCoffee: true, noCcLoader: true,
-    includeFiles: [ path.join('node_modules', 'cc.extend', 'cc', 'extend.js'),
-                    path.join('cc', 'gl-matrix.js'),
-                    path.join('cc', 'box2d.js') ]
+  try
+    bkr.bake 'lib/cc/gamer.coffee', 'cc/gamer.js',
+      doNotMinify: true, doNotCompileCoffee: true, noCcLoader: true,
+      includeFiles: [ path.join('node_modules', 'cc.extend', 'cc', 'extend.js'),
+                      path.join('cc', 'gl-matrix.js'),
+                      path.join('cc', 'box2d.js') ]
+  catch e
+    console.warn 'baking error:', e.toString()
 
 task 'web', 'build cc/gamer.js for use in websites', (options) ->
   ake.assert (->
