@@ -64,15 +64,13 @@ task 'ghpage', 'update github page', (options) ->
   invoke 'web'
   ake.assert 'git stash',
     ->
-      fs.renameSync 'test/index.html', 'test/index.src.html'
       fs.renameSync 'cc/gamer.js', 'cc/gamer.src.js'
-      ake.cp 'lib/cc/physicsWorker.js', 'cc/physics.src.js'
       fs.unlinkSync 'cc/physics.js'
-    'git checkout gh-pages'
+    """git checkout gh-pages &&
+     git show master:lib/cc/physicsWorker.js > cc/physics.js &&
+     git show master:test/index.html > index.html"""
     ->
       fs.renameSync 'cc/gamer.src.js', 'cc/gamer.js'
-      fs.renameSync 'cc/physics.src.js', 'cc/physics.js'
-      fs.renameSync 'test/index.src.html', 'index.html'
       ake.cp 'test/sprite.js', 'sprite.js'
 
 # vim:ts=2 sw=2
