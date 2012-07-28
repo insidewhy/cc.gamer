@@ -4293,12 +4293,12 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
       this.pMatrix = mat4.create();
       this.mvMatrix = mat4.create();
     },
-    activateTexture: function(spritesheets) {
+    activateTexture: function(texture) {
       this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureBuffer);
       this.gl.vertexAttribPointer(this.a.textureCoord, this.textureBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-      this.gl.activeTexture(this.gl.TEXTURE0);
-      this.gl.bindTexture(this.gl.TEXTURE_2D, spritesheets.glTexture);
-      this.gl.uniform1i(this.u.sampler, 0);
+      this.gl.activeTexture(texture.id);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+      this.gl.uniform1i(this.u.sampler, texture.idx);
       return this;
     },
     setTileSize: function(width, height) {
@@ -4420,31 +4420,39 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 
   cc.module('cc.TextureAtlas').defines(function() {
     return this.set(cc.Class.extend({
-      init: function(width, height) {
+      init: function(width, height, maxTextures) {
         this.width = width != null ? width : 2048;
         this.height = height != null ? height : 2048;
+        this.maxTextures = maxTextures != null ? maxTextures : 32;
         this._canvas = document.createElement('canvas');
         this._canvas.width = this.width;
-        return this._canvas.height = this.height;
+        this._canvas.height = this.height;
+        this._canvases = [this._canvas];
+        return this.textures = [];
       },
       addSpriteSheet: function(spriteSheet) {
-        var x, y;
+        var img, x, y;
         x = y = 0;
-        this._canvas.getContext('2d').drawImage(spriteSheet.image.data, x, y);
-        spriteSheet.textureOffset = vec2.createFrom(x / this.width, y / this.height);
+        img = spriteSheet.image.data;
+        this._canvas.getContext('2d').drawImage(img, x, y);
+        spriteSheet.textureId = this._canvases.length - 1;
+        spriteSheet.textureOffset = vec2.createFrom((x + 0.5) / this.width, (y + 0.5) / this.height);
         spriteSheet.textureTileSize = vec2.createFrom(spriteSheet.tileWidth / this.width, spriteSheet.tileHeight / this.height);
       },
-      loadImageToTexture: function(gl, textureId) {
-        if (textureId == null) {
-          textureId = 0;
+      loadToTextures: function(gl) {
+        var glTexture, textureId, _i, _ref;
+        for (textureId = _i = 0, _ref = this._canvases.length; 0 <= _ref ? _i < _ref : _i > _ref; textureId = 0 <= _ref ? ++_i : --_i) {
+          glTexture = gl.createTexture();
+          this.textures.push(glTexture);
+          glTexture.idx = textureId;
+          glTexture.id = gl['TEXTURE' + textureId];
+          gl.bindTexture(gl.TEXTURE_2D, glTexture);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+          gl.texImage2D(gl.TEXTURE_2D, textureId, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._canvases[textureId]);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+          gl.bindTexture(gl.TEXTURE_2D, null);
         }
-        this.glTexture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, this.glTexture);
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, textureId, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._canvas);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.bindTexture(gl.TEXTURE_2D, null);
       }
     }));
   });
@@ -4689,6 +4697,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
       init: function(gl, resources) {
         var path, spriteSheet, _ref;
         this.gl = gl;
+        this._activatedTextureId = -1;
         this.shdr = new cc.SpriteShaderProgram;
         this.shdr.attachContext(this.gl);
         this.shdr.link();
@@ -4699,8 +4708,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
           spriteSheet = _ref[path];
           this.texAtlas.addSpriteSheet(spriteSheet);
         }
-        this.texAtlas.loadImageToTexture(this.gl);
-        this.shdr.activateTexture(this.texAtlas);
+        this.texAtlas.loadToTextures(this.gl);
       },
       setScale: function(scale) {
         this.shdr.perspectiveAndScale(90, scale);
@@ -4710,6 +4718,12 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         return this;
       },
       selectSprite: function(sprite) {
+        var newTextureId;
+        newTextureId = sprite.sheet.textureId;
+        if (newTextureId !== this._activatedTextureId) {
+          this.shdr.activateTexture(this.texAtlas.textures[newTextureId]);
+          this._activatedTextureId = newTextureId;
+        }
         this.shdr.selectTile(sprite.sheet.textureTileSize, sprite.tile, sprite.sheet.textureOffset);
         return this;
       },
