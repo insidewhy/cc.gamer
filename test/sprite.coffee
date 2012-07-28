@@ -52,7 +52,6 @@ Game = cc.Game.extend {
     do @parent
 
   # draw: ->
-  # update: ->
 }
 
 game = new Game resources, scale: 1

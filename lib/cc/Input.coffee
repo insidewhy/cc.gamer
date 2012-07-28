@@ -28,6 +28,7 @@ cc.module('cc.Input').defines ->
     fullstop:     190
     period:       190
     forwardslash: 191
+    slash:        191
     backslash:    220
   }
 
