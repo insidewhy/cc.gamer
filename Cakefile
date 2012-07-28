@@ -68,9 +68,8 @@ task 'ghpage', 'update github page', (options) ->
       fs.unlinkSync 'cc/physics.js'
     """git checkout gh-pages &&
      git show master:lib/cc/physicsWorker.js > cc/physics.js &&
-     git show master:test/index.html > index.html"""
-    ->
-      fs.renameSync 'cc/gamer.src.js', 'cc/gamer.js'
-      ake.cp 'test/sprite.js', 'sprite.js'
+     git show master:test/index.html > index.html &&
+     cp test/*.js ."""
+    -> fs.renameSync 'cc/gamer.src.js', 'cc/gamer.js'
 
 # vim:ts=2 sw=2

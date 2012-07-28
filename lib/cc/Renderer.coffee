@@ -1,17 +1,15 @@
 cc.module('cc.Renderer').defines -> @set cc.Class.extend {
   init: (@gl, resources) ->
+    @_activatedTextureId = -1 # id of current activated texture
     @shdr = new cc.SpriteShaderProgram
     @shdr.attachContext @gl
     do @shdr.link
 
-    # bundles all spritesheets into one huge gl texture
-    # TODO: handle need for multiple texture maps
     @texAtlas = new cc.TextureAtlas
     for own path, spriteSheet of resources.spriteSheets
       @texAtlas.addSpriteSheet spriteSheet
 
-    @texAtlas.loadImageToTexture @gl
-    @shdr.activateTexture @texAtlas
+    @texAtlas.loadToTextures @gl
 
     return
 
@@ -22,6 +20,11 @@ cc.module('cc.Renderer').defines -> @set cc.Class.extend {
   setBackgroundColor: (r, g, b, a) -> @shdr.clearColor r, g, b, a; this
 
   selectSprite: (sprite) ->
+    newTextureId = sprite.sheet.textureId
+    if newTextureId isnt @_activatedTextureId
+      @shdr.activateTexture @texAtlas.textures[newTextureId]
+      @_activatedTextureId = newTextureId
+
     @shdr.selectTile(
       sprite.sheet.textureTileSize, sprite.tile, sprite.sheet.textureOffset)
     this

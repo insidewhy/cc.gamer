@@ -8,13 +8,13 @@ cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
     @mvMatrix = mat4.create() # reference point at bottom left corner of screen
     return
 
-  activateTexture: (spritesheets) ->
+  activateTexture: (texture) ->
     @gl.bindBuffer @gl.ARRAY_BUFFER, @textureBuffer
     @gl.vertexAttribPointer @a.textureCoord, @textureBuffer.itemSize, @gl.FLOAT, false, 0, 0
-    # TODO: read idx from spritesheets object
-    @gl.activeTexture @gl.TEXTURE0
-    @gl.bindTexture @gl.TEXTURE_2D, spritesheets.glTexture
-    @gl.uniform1i @u.sampler, 0
+    # id and idx fields are added to the texture by cc.gamer
+    @gl.activeTexture texture.id
+    @gl.bindTexture @gl.TEXTURE_2D, texture
+    @gl.uniform1i @u.sampler, texture.idx
     this
 
   setTileSize: (width, height) ->

@@ -1,6 +1,6 @@
 /node_modules
 /cc
 /test/cc
-/test/sprite.js
+/test/*.js
 /gl-matrix.js
 .*.swp
