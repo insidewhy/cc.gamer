@@ -13,6 +13,7 @@
     autopilot: false,
     booted: function() {
       var i;
+      this.input.fallthrough = true;
       this.input.bind(cc.key.z, 'left');
       this.input.bind(cc.key.z, 'left');
       this.input.bind(cc.key.left, 'left');
@@ -43,7 +44,7 @@
     },
     update: function() {
       if (this.input.pressed.reload) {
-        window.history.go(0);
+        document.location.reload(true);
       }
       if (this.input.pressed.toggle_scale) {
         this.setScale(this.scale === 2 ? 1 : 2);
