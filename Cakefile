@@ -62,14 +62,12 @@ task 'test', 'test cc.extend', (options) ->
 
 task 'ghpage', 'update github page', (options) ->
   invoke 'web'
-  ake.assert 'git stash',
-    ->
-      fs.renameSync 'cc/gamer.js', 'cc/gamer.src.js'
-      fs.unlinkSync 'cc/physics.js'
-    """git checkout gh-pages &&
-     git show master:lib/cc/physicsWorker.js > cc/physics.js &&
-     git show master:test/index.html > index.html &&
-     cp test/*.js ."""
-    -> fs.renameSync 'cc/gamer.src.js', 'cc/gamer.js'
+  ake.assert """git stash &&
+    mkdir -p keep/cc &&
+    mv cc/gamer.js keep/cc &&
+    cp lib/cc/physicsWorker.js keep/cc/physics.js &&
+    cp test/*.{js,html} keep/ &&
+    git checkout gh-pages &&
+    cp -r keep/* ."""
 
 # vim:ts=2 sw=2
