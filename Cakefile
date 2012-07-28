@@ -4,8 +4,6 @@ bkr     = require('cc.extend').baker
 {exec}  = require 'child_process'
 fs      = require 'fs'
 
-box2dVersion = '2.1a.3'
-
 do ake.nodeModulePath
 
 _bakeResources = ->
