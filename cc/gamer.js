@@ -4424,31 +4424,154 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         this.width = width != null ? width : 2048;
         this.height = height != null ? height : 2048;
         this.maxTextures = maxTextures != null ? maxTextures : 32;
+        this._canvases = [];
+        this._addTexture();
+        return this.textures = [];
+      },
+      _addTexture: function() {
         this._canvas = document.createElement('canvas');
         this._canvas.width = this.width;
         this._canvas.height = this.height;
-        this._canvases = [this._canvas];
-        return this.textures = [];
+        this._canvas.rows = [
+          {
+            height: this.height,
+            cells: [false]
+          }
+        ];
+        this._canvas.colWidth = [this.width];
+        return this._canvases.push(this._canvas);
+      },
+      _nRows: function() {
+        return this._canvas.rows.length;
+      },
+      _nCols: function() {
+        return this._canvas.colWidth.length;
+      },
+      _splitCell: function(rowIdx, colIdx, width, height) {
+        var cell, colWidth, newRow, row, _i, _j, _len, _len1, _ref, _ref1;
+        row = this._canvas.rows[rowIdx];
+        if (height < row.height) {
+          newRow = {
+            height: row.height - height,
+            cells: []
+          };
+          _ref = row.cells;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            cell = _ref[_i];
+            newRow.cells.push(cell);
+          }
+          this._canvas.rows.splice(rowIdx + 1, 0, newRow);
+          row.height = height;
+        }
+        colWidth = this._canvas.colWidth[colIdx];
+        if (width < colWidth) {
+          this._canvas.colWidth.splice(colIdx + 1, 0, colWidth - width);
+          _ref1 = this._canvas.rows;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            row = _ref1[_j];
+            row.cells.splice(colIdx + 1, 0, row.cells[colIdx]);
+          }
+          return this._canvas.colWidth[colIdx] = width;
+        }
+      },
+      _searchCells: function(firstRow, rowIdx, colIdx, width, height) {
+        var cellIdx, i, lastColIdx, lastRowIdx, row, _i, _j, _k, _l, _m, _ref, _ref1, _ref2, _ref3;
+        width -= this._canvas.colWidth[colIdx];
+        if (width > 0) {
+          for (lastColIdx = _i = _ref = colIdx + 1, _ref1 = this._canvas.colWidth.length; _ref <= _ref1 ? _i < _ref1 : _i > _ref1; lastColIdx = _ref <= _ref1 ? ++_i : --_i) {
+            if (firstRow.cells[lastColIdx]) {
+              return;
+            }
+            width -= this._canvas.colWidth[lastColIdx];
+            if (width <= 0) {
+              break;
+            }
+          }
+        } else {
+          lastColIdx = colIdx;
+        }
+        if (width > 0) {
+          return;
+        }
+        height -= firstRow.height;
+        if (height > 0) {
+          for (lastRowIdx = _j = _ref2 = rowIdx + 1, _ref3 = this._canvas.colWidth.length; _ref2 <= _ref3 ? _j < _ref3 : _j > _ref3; lastRowIdx = _ref2 <= _ref3 ? ++_j : --_j) {
+            row = this._canvas.rows[lastRowIdx];
+            for (cellIdx = _k = colIdx; colIdx <= lastColIdx ? _k <= lastColIdx : _k >= lastColIdx; cellIdx = colIdx <= lastColIdx ? ++_k : --_k) {
+              if (row.cells[cellIdx]) {
+                return;
+              }
+            }
+            height -= row.height;
+            if (height <= 0) {
+              break;
+            }
+          }
+        } else {
+          lastRowIdx = rowIdx;
+        }
+        if (height > 0) {
+          return;
+        }
+        for (i = _l = rowIdx; rowIdx <= lastRowIdx ? _l <= lastRowIdx : _l >= lastRowIdx; i = rowIdx <= lastRowIdx ? ++_l : --_l) {
+          row = this._canvas.rows[i];
+          for (cellIdx = _m = colIdx; colIdx <= lastColIdx ? _m <= lastColIdx : _m >= lastColIdx; cellIdx = colIdx <= lastColIdx ? ++_m : --_m) {
+            row.cells[cellIdx] = true;
+          }
+        }
+        return true;
+      },
+      _getCell: function(width, height) {
+        var colIdx, colWidth, row, rowIdx, x, y, _i, _j, _ref, _ref1;
+        x = y = 0;
+        for (rowIdx = _i = 0, _ref = this._canvas.rows.length; 0 <= _ref ? _i < _ref : _i > _ref; rowIdx = 0 <= _ref ? ++_i : --_i) {
+          row = this._canvas.rows[rowIdx];
+          for (colIdx = _j = 0, _ref1 = this._nCols(); 0 <= _ref1 ? _j < _ref1 : _j > _ref1; colIdx = 0 <= _ref1 ? ++_j : --_j) {
+            colWidth = this._canvas.colWidth[colIdx];
+            if (!row.cells[colIdx]) {
+              if (colWidth >= width && row.height >= height) {
+                this._splitCell(rowIdx, colIdx, width, height);
+                row.cells[colIdx] = true;
+                return [x, y];
+              } else {
+                if (this._searchCells(row, rowIdx, colIdx, width, height)) {
+                  return [x, y];
+                }
+              }
+            }
+            x += colWidth;
+          }
+          y += row.height;
+          x = 0;
+        }
+        if (this._canvases.length >= this.maxTextures) {
+          throw "Too many sprite maps for available texture space";
+        }
+        this._addTexture();
+        return this._getCell(width, height);
       },
       addSpriteSheet: function(spriteSheet) {
-        var img, x, y;
-        x = y = 0;
+        var img, x, y, _ref;
         img = spriteSheet.image.data;
+        _ref = this._getCell(img.width, img.height), x = _ref[0], y = _ref[1];
         this._canvas.getContext('2d').drawImage(img, x, y);
         spriteSheet.textureId = this._canvases.length - 1;
-        spriteSheet.textureOffset = vec2.createFrom((x + 0.5) / this.width, (y + 0.5) / this.height);
+        spriteSheet.textureOffset = vec2.createFrom(x / this.width, y / this.height);
         spriteSheet.textureTileSize = vec2.createFrom(spriteSheet.tileWidth / this.width, spriteSheet.tileHeight / this.height);
       },
       loadToTextures: function(gl) {
-        var glTexture, textureId, _i, _ref;
+        var canvas, glTexture, textureId, _i, _ref;
         for (textureId = _i = 0, _ref = this._canvases.length; 0 <= _ref ? _i < _ref : _i > _ref; textureId = 0 <= _ref ? ++_i : --_i) {
+          canvas = this._canvases[textureId];
+          delete canvas.rows;
+          delete canvas.colWidth;
           glTexture = gl.createTexture();
           this.textures.push(glTexture);
           glTexture.idx = textureId;
           glTexture.id = gl['TEXTURE' + textureId];
           gl.bindTexture(gl.TEXTURE_2D, glTexture);
           gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-          gl.texImage2D(gl.TEXTURE_2D, textureId, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this._canvases[textureId]);
+          gl.texImage2D(gl.TEXTURE_2D, textureId, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
           gl.bindTexture(gl.TEXTURE_2D, null);
