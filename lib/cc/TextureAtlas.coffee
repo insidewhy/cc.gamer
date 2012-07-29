@@ -46,32 +46,26 @@ cc.module('cc.TextureAtlas').defines -> @set cc.Class.extend {
 
   _searchCells: (firstRow, rowIdx, colIdx, width, height) ->
     # first try to expand over cells to the right
-    width -= @_canvas.colWidth[colIdx]
-    if width > 0
-      for lastColIdx in [(colIdx + 1)...@_canvas.colWidth.length]
-        return if firstRow.cells[lastColIdx]
-        width -= @_canvas.colWidth[lastColIdx]
-        break if width <= 0
-    else
-      lastColIdx = colIdx
+    for lastColIdx in [colIdx...@_canvas.colWidth.length]
+      return if firstRow.cells[lastColIdx]
+      width -= @_canvas.colWidth[lastColIdx]
+      break if width <= 0
 
     return if width > 0
 
-    height -= firstRow.height
-    if height > 0
-      # then try to expand down
-      for lastRowIdx in [(rowIdx + 1)...@_canvas.colWidth.length]
-        row = @_canvas.rows[lastRowIdx]
-        for cellIdx in [colIdx..lastColIdx]
-          return if row.cells[cellIdx]
-        height -= row.height
-        break if height <= 0
-    else
-      lastRowIdx = rowIdx
+    for lastRowIdx in [rowIdx...@_canvas.colWidth.length]
+      row = @_canvas.rows[lastRowIdx]
+      for cellIdx in [colIdx..lastColIdx]
+        return if row.cells[cellIdx]
+      height -= row.height
+      break if height <= 0
 
     return if height > 0
 
-    # TODO: split cell
+    # split last cell
+    @_splitCell lastRowIdx, lastColIdx,
+                width + @_canvas.colWidth[lastColIdx],
+                height + @_canvas.rows[lastRowIdx].height
 
     # mark all cells as occupied
     for i in [rowIdx..lastRowIdx]
@@ -90,15 +84,7 @@ cc.module('cc.TextureAtlas').defines -> @set cc.Class.extend {
       row = @_canvas.rows[rowIdx]
       for colIdx in [0...@_nCols()]
         colWidth = @_canvas.colWidth[colIdx]
-        if not row.cells[colIdx]
-          if colWidth >= width and row.height >= height
-            @_splitCell rowIdx, colIdx, width, height
-            row.cells[colIdx] = true
-            return [ x, y ]
-          else
-            if @_searchCells row, rowIdx, colIdx, width, height
-              return [ x, y ]
-
+        return [ x, y ] if @_searchCells row, rowIdx, colIdx, width, height
         x += colWidth
       y += row.height
       x = 0
