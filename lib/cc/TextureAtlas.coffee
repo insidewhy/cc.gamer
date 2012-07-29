@@ -6,7 +6,7 @@ cc.module('cc.TextureAtlas').defines -> @set cc.Class.extend {
   init: (@width = 2048, @height = 2048, @maxTextures = 32) ->
     # array of all canvases, one to be loaded per texture
     @_canvases = []
-    do @_addTexture
+    @_addTexture()
     @textures = []
 
   _addTexture: ->
@@ -17,52 +17,110 @@ cc.module('cc.TextureAtlas').defines -> @set cc.Class.extend {
 
     # rows.. each row has a height. each entry is either a canvas
     # or an array of two or more canvases stacked vertically
-    @_canvas.rows = []
+    @_canvas.rows = [ { height: @height, cells: [ false ] } ]
+    @_canvas.colWidth = [ @width ] # just stores the column widths
     @_canvases.push @_canvas
 
-  # add a brind new row to the current map
-  _addRow: (height) ->
-    newRow = {
-      height: height
-      x: 0 # (x,y) of next cell insert point
-      y: 0
-      cells: []
-    }
+  _nRows: -> @_canvas.rows.length
+  _nCols: -> @_canvas.colWidth.length
 
-    if @_canvas.rows.length
-      lastRow = @_canvas.rows[@_canvas.rows.length - 1]
-      newRow.textureY = lastRow.textureY + lastRow.height
-      if newRow.textureY + newRow.height > @height
-        do @_addTexture
-        newRow.textureY = 0
+  # Split a cell, which will cause splitting of all cells in the same column.
+  _splitCell: (rowIdx, colIdx, width, height) ->
+    row = @_canvas.rows[rowIdx]
+    if height < row.height
+      # split row in two
+      newRow = { height: row.height - height, cells: [] }
+      for cell in row.cells
+        newRow.cells.push cell
+      @_canvas.rows.splice rowIdx + 1, 0, newRow
+      row.height = height
+
+    colWidth = @_canvas.colWidth[colIdx]
+    if width < colWidth
+      @_canvas.colWidth.splice colIdx + 1, 0, colWidth - width
+      # split column in two
+      for row in @_canvas.rows
+        row.cells.splice colIdx + 1, 0, row.cells[colIdx]
+      @_canvas.colWidth[colIdx] = width
+
+
+  _searchCells: (firstRow, rowIdx, colIdx, width, height) ->
+    # first try to expand over cells to the right
+    width -= @_canvas.colWidth[colIdx]
+    if width > 0
+      for lastColIdx in [(colIdx + 1)...@_canvas.colWidth.length]
+        return if firstRow.cells[lastColIdx]
+        width -= @_canvas.colWidth[lastColIdx]
+        break if width <= 0
     else
-      newRow.textureY = 0
+      lastColIdx = colIdx
 
-    @_canvas.rows.push newRow
-    newRow
+    return if width > 0
 
-  _getRowFor: (width, height) ->
-    # TODO: find space for cell before adding new
-    @_addRow height
+    height -= firstRow.height
+    if height > 0
+      # then try to expand down
+      for lastRowIdx in [(rowIdx + 1)...@_canvas.colWidth.length]
+        row = @_canvas.rows[lastRowIdx]
+        for cellIdx in [colIdx..lastColIdx]
+          return if row.cells[cellIdx]
+        height -= row.height
+        break if height <= 0
+    else
+      lastRowIdx = rowIdx
+
+    return if height > 0
+
+    # TODO: split cell
+
+    # mark all cells as occupied
+    for i in [rowIdx..lastRowIdx]
+      row = @_canvas.rows[i]
+      for cellIdx in [colIdx..lastColIdx]
+        row.cells[cellIdx] = true
+
+    return true
+
+  # Look for empty cell. If found in current texture then return it otherwise
+  # add new texture and start again.
+  # return x/y co-ordinate to draw cell at
+  _getCell: (width, height) ->
+    x = y = 0
+    for rowIdx in [0...@_canvas.rows.length]
+      row = @_canvas.rows[rowIdx]
+      for colIdx in [0...@_nCols()]
+        colWidth = @_canvas.colWidth[colIdx]
+        if not row.cells[colIdx]
+          if colWidth >= width and row.height >= height
+            @_splitCell rowIdx, colIdx, width, height
+            row.cells[colIdx] = true
+            return [ x, y ]
+          else
+            if @_searchCells row, rowIdx, colIdx, width, height
+              return [ x, y ]
+
+        x += colWidth
+      y += row.height
+      x = 0
+
+    if @_canvases.length >= @maxTextures
+      throw "Too many sprite maps for available texture space"
+
+    @_addTexture()
+    @_getCell width, height
+
 
   addSpriteSheet: (spriteSheet) ->
     img = spriteSheet.image.data
 
-    row = @_getRowFor img.width, img.height
-    textureY = row.textureY + row.y
-    @_canvas.getContext('2d').drawImage(img, row.x, textureY)
+    [x, y] = @_getCell img.width, img.height
+    @_canvas.getContext('2d').drawImage img, x, y
     spriteSheet.textureId     = @_canvases.length - 1
-    spriteSheet.textureOffset = vec2.createFrom((row.x + 0.5) / @width,
-                                                (textureY + 0.5) / @height)
+    spriteSheet.textureOffset = vec2.createFrom(x / @width, y / @height)
 
     spriteSheet.textureTileSize =
       vec2.createFrom spriteSheet.tileWidth  / @width,
                       spriteSheet.tileHeight / @height
-
-    # update row metadata
-    row.x += img.width
-    if img.height < row.height
-      row.y += img.height
 
     return
 
@@ -72,6 +130,7 @@ cc.module('cc.TextureAtlas').defines -> @set cc.Class.extend {
       canvas = @_canvases[textureId]
       # no more adding to textures after loading.. so reclaim row metadata
       delete canvas.rows
+      delete canvas.colWidth
       glTexture = gl.createTexture()
       @textures.push glTexture
       glTexture.idx = textureId
