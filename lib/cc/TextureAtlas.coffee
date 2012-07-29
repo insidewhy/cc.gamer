@@ -44,6 +44,9 @@ cc.module('cc.TextureAtlas').defines -> @set cc.Class.extend {
       @_canvas.colWidth[colIdx] = width
 
 
+  # return true if empty cells adjactent to rowIdx, colIdx can accomodate box of
+  # width and height.
+  # TODO: return score which algorithm can use to check best placement
   _searchCells: (firstRow, rowIdx, colIdx, width, height) ->
     # first try to expand over cells to the right
     for lastColIdx in [colIdx...@_canvas.colWidth.length]
@@ -53,7 +56,7 @@ cc.module('cc.TextureAtlas').defines -> @set cc.Class.extend {
 
     return if width > 0
 
-    for lastRowIdx in [rowIdx...@_canvas.colWidth.length]
+    for lastRowIdx in [rowIdx...@_canvas.rows.length]
       row = @_canvas.rows[lastRowIdx]
       for cellIdx in [colIdx..lastColIdx]
         return if row.cells[cellIdx]

@@ -54,10 +54,13 @@ window.textureAtlasTest = ->
   window.cont  = document.getElementById 'cont'
   window.count = document.getElementById 'count'
   window.atlas = new cc.TextureAtlas 512, 512
-  atlas.addSpriteSheet fakeSpriteSheet(200, 128)
+  atlas.addSpriteSheet fakeSpriteSheet(280, 128)
   atlas.addSpriteSheet fakeSpriteSheet(200, 64)
   atlas.addSpriteSheet fakeSpriteSheet(150, 64)
   atlas.addSpriteSheet fakeSpriteSheet(20, 128)
+  atlas.addSpriteSheet fakeSpriteSheet(40, 400)
+  atlas.addSpriteSheet fakeSpriteSheet(320, 180)
+  atlas.addSpriteSheet fakeSpriteSheet(90, 250)
   showTexture()
 
 # vim:ts=2 sw=2
