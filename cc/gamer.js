@@ -4475,44 +4475,35 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         }
       },
       _searchCells: function(firstRow, rowIdx, colIdx, width, height) {
-        var cellIdx, i, lastColIdx, lastRowIdx, row, _i, _j, _k, _l, _m, _ref, _ref1, _ref2, _ref3;
-        width -= this._canvas.colWidth[colIdx];
+        var cellIdx, i, lastColIdx, lastRowIdx, row, _i, _j, _k, _l, _m, _ref, _ref1;
+        for (lastColIdx = _i = colIdx, _ref = this._canvas.colWidth.length; colIdx <= _ref ? _i < _ref : _i > _ref; lastColIdx = colIdx <= _ref ? ++_i : --_i) {
+          if (firstRow.cells[lastColIdx]) {
+            return;
+          }
+          width -= this._canvas.colWidth[lastColIdx];
+          if (width <= 0) {
+            break;
+          }
+        }
         if (width > 0) {
-          for (lastColIdx = _i = _ref = colIdx + 1, _ref1 = this._canvas.colWidth.length; _ref <= _ref1 ? _i < _ref1 : _i > _ref1; lastColIdx = _ref <= _ref1 ? ++_i : --_i) {
-            if (firstRow.cells[lastColIdx]) {
+          return;
+        }
+        for (lastRowIdx = _j = rowIdx, _ref1 = this._canvas.colWidth.length; rowIdx <= _ref1 ? _j < _ref1 : _j > _ref1; lastRowIdx = rowIdx <= _ref1 ? ++_j : --_j) {
+          row = this._canvas.rows[lastRowIdx];
+          for (cellIdx = _k = colIdx; colIdx <= lastColIdx ? _k <= lastColIdx : _k >= lastColIdx; cellIdx = colIdx <= lastColIdx ? ++_k : --_k) {
+            if (row.cells[cellIdx]) {
               return;
             }
-            width -= this._canvas.colWidth[lastColIdx];
-            if (width <= 0) {
-              break;
-            }
           }
-        } else {
-          lastColIdx = colIdx;
-        }
-        if (width > 0) {
-          return;
-        }
-        height -= firstRow.height;
-        if (height > 0) {
-          for (lastRowIdx = _j = _ref2 = rowIdx + 1, _ref3 = this._canvas.colWidth.length; _ref2 <= _ref3 ? _j < _ref3 : _j > _ref3; lastRowIdx = _ref2 <= _ref3 ? ++_j : --_j) {
-            row = this._canvas.rows[lastRowIdx];
-            for (cellIdx = _k = colIdx; colIdx <= lastColIdx ? _k <= lastColIdx : _k >= lastColIdx; cellIdx = colIdx <= lastColIdx ? ++_k : --_k) {
-              if (row.cells[cellIdx]) {
-                return;
-              }
-            }
-            height -= row.height;
-            if (height <= 0) {
-              break;
-            }
+          height -= row.height;
+          if (height <= 0) {
+            break;
           }
-        } else {
-          lastRowIdx = rowIdx;
         }
         if (height > 0) {
           return;
         }
+        this._splitCell(lastRowIdx, lastColIdx, width + this._canvas.colWidth[lastColIdx], height + this._canvas.rows[lastRowIdx].height);
         for (i = _l = rowIdx; rowIdx <= lastRowIdx ? _l <= lastRowIdx : _l >= lastRowIdx; i = rowIdx <= lastRowIdx ? ++_l : --_l) {
           row = this._canvas.rows[i];
           for (cellIdx = _m = colIdx; colIdx <= lastColIdx ? _m <= lastColIdx : _m >= lastColIdx; cellIdx = colIdx <= lastColIdx ? ++_m : --_m) {
@@ -4528,16 +4519,8 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
           row = this._canvas.rows[rowIdx];
           for (colIdx = _j = 0, _ref1 = this._nCols(); 0 <= _ref1 ? _j < _ref1 : _j > _ref1; colIdx = 0 <= _ref1 ? ++_j : --_j) {
             colWidth = this._canvas.colWidth[colIdx];
-            if (!row.cells[colIdx]) {
-              if (colWidth >= width && row.height >= height) {
-                this._splitCell(rowIdx, colIdx, width, height);
-                row.cells[colIdx] = true;
-                return [x, y];
-              } else {
-                if (this._searchCells(row, rowIdx, colIdx, width, height)) {
-                  return [x, y];
-                }
-              }
+            if (this._searchCells(row, rowIdx, colIdx, width, height)) {
+              return [x, y];
             }
             x += colWidth;
           }
