@@ -79,26 +79,30 @@ All dependencies are included in cc.gamer.js. They incude the excellent:
 * Module system: done [cc.loader](http://github.com/nuisanceofcats/cc.loader)
 * Class system: done [cc.extend](http://github.com/nuisanceofcats/cc.extend)
 * WebGL backend: in progress
-    * Spritesheet Animation: part done
-    * Pushing many Spritesheets into a WebGL texture: part done
-    * Shader API for sprites: part done
+    * Spritesheet Animation: done
+    * Pushing many Spritesheets into a WebGL texture: done
+    * Shader API for entities: done
+    * Shader API for surfaces (tessellating tiles, tile coverings): todo
 * Canvas backend: to do
-* Resource loading/caching: part done
+* Resource loading/caching: done
 * Physics (using Box2D js):
     * Run physics engine in web worker: done
-    * Collision detection: done
-    * Positioning and velocity: done
-    * Gravity: done
-    * Acceleration: todo
 * Entity:
-    * Masks to control what Entities it can collide with.
+    * Masks to control what Entities can collide: done
     * Velocity/Position/Acceleration updating: done
     * Spritesheet animations: done
     * Optional hitbox: done
-    * Collision events: todo
+    * Detect if hero is standing on surface (box2d sensor under feet): todo
+    * Physics:
+        * Collision detection: done
+        * Collision events: todo
+        * Positioning and velocity: done
+        * Gravity: done
+        * Collision events: todo
+        * Acceleration: todo
+* Input: done
+* Surface: todo
 * Loading Screen: to do
-* Game map: to do
-* Input: to do
 
 # notes
 * The box2d web project (which is a port of action script's box2d) seems to provide the best performance. cc.gamer also works with the box2d 2.2 port from llvm bytecode via emscripten in the "emscripten" branch.
