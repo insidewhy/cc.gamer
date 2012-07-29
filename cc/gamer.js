@@ -4488,7 +4488,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         if (width > 0) {
           return;
         }
-        for (lastRowIdx = _j = rowIdx, _ref1 = this._canvas.colWidth.length; rowIdx <= _ref1 ? _j < _ref1 : _j > _ref1; lastRowIdx = rowIdx <= _ref1 ? ++_j : --_j) {
+        for (lastRowIdx = _j = rowIdx, _ref1 = this._canvas.rows.length; rowIdx <= _ref1 ? _j < _ref1 : _j > _ref1; lastRowIdx = rowIdx <= _ref1 ? ++_j : --_j) {
           row = this._canvas.rows[lastRowIdx];
           for (cellIdx = _k = colIdx; colIdx <= lastColIdx ? _k <= lastColIdx : _k >= lastColIdx; cellIdx = colIdx <= lastColIdx ? ++_k : --_k) {
             if (row.cells[cellIdx]) {
