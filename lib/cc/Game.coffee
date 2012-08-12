@@ -85,11 +85,11 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       @height = canvas.height unless @height
 
       try
-        gl = cc.initGL canvas, @width, @height
-        @renderer = new cc.Renderer gl, @resources
+        # TODO: support more renderers
+        @renderer = new cc.gl.Renderer canvas, @resources, @width, @height
       catch e
         # TODO: fall back on canvas if there is no open GL
-        alert "sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome"
+        alert "sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome #{e.stack}"
         return
 
       @setScale @scale

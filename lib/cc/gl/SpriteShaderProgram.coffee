@@ -1,4 +1,4 @@
-cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass {
+cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
   gl: null
   scale: 1
 

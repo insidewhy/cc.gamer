@@ -1,4 +1,4 @@
-cc.module('cc.ShaderProgram').defines -> @set cc.Class.extend {
+cc.module('cc.gl.ShaderProgram').defines -> @set cc.Class.extend {
   init: ->
     @u = {} # uniforms
     @a = {} # attributes

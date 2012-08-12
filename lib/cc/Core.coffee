@@ -13,16 +13,6 @@ cc.module('cc.Core').defines ->
   cc.requestAnimationFrame = (callback, element) ->
     _requestAnimFrame callback, element
 
-  cc.initGL = (canvas, width, height) ->
-    try
-      gl = canvas.getContext("experimental-webgl")
-      gl.viewportWidth = canvas.width = width
-      gl.viewportHeight = canvas.height = height
-      gl
-    catch e
-      alert("could not initialise WebGL")
-      null
-
   cc.onVisibilityChange = (callback) ->
     if document.hidden?
       hidden = "hidden"

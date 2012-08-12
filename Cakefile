@@ -51,6 +51,10 @@ tryExec = (prefix, cmd) ->
     return
 
 task 'test', 'test cc.extend', (options) ->
+  rebuildCcGamer = (fname) ->
+    console.log "#{fname} changed: rebuild cc/gamer.js"
+    do _bakeResources
+
   invoke 'web'
   ake.assert ->
     do testServer
@@ -58,9 +62,9 @@ task 'test', 'test cc.extend', (options) ->
       /.coffee$/, (fname) ->
         tryExec "#{fname} changed: recompile tests", 'coffee -c test'
     ake.watch 'lib/cc',
-      /.coffee$/, (fname) ->
-        console.log "#{fname} changed: rebuild cc/gamer.js"
-        do _bakeResources
+      /.coffee$/, rebuildCcGamer
+    ake.watch 'lib/cc/gl',
+      /.coffee$/, rebuildCcGamer
   return
 
 task 'ghpage', 'update github page', (options) ->

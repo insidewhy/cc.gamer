@@ -1,6 +1,6 @@
 # a set of large textures that contains further smaller spritesheets of
 # various sizes.
-cc.module('cc.TextureAtlas').defines -> @set cc.Class.extend {
+cc.module('cc.gl.TextureAtlas').defines -> @set cc.Class.extend {
   # both width and height must be the same and a power of 2
   # i think up to 4096 should be okay
   init: (@width = 2048, @height = 2048, @maxTextures = 32) ->

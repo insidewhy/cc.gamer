@@ -5,14 +5,19 @@ cc.module('cc.gamer').requires(
   'cc.Entity'
   'cc.Resources'
   'cc.LoadingScreen'
-  'cc.SpriteShaderProgram'
   'cc.Sprite'
-  'cc.TextureAtlas'
   'cc.SpriteSheet'
   'cc.Game'
-  'cc.Renderer'
   'cc.PhysicsClient'
   'cc.Input'
+
+  # cc.gamer's gl only backend
+  'cc.gl.Renderer'
+  'cc.gl.TextureAtlas'
+  'cc.gl.SpriteShaderProgram'
+
+  # twod backend
+  # ... TODO ...
 
   # TODO: consider splitting out into separate file
   'cc.Box2dEntityPhysics'
