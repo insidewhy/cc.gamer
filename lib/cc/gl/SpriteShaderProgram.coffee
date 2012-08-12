@@ -30,7 +30,13 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
       uniform vec2 tileSize;   // tile size in percentage of texture size
       uniform vec2 tileOffset; // index of tile e.g. (1,1) = (1 down, 1 right)
       uniform vec2 tileCoord;  // offset into texture of first pixel
+
+      // used for mode 3 only... solid colour
+      uniform vec4 color;
+
       uniform sampler2D sampler;
+
+      uniform int mode;
 
       uniform bool flipX;
 
@@ -41,16 +47,22 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
       void main(void) {
         vec2 _tileOffset = vec2(tileOffset.s, tileOffset.t + 1.0);
         vec2 _texCoord   = vec2(vTextureCoord.s, -vTextureCoord.t);
-        if (flipX) {
-          _texCoord.s = -_texCoord.s;
-          _tileOffset.s += 1.0;
+
+        if (mode == 1) {
+          if (flipX) {
+            _texCoord.s = -_texCoord.s;
+            _tileOffset.s += 1.0;
+          }
+
+          gl_FragColor = texture2D(sampler,
+            vec2(1, -1) * (
+              (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));
         }
-
-        float offset = 1.0;
-
-        gl_FragColor = texture2D(sampler,
-          vec2(1, -1) * (
-            (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));
+        else if (mode == 2) {
+        }
+        else if (mode == 3) {
+          gl_FragColor = color;
+        }
       }"""
     shader = @gl.createShader @gl.FRAGMENT_SHADER
     @_attachShader shader, content
@@ -130,6 +142,23 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
     @gl.viewport 0, 0, @gl.viewportWidth, @gl.viewportHeight
     return
 
+  modeDynamicEntity: ->
+    @gl.uniform1i @u.mode, 1
+    return
+
+  modeSurfaceEntity: ->
+    # tile across surface
+    @gl.uniform1i @u.mode, 2
+    return
+
+  modeColor: ->
+    # tile across surface
+    @gl.uniform1i @u.mode, 3
+    return
+
+  setColor: (color) ->
+    @gl.uniform4fv @u.color, color
+
   # link gl program and then grab pointers to all uniforms and attributes
   link: ->
     # this is the standard texture used to draw pretty much all sprites
@@ -164,9 +193,10 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
     @_attribVertices "vertexPosition", "textureCoord"
     @_uniforms "tileSize", "tileOffset", "tileCoord", "sampler",
                "pMatrix", "mvMatrix", "position",
-               "spriteSize", "flipX"
+               "spriteSize", "flipX", "mode", "color"
 
     do @_glOptions
+    do @modeDynamicEntity
 
     # send shape to vertex
     @gl.bindBuffer @gl.ARRAY_BUFFER, @spriteVertices

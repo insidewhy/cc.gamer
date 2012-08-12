@@ -3,6 +3,7 @@ cc.module('cc.gamer').requires(
   'cc.Core'
   'cc.Image'
   'cc.Entity'
+  'cc.Surface'
   'cc.Resources'
   'cc.LoadingScreen'
   'cc.Sprite'
@@ -19,6 +20,7 @@ cc.module('cc.gamer').requires(
   # ... TODO ...
 
   'cc.physics.Box2dEntity'
+  'cc.physics.Box2dSurface'
   'cc.physics.Box2dWorld'
   'cc.physics.Worker'
   'cc.physics.Client'

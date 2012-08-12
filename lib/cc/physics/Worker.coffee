@@ -2,6 +2,7 @@
 cc.module('cc.physics.Worker').defines -> @set cc.Class.extend {
   # stuff copied from the Game object of the main process
   entities: {}
+  surfaces: {}
   enabled: true
   maxTick: 0.05
   # timing
@@ -32,18 +33,24 @@ cc.module('cc.physics.Worker').defines -> @set cc.Class.extend {
     self.onmessage = (event) => @onMessage event.data
     return
 
+  _isEntity: (data) -> data.length is 13
+
   onMessage: (data) ->
     if data.p
       # client signalled is painting
       do @update
-    else if data.e
-      for own id, uent of data.e
+    else if data.u
+      # entities and surfaces
+      for own id, updated of data.u
         entity = @entities[id]
         if entity
-          entity.uncompressPhysics uent
-        else
-          @entities[id] = entity = new cc.physics.Box2dEntity uent, @world
+          entity.uncompressPhysics updated
+        else if @_isEntity updated
+          @entities[id] = entity = new cc.physics.Box2dEntity updated, @world
           entity.id = id
+        else
+          @surfaces[id] = surface = new cc.physics.Box2dSurface updated, @world
+          surface.id = id
     else if data.enabled?
       @enabled = data.enabled
       do @update if @enabled

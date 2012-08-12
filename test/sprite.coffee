@@ -6,6 +6,8 @@ Game = cc.Game.extend {
   backgroundColor: [1.0, 0.72, 0.0, 1.0]
   gravity: { x: 0, y: 2 }
 
+  surfaceSheet: resources.spriteSheet 'surfaces.png', 64, 64
+
   autopilot: false # custom setting for this game
 
   # called after all resources have loaded
@@ -26,6 +28,7 @@ Game = cc.Game.extend {
     @input.bind cc.key.t,     'toggle_scale'
     @input.bind cc.key.r,     'reload'
 
+    # TODO: add surfaces
     i = 0
     loop
       @spawnEntity ImpostorEntity, cc.rand(0, 300), cc.rand(0, 300)
@@ -37,6 +40,9 @@ Game = cc.Game.extend {
       break if ++i > 10
 
     @hero = @spawnEntity HeroEntity, 0, 0
+
+    @addSurface @surfaceSheet, 0, 0, 300, 300, 64
+
     return
 
   update: ->

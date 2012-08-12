@@ -51,8 +51,8 @@ cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
   # if you don't call this after overriding or changing properties manually
   # then the web worker thread will miss them
   mark: ->
-    @game._hasUpdateEntities = true
-    @game._updateEntities[@id] = this
+    @game._hasUpdates = true
+    @game._updates[@id] = this
 
   setV: (vx, vy) ->
     @v.x = vx

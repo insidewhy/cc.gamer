@@ -5,8 +5,10 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   # it starts at 1 so the first draw can run
   entities: []      # all alive entities in this game
   entitiesById: {}  # same as above but hashed by id
-  _updateEntities: {}  # entities that have been updated
-  _hasUpdateEntities: false # if _updateEntities has a single entry
+  surfaces: []
+  surfacesById: {}
+  _updates: {}  # entities that have been updated
+  _hasUpdates: false # if _updates has a single entry
   maxTick: 0.05 # slow time down if tick falls below this
   gravity: { x: 0, y: 0 }  # world gravity
   # maxTick must be set before main is called for the physic client to get it
@@ -14,7 +16,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   maxX: 0       # max x-pixel TODO: move to Viewport class?
   maxY: 0       # max y-pixel
   box2dScale: 30 # how much to scale pixels down by for box2d
-  entityCount: 0 # counter used to generate id for each entity
+  _thingCount: 0  # counter used to generate id for entities/surfaces
   renderer: null
   input:    null
   useWebWorker: true  # whether to use web worker thread.
@@ -101,8 +103,10 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       do @physicsClient.run
       @physicsClient.sendConfig maxTick: @maxTick, gravity: @gravity
-      @physicsClient.sendEntities @_updateEntities if @_hasUpdateEntities
-      @_updateEntities = {}
+
+      # TODO: append surfaces
+      @physicsClient.sendUpdates @_updates
+      @_updates = {}
 
       do mainLoop = =>
         cc.requestAnimationFrame mainLoop
@@ -112,11 +116,19 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       return
 
   spawnEntity: (type, x, y, settings) ->
-    @_hasUpdateEntities = true
+    @_hasUpdates = true
     entity = new (type)(this, x, y, settings)
-    entity.id = ++@entityCount
+    entity.id = ++@_thingCount
     @entities.push entity
-    @entitiesById[entity.id] = @_updateEntities[entity.id] = entity
+    @entitiesById[entity.id] = @_updates[entity.id] = entity
+
+  addSurface: (sheet, tileIdx, x, y, width, height) ->
+    @_hasUpdates = true
+    # TODO: create object to draw
+    surface = compressedPhysics: -> [ x, y, width, height ]
+    surface.id = ++@_thingCount
+    @surfaces.push surface
+    @surfacesById[surface.id] = @_updates[surface.id] = surface
 
   # update.. only to be called when running the physics engine in the main
   # javascript process. when a web worker is used the physics data is
@@ -127,10 +139,10 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
     do entity.update for entity in @entities
 
     # entities spawned/movements made by entities' update methods
-    if @_hasUpdateEntities
-      @physicsClient.sendEntities @_updateEntities
-      @_hasUpdateEntities = false
-      @_updateEntities = {}
+    if @_hasUpdates
+      @physicsClient.sendUpdates @_updates
+      @_hasUpdates = false
+      @_updates = {}
 
     do @input.update
     return
