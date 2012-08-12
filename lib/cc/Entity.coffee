@@ -65,8 +65,7 @@ cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
     do @mark
 
   draw: ->
-    # @game.renderer.shdr.setTileSize @sprite.width, @sprite.height
-    @game.renderer.shdr.setTileSize @width, @height
+    @game.renderer.setTileSize @width, @height
     @game.renderer.selectSprite @sprite
     @game.renderer.drawSprite @pos.x, @pos.y, @pos.z, @v.x < 0
     return
