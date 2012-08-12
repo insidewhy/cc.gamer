@@ -1,4 +1,4 @@
-cc.module('cc.Entity').parent('cc.EntityPhysics').jClass {
+cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
   sprites: {}
   sprite: null         # currently displayed sprite
   category: 1 # mask defining what can collide with this

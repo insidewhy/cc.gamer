@@ -1,5 +1,5 @@
 # interface to physics worket thread
-cc.module('cc.PhysicsClient').defines -> @set cc.Class.extend {
+cc.module('cc.physics.Client').defines -> @set cc.Class.extend {
 
   # pixelScale: how much to scale a pixel down by to get its size in metres
   init: (@pixelScale = 30, @_onUpdate) ->

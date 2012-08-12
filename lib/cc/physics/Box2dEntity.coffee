@@ -1,4 +1,4 @@
-cc.module('cc.Box2dEntityPhysics').defines -> @set cc.Class.extend {
+cc.module('cc.physics.Box2dEntity').defines -> @set cc.Class.extend {
   init: (p, @world) ->
     @world.entities.push this
 

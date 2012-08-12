@@ -1,4 +1,4 @@
-cc.module('cc.Box2dWorld').defines -> @set cc.Class.extend {
+cc.module('cc.physics.Box2dWorld').defines -> @set cc.Class.extend {
   scale: 30.0 # scale from pixels to physics.. 30 pixels per metre
   entities: []
 

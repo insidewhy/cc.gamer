@@ -2,7 +2,7 @@
 # Shared by Web Worker and main thread.
 # The physics updating part of the code is only used by the main thread in
 # case Web Workers aren't available (IE9, some mobile browsers).
-cc.module('cc.EntityPhysics').defines -> @set cc.Class.extend {
+cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
   pos: { x: 0, y: 0, z: 0 } # position
   width:  0
   height: 0

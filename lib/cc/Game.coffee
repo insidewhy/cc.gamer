@@ -32,7 +32,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
   # options are optional, @resources is the resource loader
   init: (@resources, options) ->
-    @physicsClient = new cc.PhysicsClient @box2dScale, (data, tick) =>
+    @physicsClient = new cc.physics.Client @box2dScale, (data, tick) =>
       for own id, uent of data
         entity = @entitiesById[id]
         entity.uncompressPhysics uent if entity

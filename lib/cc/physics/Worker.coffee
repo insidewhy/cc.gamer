@@ -1,5 +1,5 @@
 # object used by physics worker thread to do all processing
-cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
+cc.module('cc.physics.Worker').defines -> @set cc.Class.extend {
   # stuff copied from the Game object of the main process
   entities: {}
   enabled: true
@@ -27,7 +27,7 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
     return
 
   init: ->
-    @world = new cc.Box2dWorld
+    @world = new cc.physics.Box2dWorld
     @_clockUpdate = new Date().getTime() / 1000
     self.onmessage = (event) => @onMessage event.data
     return
@@ -42,7 +42,7 @@ cc.module('cc.PhysicsWorker').defines -> @set cc.Class.extend {
         if entity
           entity.uncompressPhysics uent
         else
-          @entities[id] = entity = new cc.Box2dEntityPhysics uent, @world
+          @entities[id] = entity = new cc.physics.Box2dEntity uent, @world
           entity.id = id
     else if data.enabled?
       @enabled = data.enabled
