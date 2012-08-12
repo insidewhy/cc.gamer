@@ -8,10 +8,9 @@ cc.module('cc.gamer').requires(
   'cc.Sprite'
   'cc.SpriteSheet'
   'cc.Game'
-  'cc.physics.Client'
   'cc.Input'
 
-  # cc.gamer's gl only backend
+  # cc.gamer's internal gl only backend
   'cc.gl.Renderer'
   'cc.gl.TextureAtlas'
   'cc.gl.SpriteShaderProgram'
@@ -19,10 +18,10 @@ cc.module('cc.gamer').requires(
   # twod backend
   # ... TODO ...
 
-  # TODO: consider splitting out into separate file
   'cc.physics.Box2dEntity'
   'cc.physics.Box2dWorld'
   'cc.physics.Worker'
+  'cc.physics.Client'
 ).empty()
 
 # vim:ts=2 sw=2
