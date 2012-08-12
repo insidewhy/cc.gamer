@@ -196,7 +196,6 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
                "spriteSize", "flipX", "mode", "color"
 
     do @_glOptions
-    do @modeDynamicEntity
 
     # send shape to vertex
     @gl.bindBuffer @gl.ARRAY_BUFFER, @spriteVertices

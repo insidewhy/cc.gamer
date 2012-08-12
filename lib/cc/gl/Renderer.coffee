@@ -49,6 +49,16 @@ cc.module('cc.gl.Renderer').defines -> @set cc.Class.extend {
     @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @_shdr.spriteVertices.numItems
     this
 
+  drawingEntities: ->
+    @_shdr.modeDynamicEntity()
+    return
+
+  drawingSurfaces: ->
+    # TODO: better
+    @_shdr.modeColor()
+    @_shdr.setColor vec4.createFrom(1.0, 0.0, 0.0, 1.0)
+    return
+
   clear: ->
     @gl.clear(@gl.COLOR_BUFFER_BIT | @gl.DEPTH_BUFFER_BIT)
     this

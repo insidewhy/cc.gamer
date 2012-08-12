@@ -103,8 +103,6 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       do @physicsClient.run
       @physicsClient.sendConfig maxTick: @maxTick, gravity: @gravity
-
-      # TODO: append surfaces
       @physicsClient.sendUpdates @_updates
       @_updates = {}
 
@@ -124,8 +122,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
   addSurface: (sheet, tileIdx, x, y, width, height) ->
     @_hasUpdates = true
-    # TODO: create object to draw
-    surface = compressedPhysics: -> [ x, y, width, height ]
+    surface = new cc.Surface sheet, tileIdx, x, y, width, height
+
     surface.id = ++@_thingCount
     @surfaces.push surface
     @surfacesById[surface.id] = @_updates[surface.id] = surface
@@ -154,8 +152,12 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       do @physicsClient.signalPaint
       ++@ticks
       do @renderer.clear
-      # TODO: draw backgrounds here
+
+      # TODO: layers etc.
+      do @renderer.drawingEntities
       do entity.draw for entity in @entities
+      do @renderer.drawingSurfaces
+      do surface.draw for surface in @surfaces
       @tick = 0
 }
 # vim:ts=2 sw=2
