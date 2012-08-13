@@ -421,9 +421,15 @@
           attributes[prntName] = prntAttr;
         }
       }
+      proto.__super = {};
       for (name in members) {
         member = members[name];
         if (typeof member === "function") {
+          proto.__super[name] = (function(name, member) {
+            return function() {
+              return prntProto[name].apply(this.__this, arguments);
+            };
+          })(name, member);
           proto[name] = typeof prntProto[name] === "function" && fnTest.test(member) ? (function(name, member) {
             return function() {
               var ret, tmp;
@@ -445,6 +451,7 @@
       if (initing) {
         return;
       }
+      this.__super.__this = this;
       for (attrName in attributes) {
         attr = attributes[attrName];
         this[attrName] = cc.cloneCloneable(attr);
@@ -3963,18 +3970,6 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
     cc.requestAnimationFrame = function(callback, element) {
       return _requestAnimFrame(callback, element);
     };
-    cc.initGL = function(canvas, width, height) {
-      var gl;
-      try {
-        gl = canvas.getContext("experimental-webgl");
-        gl.viewportWidth = canvas.width = width;
-        gl.viewportHeight = canvas.height = height;
-        return gl;
-      } catch (e) {
-        alert("could not initialise WebGL");
-        return null;
-      }
-    };
     cc.onVisibilityChange = function(callback) {
       var hidden, visibilityChange,
         _this = this;
@@ -4019,7 +4014,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 }).call(this);
 (function() {
 
-  cc.module('cc.EntityPhysics').defines(function() {
+  cc.module('cc.physics.Entity').defines(function() {
     return this.set(cc.Class.extend({
       pos: {
         x: 0,
@@ -4089,7 +4084,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 }).call(this);
 (function() {
 
-  cc.module('cc.Entity').parent('cc.EntityPhysics').jClass({
+  cc.module('cc.Entity').parent('cc.physics.Entity').jClass({
     sprites: {},
     sprite: null,
     category: 1,
@@ -4122,10 +4117,10 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
           if (!this.hitbox.offset) {
             this.hitbox.offset = {};
           }
-          if (!this.hitbox.offset.x) {
+          if (!(this.hitbox.offset.x != null)) {
             this.hitbox.offset.x = Math.ceil((this.width - this.hitbox.width) / 2);
           }
-          if (!this.hitbox.offset.y) {
+          if (!(this.hitbox.offset.y != null)) {
             this.hitbox.offset.y = Math.ceil((this.height - this.hitbox.height) / 2);
           }
         }
@@ -4141,8 +4136,8 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
       }
     },
     mark: function() {
-      this.game._hasUpdateEntities = true;
-      return this.game._updateEntities[this.id] = this;
+      this.game._hasUpdates = true;
+      return this.game._updates[this.id] = this;
     },
     setV: function(vx, vy) {
       this.v.x = vx;
@@ -4155,10 +4150,40 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
       return this.mark();
     },
     draw: function() {
-      this.game.renderer.shdr.setTileSize(this.width, this.height);
+      this.game.renderer.setSize(this.width, this.height);
       this.game.renderer.selectSprite(this.sprite);
-      this.game.renderer.drawSprite(this.pos.x, this.pos.y, this.pos.z, this.v.x < 0);
+      this.game.renderer.drawEntity(this.pos.x, this.pos.y, this.pos.z, this.v.x < 0);
     }
+  });
+
+}).call(this);
+(function() {
+
+  cc.module('cc.Surface').defines(function() {
+    return this.set(cc.Class.extend({
+      tile: null,
+      init: function(game, sheet, tileIdx, x, y, width, height) {
+        var nCols;
+        this.game = game;
+        this.sheet = sheet;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        nCols = this.sheet.imgWidth() / this.sheet.tileWidth;
+        this.tile = vec2.createFrom(tileIdx % nCols, Math.floor(tileIdx / nCols));
+        return this._tileRepeat = vec2.createFrom(this.width / this.sheet.tileWidth, this.height / this.sheet.tileHeight);
+      },
+      compressedPhysics: function() {
+        return [this.x, this.y, this.width, this.height];
+      },
+      draw: function() {
+        this.game.renderer.setSize(this.width, this.height);
+        this.game.renderer.selectSprite(this);
+        this.game.renderer.tileRepeat(this._tileRepeat);
+        return this.game.renderer.drawSurface(this.x, this.y, this.z || 0);
+      }
+    }));
   });
 
 }).call(this);
@@ -4235,152 +4260,6 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 
 }).call(this);
 (function() {
-  var __slice = [].slice;
-
-  cc.module('cc.ShaderProgram').defines(function() {
-    return this.set(cc.Class.extend({
-      init: function() {
-        this.u = {};
-        this.a = {};
-      },
-      attachContext: function(gl) {
-        this.gl = gl;
-        this.prgrm = this.gl.createProgram();
-      },
-      _attachShader: function(shader, content) {
-        this.gl.shaderSource(shader, content);
-        this.gl.compileShader(shader);
-        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-          alert(this.gl.getShaderInfoLog(shader));
-        } else {
-          this.gl.attachShader(this.prgrm, shader);
-        }
-      },
-      _attribVertices: function() {
-        var name, names, _i, _len;
-        names = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        for (_i = 0, _len = names.length; _i < _len; _i++) {
-          name = names[_i];
-          this.gl.enableVertexAttribArray(this.a[name] = this.gl.getAttribLocation(this.prgrm, name));
-        }
-      },
-      _uniforms: function() {
-        var name, names, _i, _len;
-        names = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        for (_i = 0, _len = names.length; _i < _len; _i++) {
-          name = names[_i];
-          this.u[name] = this.gl.getUniformLocation(this.prgrm, name);
-        }
-      },
-      link: function() {
-        this.gl.linkProgram(this.prgrm);
-        if (!this.gl.getProgramParameter(this.prgrm, this.gl.LINK_STATUS)) {
-          alert("Could not initialise shaders");
-        }
-        return this.gl.useProgram(this.prgrm);
-      }
-    }));
-  });
-
-}).call(this);
-(function() {
-
-  cc.module('cc.SpriteShaderProgram').parent('cc.ShaderProgram').jClass({
-    gl: null,
-    scale: 1,
-    init: function() {
-      this.parent();
-      this.pMatrix = mat4.create();
-      this.mvMatrix = mat4.create();
-    },
-    activateTexture: function(texture) {
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureBuffer);
-      this.gl.vertexAttribPointer(this.a.textureCoord, this.textureBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-      this.gl.activeTexture(texture.id);
-      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-      this.gl.uniform1i(this.u.sampler, texture.idx);
-      return this;
-    },
-    setTileSize: function(width, height) {
-      this.gl.uniform2f(this.u.spriteSize, width, height);
-    },
-    _attachSpriteFragmentShader: function() {
-      var content, shader;
-      content = "precision mediump float;\n\nvarying vec2 vTextureCoord;\n\nuniform vec2 tileSize;   // tile size in percentage of texture size\nuniform vec2 tileOffset; // index of tile e.g. (1,1) = (1 down, 1 right)\nuniform vec2 tileCoord;  // offset into texture of first pixel\nuniform sampler2D sampler;\n\nuniform bool flipX;\n\n// this converts the tile coordinate system to the gl coordinate system\n// First it flips the y-axis. Then it reverses the direction it scans\n// for the current pixel. It also has to add one to the y-offset to make\n// up for it being from the top left rather than the bottom right.\nvoid main(void) {\n  vec2 _tileOffset = vec2(tileOffset.s, tileOffset.t + 1.0);\n  vec2 _texCoord   = vec2(vTextureCoord.s, -vTextureCoord.t);\n  if (flipX) {\n    _texCoord.s = -_texCoord.s;\n    _tileOffset.s += 1.0;\n  }\n\n  float offset = 1.0;\n\n  gl_FragColor = texture2D(sampler,\n    vec2(1, -1) * (\n      (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n}";
-      shader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-      return this._attachShader(shader, content);
-    },
-    _attachSpriteVertexShader: function() {
-      var content, shader;
-      content = "attribute vec3 vertexPosition;\nattribute vec2 textureCoord;\n\nuniform mat4 mvMatrix;\nuniform mat4 pMatrix;\nuniform vec3 position;\n\nuniform vec2 spriteSize;\n\n// to project y onto x.. multiply position by this\n// const mat3 shear = mat3(1,0,0, 0,0,1, 0,-1,0);\n\nvarying vec2 vTextureCoord;\n\nvoid main(void) {\n  gl_Position = pMatrix * mvMatrix *\n    vec4(\n      vec3(spriteSize, 1.0) * vertexPosition +\n        vec3(position.x, -position.y - spriteSize.y, position.z),\n      1.0);\n  vTextureCoord = textureCoord;\n}";
-      shader = this.gl.createShader(this.gl.VERTEX_SHADER);
-      return this._attachShader(shader, content);
-    },
-    selectTile: function(tileSize, tileOffset, sheetOffset) {
-      this.gl.uniform2fv(this.u.tileSize, tileSize);
-      this.gl.uniform2fv(this.u.tileOffset, tileOffset);
-      this.gl.uniform2fv(this.u.tileCoord, sheetOffset);
-      return this;
-    },
-    perspectiveAndScale: function(deg, scale) {
-      var zDistance;
-      this.scale = scale != null ? scale : 1;
-      mat4.perspective(deg, this.gl.viewportWidth / this.gl.viewportHeight, 1.0, 300.0, this.pMatrix);
-      this.gl.uniformMatrix4fv(this.u.pMatrix, false, this.pMatrix);
-      zDistance = -this.gl.viewportHeight / (2 * this.scale);
-      mat4.identity(this.mvMatrix);
-      mat4.translate(this.mvMatrix, [-this.gl.viewportWidth / (2 * this.scale), -zDistance, zDistance]);
-      this.gl.uniformMatrix4fv(this.u.mvMatrix, false, this.mvMatrix);
-      return this;
-    },
-    drawAt: function(x, y, z) {
-      if (z == null) {
-        z = 0;
-      }
-      this.gl.uniform3f(this.u.position, x, y, z);
-      return this;
-    },
-    flipX: function(flip) {
-      this.gl.uniform1i(this.u.flipX, flip);
-      return this;
-    },
-    clearColor: function(r, g, b, a) {
-      this.gl.clearColor(r, g, b, a);
-    },
-    _glOptions: function() {
-      this.gl.enable(this.gl.BLEND);
-      this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-      this.gl.disable(this.gl.DEPTH_TEST);
-      this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
-    },
-    link: function() {
-      var textureCoords, vertices;
-      this.textureBuffer = this.gl.createBuffer();
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureBuffer);
-      textureCoords = [1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0];
-      this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureCoords), this.gl.STATIC_DRAW);
-      this.textureBuffer.itemSize = 2;
-      this.textureBuffer.numItems = 4;
-      this.spriteVertices = this.gl.createBuffer();
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.spriteVertices);
-      vertices = [1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-      this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
-      this.spriteVertices.itemSize = 3;
-      this.spriteVertices.numItems = 4;
-      this._attachSpriteFragmentShader();
-      this._attachSpriteVertexShader();
-      this.parent();
-      this._attribVertices("vertexPosition", "textureCoord");
-      this._uniforms("tileSize", "tileOffset", "tileCoord", "sampler", "pMatrix", "mvMatrix", "position", "spriteSize", "flipX");
-      this._glOptions();
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.spriteVertices);
-      this.gl.vertexAttribPointer(this.a.vertexPosition, this.spriteVertices.itemSize, this.gl.FLOAT, false, 0, 0);
-      return this;
-    }
-  });
-
-}).call(this);
-(function() {
 
   cc.module('cc.Sprite').defines(function() {
     return this.set(cc.Class.extend({
@@ -4418,7 +4297,429 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 }).call(this);
 (function() {
 
-  cc.module('cc.TextureAtlas').defines(function() {
+  cc.module('cc.SpriteSheet').defines(function() {
+    return this.set(cc.Class.extend({
+      textureOffset: null,
+      textureTileSize: null,
+      init: function(path, tileWidth, tileHeight, onload, offset) {
+        this.tileWidth = tileWidth;
+        this.tileHeight = tileHeight;
+        this.offset = offset;
+        return this.image = new cc.Image(path, onload);
+      },
+      imgWidth: function() {
+        return this.image.data.width;
+      },
+      imgHeight: function() {
+        return this.image.data.height;
+      }
+    }));
+  });
+
+}).call(this);
+(function() {
+
+  cc.module('cc.Timer').defines(function() {
+    return this.set(cc.Class.extend({
+      init: function(_game, duration, offset) {
+        this._game = _game;
+        this.duration = duration != null ? duration : 0;
+        this.offset = offset != null ? offset : 0;
+        if (this.duration) {
+          this.reset();
+        } else {
+          this.pause();
+        }
+      },
+      expired: function() {
+        return this._game.now >= this.expires;
+      },
+      delta: function() {
+        return this.game.now - this.expires;
+      },
+      setDuration: function(duration) {
+        this.duration = duration;
+        this.reset();
+      },
+      pause: function() {
+        this.expires = Number.MAX_VALUE;
+      },
+      reset: function() {
+        this.expires = Math.floor((this._game.now / this.duration) - this.offset) * this.duration + this.duration + this.offset;
+      }
+    }));
+  });
+
+}).call(this);
+(function() {
+  var __hasProp = {}.hasOwnProperty;
+
+  cc.module('cc.Game').requires('cc.Timer').defines(function() {
+    return this.set(cc.Class.extend({
+      now: 0,
+      tick: 1,
+      entities: [],
+      entitiesById: {},
+      surfaces: [],
+      surfacesById: {},
+      _updates: {},
+      _hasUpdates: false,
+      maxTick: 0.05,
+      gravity: {
+        x: 0,
+        y: 0
+      },
+      scale: 1,
+      maxX: 0,
+      maxY: 0,
+      box2dScale: 30,
+      _thingCount: 0,
+      renderer: null,
+      input: null,
+      useWebWorker: true,
+      backgroundColor: [0.0, 0.0, 0.0, 1.0],
+      ticks: 0,
+      skips: 0,
+      updates: 0,
+      width: 0,
+      height: 0,
+      init: function(resources, options) {
+        var _this = this;
+        this.resources = resources;
+        this.physicsClient = new cc.physics.Client(this.box2dScale, function(data, tick) {
+          var entity, id, uent;
+          for (id in data) {
+            if (!__hasProp.call(data, id)) continue;
+            uent = data[id];
+            entity = _this.entitiesById[id];
+            if (entity) {
+              entity.uncompressPhysics(uent);
+            }
+          }
+          _this.tick = tick;
+          _this.now += tick;
+          return _this.update();
+        });
+        this.setOptions(options);
+        return this.input = new cc.Input;
+      },
+      setOptions: function(options) {
+        if (!options) {
+          return;
+        }
+        if (options.scale) {
+          this.scale = options.scale;
+        }
+        if (options.maxTick) {
+          this.maxTick = options.maxTick;
+        }
+        if (options.width) {
+          this.width = options.width;
+        }
+        if (options.height) {
+          return this.height = options.height;
+        }
+      },
+      timer: function(expiresIn) {
+        return new cc.Timer(this, expiresIn);
+      },
+      setScale: function(scale) {
+        this.scale = scale;
+        this.renderer.setScale(this.scale);
+        this.maxX = this.width / this.scale + cc.ZERO;
+        this.maxY = this.height / this.scale + cc.ZERO;
+      },
+      main: function(canvas, options) {
+        var _this = this;
+        this.setOptions(options);
+        if (!(canvas.getContext != null)) {
+          if (!(typeof canvas === "string")) {
+            throw 'canvas argument must be Canvas object or selector';
+          }
+          if (canvas[0] === '#') {
+            canvas = document.getElementById(canvas.slice(1));
+          } else {
+            canvas = document.getElementById(canvas);
+          }
+        }
+        if (canvas.getContext == null) {
+          throw "could not find canvas";
+        }
+        return this.resources.onLoadStatusUpdate(function(cmplt) {
+          var c, mainLoop;
+          if (cmplt < 1) {
+            return;
+          }
+          if (!_this.width) {
+            _this.width = canvas.width;
+          }
+          if (!_this.height) {
+            _this.height = canvas.height;
+          }
+          try {
+            _this.renderer = new cc.gl.Renderer(canvas, _this.resources, _this.width, _this.height);
+          } catch (e) {
+            alert("sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome " + e.stack);
+            return;
+          }
+          _this.setScale(_this.scale);
+          c = _this.backgroundColor;
+          _this.renderer.setBackgroundColor(c[0], c[1], c[2], c[3]);
+          _this.input.enable();
+          if (_this.booted) {
+            _this.booted();
+          }
+          _this.physicsClient.run();
+          _this.physicsClient.sendConfig({
+            maxTick: _this.maxTick,
+            gravity: _this.gravity
+          });
+          _this.physicsClient.sendUpdates(_this._updates);
+          _this._updates = {};
+          (mainLoop = function() {
+            cc.requestAnimationFrame(mainLoop);
+            return _this.draw();
+          })();
+        });
+      },
+      spawnEntity: function(type, x, y, settings) {
+        var entity;
+        this._hasUpdates = true;
+        entity = new type(this, x, y, settings);
+        entity.id = ++this._thingCount;
+        this.entities.push(entity);
+        return this.entitiesById[entity.id] = this._updates[entity.id] = entity;
+      },
+      addSurface: function(sheet, tileIdx, x, y, width, height) {
+        var surface;
+        this._hasUpdates = true;
+        surface = new cc.Surface(this, sheet, tileIdx, x, y, width, height);
+        surface.id = ++this._thingCount;
+        this.surfaces.push(surface);
+        return this.surfacesById[surface.id] = this._updates[surface.id] = surface;
+      },
+      update: function() {
+        var entity, _i, _len, _ref;
+        ++this.updates;
+        _ref = this.entities;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          entity = _ref[_i];
+          entity.update();
+        }
+        if (this._hasUpdates) {
+          this.physicsClient.sendUpdates(this._updates);
+          this._hasUpdates = false;
+          this._updates = {};
+        }
+        this.input.update();
+      },
+      draw: function() {
+        var entity, surface, _i, _j, _len, _len1, _ref, _ref1;
+        if (!this.tick) {
+          return ++this.skips;
+        } else {
+          this.physicsClient.signalPaint();
+          ++this.ticks;
+          this.renderer.clear();
+          this.renderer.drawingEntities();
+          _ref = this.entities;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            entity = _ref[_i];
+            entity.draw();
+          }
+          this.renderer.drawingSurfaces();
+          _ref1 = this.surfaces;
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            surface = _ref1[_j];
+            surface.draw();
+          }
+          return this.tick = 0;
+        }
+      }
+    }));
+  });
+
+}).call(this);
+(function() {
+
+  cc.module('cc.Input').defines(function() {
+    var char, i, idx, key, _i, _j, _ref, _ref1;
+    key = cc.key = {
+      backspace: 8,
+      tab: 9,
+      enter: 13,
+      shift: 16,
+      ctrl: 17,
+      alt: 18,
+      pause: 19,
+      "break": 19,
+      space: 32,
+      pageup: 33,
+      pagedown: 34,
+      end: 35,
+      home: 36,
+      left: 37,
+      up: 38,
+      right: 39,
+      down: 40,
+      insert: 45,
+      "delete": 46,
+      multiply: 106,
+      add: 107,
+      substract: 109,
+      divide: 111,
+      f11: 122,
+      f12: 123,
+      fullstop: 190,
+      period: 190,
+      forwardslash: 191,
+      slash: 191,
+      backslash: 220
+    };
+    ({
+      fallthrough: false
+    });
+    for (i = _i = _ref = 'A'.charCodeAt(0), _ref1 = 'Z'.charCodeAt(0); _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
+      char = String.fromCharCode(i);
+      key[char.toLowerCase()] = i;
+    }
+    for (i = _j = 0; _j <= 9; i = ++_j) {
+      idx = '0'.charCodeAt(0) + i;
+      char = i.toString();
+      key[char] = idx;
+      key['n' + char] = idx;
+      key['numpad' + char] = i + 96;
+      key['f' + char] = i + 112;
+    }
+    return this.set(cc.Class.extend({
+      state: {},
+      pressed: {},
+      released: {},
+      _bindings: {},
+      enable: function() {
+        var _this = this;
+        window.addEventListener('keydown', function(e) {
+          return _this.press(e, false);
+        });
+        window.addEventListener('keyup', function(e) {
+          return _this.release(e, false);
+        });
+      },
+      press: function(e) {
+        var bind, code;
+        code = e.keyCode;
+        bind = this._bindings[code];
+        if (bind) {
+          this.pressed[bind] = code;
+          this.state[bind] = code;
+        }
+        if (!this.fallthrough) {
+          e.stopPropagation();
+          e.preventDefault();
+        }
+      },
+      release: function(e) {
+        var bind, code;
+        code = e.keyCode;
+        bind = this._bindings[code];
+        if (bind) {
+          delete this.pressed[bind];
+          delete this.state[bind];
+          this.released[bind] = code;
+        }
+      },
+      update: function() {
+        this.released = {};
+        return this.pressed = {};
+      },
+      bind: function(key, state) {
+        return this._bindings[key] = state;
+      }
+    }));
+  });
+
+}).call(this);
+(function() {
+  var __hasProp = {}.hasOwnProperty;
+
+  cc.module('cc.gl.Renderer').defines(function() {
+    return this.set(cc.Class.extend({
+      init: function(canvas, resources, width, height) {
+        var path, spriteSheet, _ref;
+        this._getGlContext(canvas, width, height);
+        this._activatedTextureId = -1;
+        this._shdr = new cc.gl.SpriteShaderProgram;
+        this._shdr.attachContext(this.gl);
+        this._shdr.link();
+        this.texAtlas = new cc.gl.TextureAtlas;
+        _ref = resources.spriteSheets;
+        for (path in _ref) {
+          if (!__hasProp.call(_ref, path)) continue;
+          spriteSheet = _ref[path];
+          this.texAtlas.addSpriteSheet(spriteSheet);
+        }
+        this.texAtlas.loadToTextures(this.gl);
+      },
+      _getGlContext: function(canvas, width, height) {
+        try {
+          this.gl = canvas.getContext("experimental-webgl");
+          this.gl.viewportWidth = canvas.width = width;
+          this.gl.viewportHeight = canvas.height = height;
+        } catch (e) {
+          alert("could not initialise WebGL");
+        }
+      },
+      setSize: function(width, height) {
+        this._shdr.setSize(width, height);
+      },
+      setScale: function(scale) {
+        this._shdr.perspectiveAndScale(90, scale);
+      },
+      setBackgroundColor: function(r, g, b, a) {
+        this._shdr.clearColor(r, g, b, a);
+        return this;
+      },
+      selectSprite: function(sprite) {
+        var newTextureId;
+        newTextureId = sprite.sheet.textureId;
+        if (newTextureId !== this._activatedTextureId) {
+          this._shdr.activateTexture(this.texAtlas.textures[newTextureId]);
+          this._activatedTextureId = newTextureId;
+        }
+        this._shdr.selectTile(sprite.sheet.textureTileSize, sprite.tile, sprite.sheet.textureOffset);
+        return this;
+      },
+      tileRepeat: function(r) {
+        this._shdr.tileRepeat(r);
+      },
+      drawingEntities: function() {
+        this._shdr.modeDynamicEntity();
+      },
+      drawingSurfaces: function() {
+        this._shdr.modeSurfaceEntity();
+      },
+      drawEntity: function(x, y, z, flipX) {
+        this._shdr.drawAt(x, y, z);
+        this._shdr.flipX(flipX);
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this._shdr.spriteVertices.numItems);
+        return this;
+      },
+      drawSurface: function(x, y, z) {
+        this._shdr.drawAt(x, y, z);
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this._shdr.spriteVertices.numItems);
+        return this;
+      },
+      clear: function() {
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        return this;
+      }
+    }));
+  });
+
+}).call(this);
+(function() {
+
+  cc.module('cc.gl.TextureAtlas').defines(function() {
     return this.set(cc.Class.extend({
       init: function(width, height, maxTextures) {
         this.width = width != null ? width : 2048;
@@ -4565,346 +4866,49 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 
 }).call(this);
 (function() {
+  var __slice = [].slice;
 
-  cc.module('cc.SpriteSheet').defines(function() {
+  cc.module('cc.gl.ShaderProgram').defines(function() {
     return this.set(cc.Class.extend({
-      textureOffset: null,
-      textureTileSize: null,
-      init: function(path, tileWidth, tileHeight, onload, offset) {
-        this.tileWidth = tileWidth;
-        this.tileHeight = tileHeight;
-        this.offset = offset;
-        return this.image = new cc.Image(path, onload);
+      init: function() {
+        this.u = {};
+        this.a = {};
       },
-      imgWidth: function() {
-        return this.image.data.width;
-      },
-      imgHeight: function() {
-        return this.image.data.height;
-      }
-    }));
-  });
-
-}).call(this);
-(function() {
-
-  cc.module('cc.Timer').defines(function() {
-    return this.set(cc.Class.extend({
-      init: function(_game, duration, offset) {
-        this._game = _game;
-        this.duration = duration != null ? duration : 0;
-        this.offset = offset != null ? offset : 0;
-        if (this.duration) {
-          this.reset();
-        } else {
-          this.pause();
-        }
-      },
-      expired: function() {
-        return this._game.now >= this.expires;
-      },
-      delta: function() {
-        return this.game.now - this.expires;
-      },
-      setDuration: function(duration) {
-        this.duration = duration;
-        this.reset();
-      },
-      pause: function() {
-        this.expires = Number.MAX_VALUE;
-      },
-      reset: function() {
-        this.expires = Math.floor((this._game.now / this.duration) - this.offset) * this.duration + this.duration + this.offset;
-      }
-    }));
-  });
-
-}).call(this);
-(function() {
-  var __hasProp = {}.hasOwnProperty;
-
-  cc.module('cc.Game').requires('cc.Timer').defines(function() {
-    return this.set(cc.Class.extend({
-      now: 0,
-      tick: 1,
-      entities: [],
-      entitiesById: {},
-      _updateEntities: {},
-      _hasUpdateEntities: false,
-      maxTick: 0.05,
-      gravity: {
-        x: 0,
-        y: 0
-      },
-      scale: 1,
-      maxX: 0,
-      maxY: 0,
-      box2dScale: 30,
-      entityCount: 0,
-      renderer: null,
-      input: null,
-      useWebWorker: true,
-      backgroundColor: [0.0, 0.0, 0.0, 1.0],
-      ticks: 0,
-      skips: 0,
-      updates: 0,
-      width: 0,
-      height: 0,
-      init: function(resources, options) {
-        var _this = this;
-        this.resources = resources;
-        this.physicsClient = new cc.PhysicsClient(this.box2dScale, function(data, tick) {
-          var entity, id, uent;
-          for (id in data) {
-            if (!__hasProp.call(data, id)) continue;
-            uent = data[id];
-            entity = _this.entitiesById[id];
-            if (entity) {
-              entity.uncompressPhysics(uent);
-            }
-          }
-          _this.tick = tick;
-          _this.now += tick;
-          return _this.update();
-        });
-        this.setOptions(options);
-        return this.input = new cc.Input;
-      },
-      setOptions: function(options) {
-        if (!options) {
-          return;
-        }
-        if (options.scale) {
-          this.scale = options.scale;
-        }
-        if (options.maxTick) {
-          this.maxTick = options.maxTick;
-        }
-        if (options.width) {
-          this.width = options.width;
-        }
-        if (options.height) {
-          return this.height = options.height;
-        }
-      },
-      timer: function(expiresIn) {
-        return new cc.Timer(this, expiresIn);
-      },
-      setScale: function(scale) {
-        this.scale = scale;
-        this.renderer.setScale(this.scale);
-        this.maxX = this.width / this.scale + cc.ZERO;
-        this.maxY = this.height / this.scale + cc.ZERO;
-      },
-      main: function(canvas, options) {
-        var _this = this;
-        this.setOptions(options);
-        if (!(canvas.getContext != null)) {
-          if (!(typeof canvas === "string")) {
-            throw 'canvas argument must be Canvas object or selector';
-          }
-          if (canvas[0] === '#') {
-            canvas = document.getElementById(canvas.slice(1));
-          } else {
-            canvas = document.getElementById(canvas);
-          }
-        }
-        if (canvas.getContext == null) {
-          throw "could not find canvas";
-        }
-        return this.resources.onLoadStatusUpdate(function(cmplt) {
-          var c, gl, mainLoop;
-          if (cmplt < 1) {
-            return;
-          }
-          if (!_this.width) {
-            _this.width = canvas.width;
-          }
-          if (!_this.height) {
-            _this.height = canvas.height;
-          }
-          try {
-            gl = cc.initGL(canvas, _this.width, _this.height);
-            _this.renderer = new cc.Renderer(gl, _this.resources);
-          } catch (e) {
-            alert("sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome");
-            return;
-          }
-          _this.setScale(_this.scale);
-          c = _this.backgroundColor;
-          _this.renderer.setBackgroundColor(c[0], c[1], c[2], c[3]);
-          _this.input.enable();
-          if (_this.booted) {
-            _this.booted();
-          }
-          _this.physicsClient.run();
-          _this.physicsClient.sendConfig({
-            maxTick: _this.maxTick,
-            gravity: _this.gravity
-          });
-          if (_this._hasUpdateEntities) {
-            _this.physicsClient.sendEntities(_this._updateEntities);
-          }
-          _this._updateEntities = {};
-          (mainLoop = function() {
-            cc.requestAnimationFrame(mainLoop);
-            return _this.draw();
-          })();
-        });
-      },
-      spawnEntity: function(type, x, y, settings) {
-        var entity;
-        this._hasUpdateEntities = true;
-        entity = new type(this, x, y, settings);
-        entity.id = ++this.entityCount;
-        this.entities.push(entity);
-        return this.entitiesById[entity.id] = this._updateEntities[entity.id] = entity;
-      },
-      update: function() {
-        var entity, _i, _len, _ref;
-        ++this.updates;
-        _ref = this.entities;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          entity = _ref[_i];
-          entity.update();
-        }
-        if (this._hasUpdateEntities) {
-          this.physicsClient.sendEntities(this._updateEntities);
-          this._hasUpdateEntities = false;
-          this._updateEntities = {};
-        }
-        this.input.update();
-      },
-      draw: function() {
-        var entity, _i, _len, _ref;
-        if (!this.tick) {
-          return ++this.skips;
-        } else {
-          this.physicsClient.signalPaint();
-          ++this.ticks;
-          this.renderer.clear();
-          _ref = this.entities;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            entity = _ref[_i];
-            entity.draw();
-          }
-          return this.tick = 0;
-        }
-      }
-    }));
-  });
-
-}).call(this);
-(function() {
-  var __hasProp = {}.hasOwnProperty;
-
-  cc.module('cc.Renderer').defines(function() {
-    return this.set(cc.Class.extend({
-      init: function(gl, resources) {
-        var path, spriteSheet, _ref;
+      attachContext: function(gl) {
         this.gl = gl;
-        this._activatedTextureId = -1;
-        this.shdr = new cc.SpriteShaderProgram;
-        this.shdr.attachContext(this.gl);
-        this.shdr.link();
-        this.texAtlas = new cc.TextureAtlas;
-        _ref = resources.spriteSheets;
-        for (path in _ref) {
-          if (!__hasProp.call(_ref, path)) continue;
-          spriteSheet = _ref[path];
-          this.texAtlas.addSpriteSheet(spriteSheet);
-        }
-        this.texAtlas.loadToTextures(this.gl);
+        this.prgrm = this.gl.createProgram();
       },
-      setScale: function(scale) {
-        this.shdr.perspectiveAndScale(90, scale);
-      },
-      setBackgroundColor: function(r, g, b, a) {
-        this.shdr.clearColor(r, g, b, a);
-        return this;
-      },
-      selectSprite: function(sprite) {
-        var newTextureId;
-        newTextureId = sprite.sheet.textureId;
-        if (newTextureId !== this._activatedTextureId) {
-          this.shdr.activateTexture(this.texAtlas.textures[newTextureId]);
-          this._activatedTextureId = newTextureId;
-        }
-        this.shdr.selectTile(sprite.sheet.textureTileSize, sprite.tile, sprite.sheet.textureOffset);
-        return this;
-      },
-      drawSprite: function(x, y, z, flipX) {
-        this.shdr.drawAt(x, y, z);
-        this.shdr.flipX(flipX);
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.shdr.spriteVertices.numItems);
-        return this;
-      },
-      clear: function() {
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
-        return this;
-      }
-    }));
-  });
-
-}).call(this);
-(function() {
-  var __hasProp = {}.hasOwnProperty;
-
-  cc.module('cc.PhysicsClient').defines(function() {
-    return this.set(cc.Class.extend({
-      init: function(pixelScale, _onUpdate) {
-        var _this = this;
-        this.pixelScale = pixelScale != null ? pixelScale : 30;
-        this._onUpdate = _onUpdate;
-        cc.onVisibilityChange(function(state) {
-          return _this.worker.postMessage({
-            enabled: !state
-          });
-        });
-      },
-      sendConfig: function(opts) {
-        this.worker.postMessage({
-          config: opts
-        });
-      },
-      run: function() {
-        var _this = this;
-        this.worker = new Worker('cc/physics.js');
-        this.worker.onmessage = function(event) {
-          return _this._onMessage(event.data);
-        };
-        this.worker.onerror = function(event) {
-          return _this._onError(event);
-        };
-      },
-      sendEntities: function(entities) {
-        var data, entity, id;
-        data = {};
-        for (id in entities) {
-          if (!__hasProp.call(entities, id)) continue;
-          entity = entities[id];
-          data[id] = entity.compressedPhysics();
-        }
-        this.worker.postMessage({
-          e: data
-        });
-      },
-      signalPaint: function() {
-        this.worker.postMessage({
-          p: 1
-        });
-      },
-      _onMessage: function(msg) {
-        if (msg.log && console.log) {
-          console.log("from worker:", msg.log);
-        } else if (msg.update) {
-          this._onUpdate(msg.update, msg.tick);
+      _attachShader: function(shader, content) {
+        this.gl.shaderSource(shader, content);
+        this.gl.compileShader(shader);
+        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+          alert(this.gl.getShaderInfoLog(shader));
+        } else {
+          this.gl.attachShader(this.prgrm, shader);
         }
       },
-      _onError: function(event) {
-        if (console.log) {
-          console.log("worker error:", event.message);
+      _attribVertices: function() {
+        var name, names, _i, _len;
+        names = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        for (_i = 0, _len = names.length; _i < _len; _i++) {
+          name = names[_i];
+          this.gl.enableVertexAttribArray(this.a[name] = this.gl.getAttribLocation(this.prgrm, name));
         }
+      },
+      _uniforms: function() {
+        var name, names, _i, _len;
+        names = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        for (_i = 0, _len = names.length; _i < _len; _i++) {
+          name = names[_i];
+          this.u[name] = this.gl.getUniformLocation(this.prgrm, name);
+        }
+      },
+      link: function() {
+        this.gl.linkProgram(this.prgrm);
+        if (!this.gl.getProgramParameter(this.prgrm, this.gl.LINK_STATUS)) {
+          alert("Could not initialise shaders");
+        }
+        return this.gl.useProgram(this.prgrm);
       }
     }));
   });
@@ -4912,106 +4916,118 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 }).call(this);
 (function() {
 
-  cc.module('cc.Input').defines(function() {
-    var char, i, idx, key, _i, _j, _ref, _ref1;
-    key = cc.key = {
-      backspace: 8,
-      tab: 9,
-      enter: 13,
-      shift: 16,
-      ctrl: 17,
-      alt: 18,
-      pause: 19,
-      "break": 19,
-      space: 32,
-      pageup: 33,
-      pagedown: 34,
-      end: 35,
-      home: 36,
-      left: 37,
-      up: 38,
-      right: 39,
-      down: 40,
-      insert: 45,
-      "delete": 46,
-      multiply: 106,
-      add: 107,
-      substract: 109,
-      divide: 111,
-      f11: 122,
-      f12: 123,
-      fullstop: 190,
-      period: 190,
-      forwardslash: 191,
-      slash: 191,
-      backslash: 220
-    };
-    ({
-      fallthrough: false
-    });
-    for (i = _i = _ref = 'A'.charCodeAt(0), _ref1 = 'Z'.charCodeAt(0); _ref <= _ref1 ? _i <= _ref1 : _i >= _ref1; i = _ref <= _ref1 ? ++_i : --_i) {
-      char = String.fromCharCode(i);
-      key[char.toLowerCase()] = i;
+  cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass({
+    gl: null,
+    scale: 1,
+    init: function() {
+      this.parent();
+      this.pMatrix = mat4.create();
+      this.mvMatrix = mat4.create();
+    },
+    activateTexture: function(texture) {
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureBuffer);
+      this.gl.vertexAttribPointer(this.a.textureCoord, this.textureBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+      this.gl.activeTexture(texture.id);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+      this.gl.uniform1i(this.u.sampler, texture.idx);
+      return this;
+    },
+    setSize: function(width, height) {
+      this.gl.uniform2f(this.u.size, width, height);
+    },
+    _attachSpriteFragmentShader: function() {
+      var content, shader;
+      content = "precision mediump float;\n\nvarying vec2 vTextureCoord;\n\nuniform vec2 tileSize;   // tile size in percentage of texture size\nuniform vec2 tileOffset; // index of tile e.g. (1,1) = (1 down, 1 right)\nuniform vec2 tileCoord;  // offset into texture of first pixel\n\n// used for mode 2 only... how often to repeat texture\nuniform vec2 tileRepeat;\n\n// used for mode 3 only... solid colour\nuniform vec4 color;\n\nuniform sampler2D sampler;\n\nuniform int mode;\n\nuniform bool flipX;\n\n// this converts the tile coordinate system to the gl coordinate system\n// First it flips the y-axis. Then it reverses the direction it scans\n// for the current pixel. It also has to add one to the y-offset to make\n// up for it being from the top left rather than the bottom right.\nvoid main(void) {\n  vec2 _tileOffset = vec2(tileOffset.s, tileOffset.t + 1.0);\n  vec2 _texCoord   = vec2(vTextureCoord.s, -vTextureCoord.t);\n\n  if (mode == 1) {\n    if (flipX) {\n      _texCoord.s = -_texCoord.s;\n      _tileOffset.s += 1.0;\n    }\n\n    gl_FragColor = texture2D(sampler,\n      vec2(1, -1) * (\n        (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n  }\n  else if (mode == 2) {\n    _texCoord.s = mod(_texCoord.s * tileRepeat.s, 1.0);\n    _texCoord.t = -mod(-_texCoord.t * tileRepeat.t, 1.0);\n\n    gl_FragColor = texture2D(sampler,\n      vec2(1, -1) * (\n        (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n  }\n  else if (mode == 3) {\n    gl_FragColor = color;\n  }\n}";
+      shader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+      return this._attachShader(shader, content);
+    },
+    _attachSpriteVertexShader: function() {
+      var content, shader;
+      content = "attribute vec3 vertexPosition;\nattribute vec2 textureCoord;\n\nuniform mat4 mvMatrix;\nuniform mat4 pMatrix;\nuniform vec3 position;\n\n// size of sprite/surface\nuniform vec2 size;\n\n// to project y onto x.. multiply position by this\n// const mat3 shear = mat3(1,0,0, 0,0,1, 0,-1,0);\n\nvarying vec2 vTextureCoord;\n\nvoid main(void) {\n  gl_Position = pMatrix * mvMatrix *\n    vec4(\n      vec3(size, 1.0) * vertexPosition +\n        vec3(position.x, -position.y - size.y, position.z),\n      1.0);\n  vTextureCoord = textureCoord;\n}";
+      shader = this.gl.createShader(this.gl.VERTEX_SHADER);
+      return this._attachShader(shader, content);
+    },
+    selectTile: function(tileSize, tileOffset, sheetOffset) {
+      this.gl.uniform2fv(this.u.tileSize, tileSize);
+      this.gl.uniform2fv(this.u.tileOffset, tileOffset);
+      this.gl.uniform2fv(this.u.tileCoord, sheetOffset);
+    },
+    tileRepeat: function(r) {
+      this.gl.uniform2fv(this.u.tileRepeat, r);
+    },
+    perspectiveAndScale: function(deg, scale) {
+      var zDistance;
+      this.scale = scale != null ? scale : 1;
+      mat4.perspective(deg, this.gl.viewportWidth / this.gl.viewportHeight, 1.0, 300.0, this.pMatrix);
+      this.gl.uniformMatrix4fv(this.u.pMatrix, false, this.pMatrix);
+      zDistance = -this.gl.viewportHeight / (2 * this.scale);
+      mat4.identity(this.mvMatrix);
+      mat4.translate(this.mvMatrix, [-this.gl.viewportWidth / (2 * this.scale), -zDistance, zDistance]);
+      this.gl.uniformMatrix4fv(this.u.mvMatrix, false, this.mvMatrix);
+      return this;
+    },
+    drawAt: function(x, y, z) {
+      if (z == null) {
+        z = 0;
+      }
+      this.gl.uniform3f(this.u.position, x, y, z);
+      return this;
+    },
+    flipX: function(flip) {
+      this.gl.uniform1i(this.u.flipX, flip);
+      return this;
+    },
+    clearColor: function(r, g, b, a) {
+      this.gl.clearColor(r, g, b, a);
+    },
+    _glOptions: function() {
+      this.gl.enable(this.gl.BLEND);
+      this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+      this.gl.disable(this.gl.DEPTH_TEST);
+      this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
+    },
+    modeDynamicEntity: function() {
+      this.gl.uniform1i(this.u.mode, 1);
+    },
+    modeSurfaceEntity: function() {
+      this.gl.uniform1i(this.u.mode, 2);
+    },
+    modeColor: function() {
+      this.gl.uniform1i(this.u.mode, 3);
+    },
+    setColor: function(color) {
+      return this.gl.uniform4fv(this.u.color, color);
+    },
+    link: function() {
+      var textureCoords, vertices;
+      this.textureBuffer = this.gl.createBuffer();
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.textureBuffer);
+      textureCoords = [1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0];
+      this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureCoords), this.gl.STATIC_DRAW);
+      this.textureBuffer.itemSize = 2;
+      this.textureBuffer.numItems = 4;
+      this.spriteVertices = this.gl.createBuffer();
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.spriteVertices);
+      vertices = [1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+      this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+      this.spriteVertices.itemSize = 3;
+      this.spriteVertices.numItems = 4;
+      this._attachSpriteFragmentShader();
+      this._attachSpriteVertexShader();
+      this.parent();
+      this._attribVertices("vertexPosition", "textureCoord");
+      this._uniforms("tileSize", "tileOffset", "tileCoord", "tileRepeat", "sampler", "pMatrix", "mvMatrix", "position", "size", "flipX", "mode", "color");
+      this._glOptions();
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.spriteVertices);
+      this.gl.vertexAttribPointer(this.a.vertexPosition, this.spriteVertices.itemSize, this.gl.FLOAT, false, 0, 0);
+      return this;
     }
-    for (i = _j = 0; _j <= 9; i = ++_j) {
-      idx = '0'.charCodeAt(0) + i;
-      char = i.toString();
-      key[char] = idx;
-      key['n' + char] = idx;
-      key['numpad' + char] = i + 96;
-      key['f' + char] = i + 112;
-    }
-    return this.set(cc.Class.extend({
-      state: {},
-      pressed: {},
-      released: {},
-      _bindings: {},
-      enable: function() {
-        var _this = this;
-        window.addEventListener('keydown', function(e) {
-          return _this.press(e, false);
-        });
-        window.addEventListener('keyup', function(e) {
-          return _this.release(e, false);
-        });
-      },
-      press: function(e) {
-        var bind, code;
-        code = e.keyCode;
-        bind = this._bindings[code];
-        if (bind) {
-          this.pressed[bind] = code;
-          this.state[bind] = code;
-        }
-        if (!this.fallthrough) {
-          e.stopPropagation();
-          e.preventDefault();
-        }
-      },
-      release: function(e) {
-        var bind, code;
-        code = e.keyCode;
-        bind = this._bindings[code];
-        if (bind) {
-          delete this.pressed[bind];
-          delete this.state[bind];
-          this.released[bind] = code;
-        }
-      },
-      update: function() {
-        this.released = {};
-        return this.pressed = {};
-      },
-      bind: function(key, state) {
-        return this._bindings[key] = state;
-      }
-    }));
   });
 
 }).call(this);
 (function() {
 
-  cc.module('cc.Box2dEntityPhysics').defines(function() {
+  cc.module('cc.physics.Box2dEntity').defines(function() {
     return this.set(cc.Class.extend({
       init: function(p, world) {
         var filter, s, shape;
@@ -5030,7 +5046,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         this._fixDef.set_density(p[12]);
         this._bodyDef = new b2BodyDef;
         this._bodyDef.set_type(Box2D.b2_dynamicBody);
-        this._bodyDef.set_position(new b2Vec2(p[0] / s + this.width / 2, p[1] / s - this.height / 2));
+        this._bodyDef.set_position(new b2Vec2(p[0] / s + this.width / 2, p[1] / s + this.height / 2));
         this._bodyDef.set_linearVelocity(new b2Vec2(p[2] / s, p[3] / s));
         this.a = {
           x: p[4] / s,
@@ -5049,12 +5065,12 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         s = this.world.scale;
         v = this._body.GetLinearVelocity();
         p = this._body.GetPosition();
-        return [(p.get_x() - this.width / 2) * s, (p.get_y() + this.height / 2) * s, v.get_x() * s, v.get_y() * s, this.a.x * s, this.a.y * s];
+        return [(p.get_x() - this.width / 2) * s, (p.get_y() - this.height / 2) * s, v.get_x() * s, v.get_y() * s, this.a.x * s, this.a.y * s];
       },
       uncompressPhysics: function(p) {
         var m, s, v;
         s = this.world.scale;
-        this._body.SetTransform(new b2Vec2(p[0] / s + this.width / 2, p[1] / s - this.height / 2), this._body.GetAngle());
+        this._body.SetTransform(new b2Vec2(p[0] / s + this.width / 2, p[1] / s + this.height / 2), this._body.GetAngle());
         v = this._body.GetLinearVelocity();
         m = this._body.GetMass();
         this._body.ApplyLinearImpulse(new b2Vec2(m * (p[2] / s - v.get_x()), m * (p[3] / s - v.get_y())), this._body.GetWorldCenter());
@@ -5067,7 +5083,36 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 }).call(this);
 (function() {
 
-  cc.module('cc.Box2dWorld').defines(function() {
+  cc.module('cc.physics.Box2dSurface').defines(function() {
+    return this.set(cc.Class.extend({
+      init: function(p, world) {
+        var filter, s, shape;
+        this.world = world;
+        s = this.world.scale;
+        this.width = p[2] / s;
+        this.height = p[3] / s;
+        this._fixDef = new b2FixtureDef;
+        filter = new b2Filter;
+        filter.set_categoryBits(0xffffffff);
+        filter.set_maskBits(0xffffffff);
+        this._fixDef.set_filter(filter);
+        this._bodyDef = new b2BodyDef;
+        this._bodyDef.set_type(Box2D.b2_staticBody);
+        this._bodyDef.set_position(new b2Vec2(p[0] / s + this.width / 2, p[1] / s + this.height / 2));
+        shape = new b2PolygonShape;
+        shape.SetAsBox(this.width / 2, this.height / 2);
+        this._fixDef.set_shape(shape);
+        this._body = this.world.b2.CreateBody(this._bodyDef);
+        this._body.CreateFixture(this._fixDef);
+      },
+      _step: function(tick) {}
+    }));
+  });
+
+}).call(this);
+(function() {
+
+  cc.module('cc.physics.Box2dWorld').defines(function() {
     return this.set(cc.Class.extend({
       scale: 30.0,
       entities: [],
@@ -5097,9 +5142,10 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
   var __slice = [].slice,
     __hasProp = {}.hasOwnProperty;
 
-  cc.module('cc.PhysicsWorker').defines(function() {
+  cc.module('cc.physics.Worker').defines(function() {
     return this.set(cc.Class.extend({
       entities: {},
+      surfaces: {},
       enabled: true,
       maxTick: 0.05,
       now: 0,
@@ -5132,27 +5178,33 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
       },
       init: function() {
         var _this = this;
-        this.world = new cc.Box2dWorld;
+        this.world = new cc.physics.Box2dWorld;
         this._clockUpdate = new Date().getTime() / 1000;
         self.onmessage = function(event) {
           return _this.onMessage(event.data);
         };
       },
+      _isEntity: function(data) {
+        return data.length === 13;
+      },
       onMessage: function(data) {
-        var entity, id, uent, _ref;
+        var entity, id, surface, updated, _ref;
         if (data.p) {
           this.update();
-        } else if (data.e) {
-          _ref = data.e;
+        } else if (data.u) {
+          _ref = data.u;
           for (id in _ref) {
             if (!__hasProp.call(_ref, id)) continue;
-            uent = _ref[id];
+            updated = _ref[id];
             entity = this.entities[id];
             if (entity) {
-              entity.uncompressPhysics(uent);
-            } else {
-              this.entities[id] = entity = new cc.Box2dEntityPhysics(uent, this.world);
+              entity.uncompressPhysics(updated);
+            } else if (this._isEntity(updated)) {
+              this.entities[id] = entity = new cc.physics.Box2dEntity(updated, this.world);
               entity.id = id;
+            } else {
+              this.surfaces[id] = surface = new cc.physics.Box2dSurface(updated, this.world);
+              surface.id = id;
             }
           }
         } else if (data.enabled != null) {
@@ -5174,7 +5226,70 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 
 }).call(this);
 (function() {
+  var __hasProp = {}.hasOwnProperty;
 
-  cc.module('cc.gamer').requires('cc.Core', 'cc.Image', 'cc.Entity', 'cc.Resources', 'cc.LoadingScreen', 'cc.SpriteShaderProgram', 'cc.Sprite', 'cc.TextureAtlas', 'cc.SpriteSheet', 'cc.Game', 'cc.Renderer', 'cc.PhysicsClient', 'cc.Input', 'cc.Box2dEntityPhysics', 'cc.Box2dWorld', 'cc.PhysicsWorker').empty();
+  cc.module('cc.physics.Client').defines(function() {
+    return this.set(cc.Class.extend({
+      init: function(pixelScale, _onUpdate) {
+        var _this = this;
+        this.pixelScale = pixelScale != null ? pixelScale : 30;
+        this._onUpdate = _onUpdate;
+        cc.onVisibilityChange(function(state) {
+          return _this.worker.postMessage({
+            enabled: !state
+          });
+        });
+      },
+      sendConfig: function(opts) {
+        this.worker.postMessage({
+          config: opts
+        });
+      },
+      run: function() {
+        var _this = this;
+        this.worker = new Worker('cc/physics.js');
+        this.worker.onmessage = function(event) {
+          return _this._onMessage(event.data);
+        };
+        this.worker.onerror = function(event) {
+          return _this._onError(event);
+        };
+      },
+      sendUpdates: function(updates) {
+        var data, id, update;
+        data = {};
+        for (id in updates) {
+          if (!__hasProp.call(updates, id)) continue;
+          update = updates[id];
+          data[id] = update.compressedPhysics();
+        }
+        this.worker.postMessage({
+          u: data
+        });
+      },
+      signalPaint: function() {
+        this.worker.postMessage({
+          p: 1
+        });
+      },
+      _onMessage: function(msg) {
+        if (msg.log && console.log) {
+          console.log("from worker:", msg.log);
+        } else if (msg.update) {
+          this._onUpdate(msg.update, msg.tick);
+        }
+      },
+      _onError: function(event) {
+        if (console.log) {
+          console.log("worker error:", event.message);
+        }
+      }
+    }));
+  });
+
+}).call(this);
+(function() {
+
+  cc.module('cc.gamer').requires('cc.Core', 'cc.Image', 'cc.Entity', 'cc.Surface', 'cc.Resources', 'cc.LoadingScreen', 'cc.Sprite', 'cc.SpriteSheet', 'cc.Game', 'cc.Input', 'cc.gl.Renderer', 'cc.gl.TextureAtlas', 'cc.gl.SpriteShaderProgram', 'cc.physics.Box2dEntity', 'cc.physics.Box2dSurface', 'cc.physics.Box2dWorld', 'cc.physics.Worker', 'cc.physics.Client').empty();
 
 }).call(this);

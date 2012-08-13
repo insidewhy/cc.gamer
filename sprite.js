@@ -10,6 +10,7 @@
       x: 0,
       y: 2
     },
+    surfaceSheet: resources.spriteSheet('surfaces.png', 64, 64),
     autopilot: false,
     booted: function() {
       var i;
@@ -26,6 +27,7 @@
       this.input.bind(cc.key.a, 'toggle_autopilot');
       this.input.bind(cc.key.t, 'toggle_scale');
       this.input.bind(cc.key.r, 'reload');
+      this.addSurface(this.surfaceSheet, 0, 0, 128, 300, 64);
       i = 0;
       while (true) {
         this.spawnEntity(ImpostorEntity, cc.rand(0, 300), cc.rand(0, 300));
@@ -68,7 +70,10 @@
     spriteSheet: resources.spriteSheet('chars.png', 32, 48),
     hitbox: {
       width: 24,
-      height: 40
+      height: 42,
+      offset: {
+        y: 6
+      }
     },
     init: function(game, x, y, settings) {
       this.timer = game.timer(1);

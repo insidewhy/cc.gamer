@@ -74,7 +74,7 @@
     };
     window.cont = document.getElementById('cont');
     window.count = document.getElementById('count');
-    window.atlas = new cc.TextureAtlas(512, 512);
+    window.atlas = new cc.gl.TextureAtlas(512, 512);
     atlas.addSpriteSheet(fakeSpriteSheet(280, 128));
     atlas.addSpriteSheet(fakeSpriteSheet(200, 64));
     atlas.addSpriteSheet(fakeSpriteSheet(150, 64));

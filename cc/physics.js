@@ -16,4 +16,4 @@ self.b2Body         = Box2D.b2Body || Box2D.Dynamics.b2Body
 self.b2Filter       = Box2D.b2Filter
 self.b2Transform    = Box2D.b2Transform
 
-worker = new cc.PhysicsWorker()
+worker = new cc.physics.Worker()
