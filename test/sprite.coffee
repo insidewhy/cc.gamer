@@ -28,7 +28,8 @@ Game = cc.Game.extend {
     @input.bind cc.key.t,     'toggle_scale'
     @input.bind cc.key.r,     'reload'
 
-    # TODO: add surfaces
+    @addSurface @surfaceSheet, 0, 0, 128, 300, 64
+
     i = 0
     loop
       @spawnEntity ImpostorEntity, cc.rand(0, 300), cc.rand(0, 300)
@@ -40,8 +41,6 @@ Game = cc.Game.extend {
       break if ++i > 10
 
     @hero = @spawnEntity HeroEntity, 0, 0
-
-    @addSurface @surfaceSheet, 0, 0, 300, 300, 64
 
     return
 
@@ -70,7 +69,7 @@ HeroEntity = cc.Entity.extend {
   density: 2
   mask: 2 # what categories this collides with
   spriteSheet: resources.spriteSheet 'chars.png', 32, 48
-  hitbox: { width: 24, height: 40 }
+  hitbox: { width: 24, height: 42, offset: { y: 6 } }
   init: (game, x, y, settings) ->
     @timer = game.timer 1 # time 1 second of game time
     @parent game, x, y, settings

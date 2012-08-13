@@ -23,8 +23,8 @@ cc.module('cc.gl.Renderer').defines -> @set cc.Class.extend {
       alert("could not initialise WebGL")
     return
 
-  setTileSize: (width, height) ->
-    @_shdr.setTileSize width, height
+  setSize: (width, height) ->
+    @_shdr.setSize width, height
     return
 
   setScale: (scale) ->
@@ -43,21 +43,28 @@ cc.module('cc.gl.Renderer').defines -> @set cc.Class.extend {
       sprite.sheet.textureTileSize, sprite.tile, sprite.sheet.textureOffset)
     this
 
-  drawSprite: (x, y, z, flipX) ->
-    @_shdr.drawAt x, y, z
-    @_shdr.flipX flipX
-    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @_shdr.spriteVertices.numItems
-    this
+  tileRepeat: (r) ->
+    @_shdr.tileRepeat r
+    return
 
   drawingEntities: ->
     @_shdr.modeDynamicEntity()
     return
 
   drawingSurfaces: ->
-    # TODO: better
-    @_shdr.modeColor()
-    @_shdr.setColor vec4.createFrom(1.0, 0.0, 0.0, 1.0)
+    @_shdr.modeSurfaceEntity()
     return
+
+  drawEntity: (x, y, z, flipX) ->
+    @_shdr.drawAt x, y, z
+    @_shdr.flipX flipX
+    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @_shdr.spriteVertices.numItems
+    this
+
+  drawSurface: (x, y, z) ->
+    @_shdr.drawAt x, y, z
+    @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @_shdr.spriteVertices.numItems
+    this
 
   clear: ->
     @gl.clear(@gl.COLOR_BUFFER_BIT | @gl.DEPTH_BUFFER_BIT)

@@ -35,9 +35,9 @@ cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
 
       if @hitbox
         @hitbox.offset = {} unless @hitbox.offset
-        if not @hitbox.offset.x
+        if not @hitbox.offset.x?
           @hitbox.offset.x = Math.ceil((@width - @hitbox.width) / 2)
-        if not @hitbox.offset.y
+        if not @hitbox.offset.y?
           @hitbox.offset.y = Math.ceil((@height - @hitbox.height) / 2)
 
     sprite
@@ -65,9 +65,9 @@ cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
     do @mark
 
   draw: ->
-    @game.renderer.setTileSize @width, @height
+    @game.renderer.setSize @width, @height
     @game.renderer.selectSprite @sprite
-    @game.renderer.drawSprite @pos.x, @pos.y, @pos.z, @v.x < 0
+    @game.renderer.drawEntity @pos.x, @pos.y, @pos.z, @v.x < 0
     return
 
 }

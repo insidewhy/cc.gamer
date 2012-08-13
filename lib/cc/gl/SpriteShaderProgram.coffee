@@ -17,8 +17,8 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
     @gl.uniform1i @u.sampler, texture.idx
     this
 
-  setTileSize: (width, height) ->
-    @gl.uniform2f @u.spriteSize, width, height
+  setSize: (width, height) ->
+    @gl.uniform2f @u.size, width, height
     return
 
   _attachSpriteFragmentShader: ->
@@ -30,6 +30,9 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
       uniform vec2 tileSize;   // tile size in percentage of texture size
       uniform vec2 tileOffset; // index of tile e.g. (1,1) = (1 down, 1 right)
       uniform vec2 tileCoord;  // offset into texture of first pixel
+
+      // used for mode 2 only... how often to repeat texture
+      uniform vec2 tileRepeat;
 
       // used for mode 3 only... solid colour
       uniform vec4 color;
@@ -59,6 +62,12 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
               (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));
         }
         else if (mode == 2) {
+          _texCoord.s = mod(_texCoord.s * tileRepeat.s, 1.0);
+          _texCoord.t = -mod(-_texCoord.t * tileRepeat.t, 1.0);
+
+          gl_FragColor = texture2D(sampler,
+            vec2(1, -1) * (
+              (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));
         }
         else if (mode == 3) {
           gl_FragColor = color;
@@ -76,7 +85,8 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
         uniform mat4 pMatrix;
         uniform vec3 position;
 
-        uniform vec2 spriteSize;
+        // size of sprite/surface
+        uniform vec2 size;
 
         // to project y onto x.. multiply position by this
         // const mat3 shear = mat3(1,0,0, 0,0,1, 0,-1,0);
@@ -86,22 +96,26 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
         void main(void) {
           gl_Position = pMatrix * mvMatrix *
             vec4(
-              vec3(spriteSize, 1.0) * vertexPosition +
-                vec3(position.x, -position.y - spriteSize.y, position.z),
+              vec3(size, 1.0) * vertexPosition +
+                vec3(position.x, -position.y - size.y, position.z),
               1.0);
           vTextureCoord = textureCoord;
         }"""
     shader = @gl.createShader @gl.VERTEX_SHADER
     @_attachShader shader, content
 
-  # tileSize units is percentage of texture size
+  # tileSize (units is percentage of texture size, entire texture = [1,1])
   # tileOffset from top left at [0, 0]
   # sheetOffset in texture coordinates: [0->1, 0->1]
   selectTile: (tileSize, tileOffset, sheetOffset) ->
     @gl.uniform2fv @u.tileSize, tileSize
     @gl.uniform2fv @u.tileOffset, tileOffset
     @gl.uniform2fv @u.tileCoord, sheetOffset
-    this
+    return
+
+  tileRepeat: (r) ->
+    @gl.uniform2fv @u.tileRepeat, r
+    return
 
   # set camera perspective
   perspectiveAndScale: (deg, @scale = 1) ->
@@ -147,12 +161,10 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
     return
 
   modeSurfaceEntity: ->
-    # tile across surface
     @gl.uniform1i @u.mode, 2
     return
 
   modeColor: ->
-    # tile across surface
     @gl.uniform1i @u.mode, 3
     return
 
@@ -191,9 +203,10 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
     do @_attachSpriteVertexShader
     do @parent
     @_attribVertices "vertexPosition", "textureCoord"
-    @_uniforms "tileSize", "tileOffset", "tileCoord", "sampler",
+    @_uniforms "tileSize", "tileOffset", "tileCoord", "tileRepeat",
+               "sampler",
                "pMatrix", "mvMatrix", "position",
-               "spriteSize", "flipX", "mode", "color"
+               "size", "flipX", "mode", "color"
 
     do @_glOptions
 

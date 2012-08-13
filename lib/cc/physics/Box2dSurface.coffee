@@ -15,7 +15,7 @@ cc.module('cc.physics.Box2dSurface').defines -> @set cc.Class.extend {
     @_bodyDef.set_type Box2D.b2_staticBody
 
     # b2 uses centre position so adjust..
-    @_bodyDef.set_position new b2Vec2(p[0] / s + @width / 2, p[1] / s - @height / 2)
+    @_bodyDef.set_position new b2Vec2(p[0] / s + @width / 2, p[1] / s + @height / 2)
 
     shape = new b2PolygonShape
     shape.SetAsBox @width / 2, @height / 2

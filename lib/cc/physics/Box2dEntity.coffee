@@ -20,7 +20,7 @@ cc.module('cc.physics.Box2dEntity').defines -> @set cc.Class.extend {
     @_bodyDef.set_type Box2D.b2_dynamicBody
 
     # b2 uses centre position so adjust..
-    @_bodyDef.set_position new b2Vec2(p[0] / s + @width / 2, p[1] / s - @height / 2)
+    @_bodyDef.set_position new b2Vec2(p[0] / s + @width / 2, p[1] / s + @height / 2)
     @_bodyDef.set_linearVelocity new b2Vec2(p[2] / s, p[3] / s)
 
     @a =
@@ -48,7 +48,7 @@ cc.module('cc.physics.Box2dEntity').defines -> @set cc.Class.extend {
     v = @_body.GetLinearVelocity()
     p = @_body.GetPosition()
     [ (p.get_x() - @width / 2) * s,
-      (p.get_y() + @height / 2) * s,
+      (p.get_y() - @height / 2) * s,
       v.get_x() * s,
       v.get_y() * s,
       @a.x * s, @a.y  * s ]
@@ -56,7 +56,7 @@ cc.module('cc.physics.Box2dEntity').defines -> @set cc.Class.extend {
   uncompressPhysics: (p) ->
     s = @world.scale
     @_body.SetTransform(
-      new b2Vec2(p[0] / s + @width / 2, p[1] / s - @height / 2), @_body.GetAngle())
+      new b2Vec2(p[0] / s + @width / 2, p[1] / s + @height / 2), @_body.GetAngle())
 
     # @_body.SetLinearVelocity new b2Vec2(p[2] / s, p[3] / s)
     v = @_body.GetLinearVelocity()

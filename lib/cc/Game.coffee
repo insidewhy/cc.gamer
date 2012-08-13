@@ -122,7 +122,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
   addSurface: (sheet, tileIdx, x, y, width, height) ->
     @_hasUpdates = true
-    surface = new cc.Surface sheet, tileIdx, x, y, width, height
+    surface = new cc.Surface this, sheet, tileIdx, x, y, width, height
 
     surface.id = ++@_thingCount
     @surfaces.push surface
