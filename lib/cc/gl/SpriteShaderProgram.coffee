@@ -26,22 +26,22 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
       precision mediump float;
 
       varying vec2 vTextureCoord;
+      uniform int mode;
 
+      // for mode 1
+      uniform bool flipX;
+
+      // for modes 1 and 2
+      uniform sampler2D sampler;
       uniform vec2 tileSize;   // tile size in percentage of texture size
       uniform vec2 tileOffset; // index of tile e.g. (1,1) = (1 down, 1 right)
       uniform vec2 tileCoord;  // offset into texture of first pixel
 
-      // used for mode 2 only... how often to repeat texture
+      // for mode 2
       uniform vec2 tileRepeat;
 
-      // used for mode 3 only... solid colour
+      // for mode 3
       uniform vec4 color;
-
-      uniform sampler2D sampler;
-
-      uniform int mode;
-
-      uniform bool flipX;
 
       // this converts the tile coordinate system to the gl coordinate system
       // First it flips the y-axis. Then it reverses the direction it scans
