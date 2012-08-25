@@ -9,6 +9,7 @@ cc.module('cc.gamer').requires(
   'cc.Sprite'
   'cc.SpriteSheet'
   'cc.Game'
+  'cc.Viewport'
   'cc.Input'
 
   # cc.gamer's internal gl only backend

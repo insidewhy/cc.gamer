@@ -1,10 +1,13 @@
 # resource loader
 resources = new cc.Resources
 
+MAX_IMPOSTORS = 20
+MAX_FRIENDS = 5
+
 Game = cc.Game.extend {
   # setting overrides used as configuration
   backgroundColor: [1.0, 0.72, 0.0, 1.0]
-  gravity: { x: 0, y: 2 }
+  gravity: { x: 0, y: 9 }
 
   surfaceSheet: resources.spriteSheet 'surfaces.png', 64, 64
 
@@ -28,19 +31,28 @@ Game = cc.Game.extend {
     @input.bind cc.key.t,     'toggle_scale'
     @input.bind cc.key.r,     'reload'
 
-    @addSurface @surfaceSheet, 0, 0, 128, 300, 64
+    @viewport.setWidth @width * 2
+
+    # ground
+    @addSurface @surfaceSheet, 0, 0, @height - 64, @viewport.width, 64
+    # left wall
+    @addSurface @surfaceSheet, 6, 0, 0, 64, @height - 64, 0.7
+    # right wall
+    @addSurface @surfaceSheet, 6, @viewport.width - 64, 0, 64, @height - 64, 0.3
+
+    @hero = @spawnEntity HeroEntity, 64, 0
 
     i = 0
     loop
-      @spawnEntity ImpostorEntity, cc.rand(0, 300), cc.rand(0, 300)
-      break if ++i > 40
+      @spawnEntity ImpostorEntity, cc.rand(64, @viewport.width - 64),
+                                   cc.rand(64, @viewport.height - 64)
+      break if ++i is MAX_IMPOSTORS
 
     i = 0
     loop
-      @spawnEntity FriendEntity, cc.rand(0, 300), cc.rand(0, 300)
-      break if ++i > 10
-
-    @hero = @spawnEntity HeroEntity, 0, 0
+      @spawnEntity FriendEntity, cc.rand(64, @viewport.width - 64),
+                                 cc.rand(64, @viewport.height - 64)
+      break if ++i is MAX_FRIENDS
 
     return
 
@@ -64,7 +76,7 @@ game = new Game resources, scale: 1
 HeroEntity = cc.Entity.extend {
   # TODO: add timer for random velocity
   # define main sprite, with tile width and height
-  bounciness: 0.5
+  bounciness: 0
   category: 1
   density: 2
   mask: 2 # what categories this collides with
@@ -75,8 +87,12 @@ HeroEntity = cc.Entity.extend {
     @parent game, x, y, settings
     @pos.y = 80
     @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]
+    @parent game, x, y, settings
 
   update: ->
+    if @pos.x > 160
+      @game.viewport.scrollTo @pos.x - 160, 0
+
     do @parent
     if @game.input.released.toggle_autopilot
       @setV 0, 0
@@ -100,30 +116,14 @@ HeroEntity = cc.Entity.extend {
     do @_keepInView
 
   _keepInView: ->
-    # if at edge then turn back
-    # TODO: do this in engine with some kinda bounciness factor
-    maxX = @game.maxX - @width
-    if @pos.x > maxX
-      @pos.x = maxX
-      @v.x = -@v.x unless @v.x < 0
-      do @mark # tell worker thread physics have been overridden
-    else if @pos.x < -cc.ZERO
-      @pos.x = 0
-      @v.x = -@v.x unless @v.x > 0
-      do @mark
-
-    maxY = @game.maxY - @height
-    if @pos.y > maxY # bottom
-      @pos.y = maxY
-      @v.y = -@v.y unless @v.y < 0
-      do @mark
-    else if @pos.y < -cc.ZERO # above top
+    if @pos.y < -cc.ZERO # when above top bounce down
       @pos.y = 0
       @v.y = -@v.y unless @v.y > 0
       do @mark
 }
 
 ImpostorEntity = HeroEntity.extend {
+  bounciness: 0.7
   density: 0
   category: 2
   mask: 1

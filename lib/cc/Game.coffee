@@ -19,6 +19,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   _thingCount: 0  # counter used to generate id for entities/surfaces
   renderer: null
   input:    null
+  viewport: null
   useWebWorker: true  # whether to use web worker thread.
   # will be set to false by main if it determines workers are not available
   backgroundColor: [0.0, 0.0, 0.0, 1.0] # default background colour
@@ -85,10 +86,11 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
       @width  = canvas.width unless @width
       @height = canvas.height unless @height
+      @viewport = new cc.Viewport @width, @height, @width, @height
 
       try
         # TODO: support more renderers
-        @renderer = new cc.gl.Renderer canvas, @resources, @width, @height
+        @renderer = new cc.gl.Renderer canvas, @resources, @width, @height, @viewport
       catch e
         # TODO: fall back on canvas if there is no open GL
         alert "sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome #{e.stack}"
@@ -120,9 +122,9 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
     @entities.push entity
     @entitiesById[entity.id] = @_updates[entity.id] = entity
 
-  addSurface: (sheet, tileIdx, x, y, width, height) ->
+  addSurface: (sheet, tileIdx, x, y, width, height, bounciness) ->
     @_hasUpdates = true
-    surface = new cc.Surface this, sheet, tileIdx, x, y, width, height
+    surface = new cc.Surface this, sheet, tileIdx, x, y, width, height, bounciness
 
     surface.id = ++@_thingCount
     @surfaces.push surface
@@ -147,6 +149,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
   draw: ->
     if not @tick
+      # TODO: interpolate points based on existing velocities
       ++@skips
     else
       do @physicsClient.signalPaint
@@ -159,5 +162,6 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
       do @renderer.drawingSurfaces
       do surface.draw for surface in @surfaces
       @tick = 0
+    return
 }
 # vim:ts=2 sw=2

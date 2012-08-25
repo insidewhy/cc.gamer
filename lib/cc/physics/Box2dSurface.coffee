@@ -9,6 +9,7 @@ cc.module('cc.physics.Box2dSurface').defines -> @set cc.Class.extend {
     filter.set_categoryBits 0xffffffff
     filter.set_maskBits 0xffffffff
     @_fixDef.set_filter filter
+    @_fixDef.set_restitution p[4]
 
     @_bodyDef = new b2BodyDef
     # @_bodyDef.set_userData this

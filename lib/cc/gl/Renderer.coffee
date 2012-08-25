@@ -1,5 +1,5 @@
 cc.module('cc.gl.Renderer').defines -> @set cc.Class.extend {
-  init: (canvas, resources, width, height) ->
+  init: (canvas, resources, width, height, @viewport) ->
     @_getGlContext canvas, width, height
 
     @_activatedTextureId = -1 # id of current activated texture
@@ -56,13 +56,13 @@ cc.module('cc.gl.Renderer').defines -> @set cc.Class.extend {
     return
 
   drawEntity: (x, y, z, flipX) ->
-    @_shdr.drawAt x, y, z
+    @_shdr.drawAt x - @viewport.x, y - @viewport.y, z
     @_shdr.flipX flipX
     @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @_shdr.spriteVertices.numItems
     this
 
   drawSurface: (x, y, z) ->
-    @_shdr.drawAt x, y, z
+    @_shdr.drawAt x - @viewport.x, y - @viewport.y, z
     @gl.drawArrays @gl.TRIANGLE_STRIP, 0, @_shdr.spriteVertices.numItems
     this
 
