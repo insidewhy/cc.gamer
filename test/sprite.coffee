@@ -7,7 +7,7 @@ MAX_FRIENDS = 5
 Game = cc.Game.extend {
   # setting overrides used as configuration
   backgroundColor: [1.0, 0.72, 0.0, 1.0]
-  gravity: { x: 0, y: 9 }
+  gravity: { x: 0, y: 20 }
 
   surfaceSheet: resources.spriteSheet 'surfaces.png', 64, 64
 
@@ -22,10 +22,8 @@ Game = cc.Game.extend {
     @input.bind cc.key.left,  'left'
     @input.bind cc.key.c,     'right'
     @input.bind cc.key.right, 'right'
-    @input.bind cc.key.x,     'down'
-    @input.bind cc.key.down,  'down'
-    @input.bind cc.key.s,     'up'
-    @input.bind cc.key.up,    'up'
+    @input.bind cc.key.x,     'jump'
+    @input.bind cc.key.up,    'jump'
 
     @input.bind cc.key.a,     'toggle_autopilot'
     @input.bind cc.key.t,     'toggle_scale'
@@ -83,7 +81,7 @@ HeroEntity = MyEntity.extend {
   # define main sprite, with tile width and height
   bounciness: 0
   category: 1
-  density: 2
+  density: 1
   mask: 2 # what categories this collides with
   init: (game, x, y, settings) ->
     @timer = game.timer 1 # time 1 second of game time
@@ -107,19 +105,21 @@ HeroEntity = MyEntity.extend {
       # be overridden by the physics thread
       do @timer.reset # rearm the timer for another second
 
+    vY = if @game.input.pressed.jump then -300 else @v.y
+
     if @game.input.state.left
-      @setV -200, 0
+      @setV -200, vY
     else if @game.input.state.right
-      @setV 200, 0
-    else if @game.input.state.up
-      @setV 0, -200
-    else if @game.input.state.down
-      @setV 0, 200
+      @setV 200, vY
+    else if vY
+      @setV @v.x, vY
+
+    return
 }
 
 ImpostorEntity = MyEntity.extend {
   bounciness: 0.7
-  density: 0
+  density: 0.2
   category: 2
   mask: 1
   init: (game, x, y, settings) ->
@@ -130,6 +130,7 @@ ImpostorEntity = MyEntity.extend {
 }
 
 FriendEntity = MyEntity.extend {
+  density: 0.2
   category: 6
   mask: 5
   init: (game, x, y, settings) ->
