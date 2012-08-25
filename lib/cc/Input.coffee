@@ -60,7 +60,7 @@ cc.module('cc.Input').defines ->
     press: (e) ->
       code = e.keyCode
       bind = @_bindings[code]
-      if bind
+      if bind and not  @state[bind]
         @pressed[bind] = code
         @state[bind]   = code
 
