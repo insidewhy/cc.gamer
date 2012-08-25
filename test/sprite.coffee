@@ -73,15 +73,18 @@ Game = cc.Game.extend {
 
 game = new Game resources, scale: 1
 
-HeroEntity = cc.Entity.extend {
+MyEntity = cc.Entity.extend {
+  spriteSheet: resources.spriteSheet 'chars.png', 32, 48
+  hitbox: { width: 24, height: 42, offset: { y: 6 } }
+}
+
+HeroEntity = MyEntity.extend {
   # TODO: add timer for random velocity
   # define main sprite, with tile width and height
   bounciness: 0
   category: 1
   density: 2
   mask: 2 # what categories this collides with
-  spriteSheet: resources.spriteSheet 'chars.png', 32, 48
-  hitbox: { width: 24, height: 42, offset: { y: 6 } }
   init: (game, x, y, settings) ->
     @timer = game.timer 1 # time 1 second of game time
     @parent game, x, y, settings
@@ -112,17 +115,9 @@ HeroEntity = cc.Entity.extend {
       @setV 0, -200
     else if @game.input.state.down
       @setV 0, 200
-
-    do @_keepInView
-
-  _keepInView: ->
-    if @pos.y < -cc.ZERO # when above top bounce down
-      @pos.y = 0
-      @v.y = -@v.y unless @v.y > 0
-      do @mark
 }
 
-ImpostorEntity = HeroEntity.extend {
+ImpostorEntity = MyEntity.extend {
   bounciness: 0.7
   density: 0
   category: 2
@@ -130,20 +125,16 @@ ImpostorEntity = HeroEntity.extend {
   init: (game, x, y, settings) ->
     # skip hero init
     @v.x = 20
-    cc.Entity.prototype.init.call this, game, x, y, settings
+    @parent game, x, y, settings
     @addSprite 'walk', 0.1, [ 27, 28, 29, 28 ]
-
-  update: ->
-    cc.Entity.prototype.update.call this
-    do @_keepInView
 }
 
-FriendEntity = ImpostorEntity.extend {
+FriendEntity = MyEntity.extend {
   category: 6
   mask: 5
   init: (game, x, y, settings) ->
     @v.x = -20
-    cc.Entity.prototype.init.call this, game, x, y, settings
+    @parent game, x, y, settings
     @addSprite 'walk', 0.1, [ 81, 82, 83, 82 ]
 }
 
