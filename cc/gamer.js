@@ -4162,7 +4162,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
   cc.module('cc.Surface').defines(function() {
     return this.set(cc.Class.extend({
       tile: null,
-      init: function(game, sheet, tileIdx, x, y, width, height) {
+      init: function(game, sheet, tileIdx, x, y, width, height, bounciness) {
         var nCols;
         this.game = game;
         this.sheet = sheet;
@@ -4170,12 +4170,13 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         this.y = y;
         this.width = width;
         this.height = height;
+        this.bounciness = bounciness != null ? bounciness : 0;
         nCols = this.sheet.imgWidth() / this.sheet.tileWidth;
         this.tile = vec2.createFrom(tileIdx % nCols, Math.floor(tileIdx / nCols));
         return this._tileRepeat = vec2.createFrom(this.width / this.sheet.tileWidth, this.height / this.sheet.tileHeight);
       },
       compressedPhysics: function() {
-        return [this.x, this.y, this.width, this.height];
+        return [this.x, this.y, this.width, this.height, this.bounciness];
       },
       draw: function() {
         this.game.renderer.setSize(this.width, this.height);
@@ -4376,6 +4377,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
       _thingCount: 0,
       renderer: null,
       input: null,
+      viewport: null,
       useWebWorker: true,
       backgroundColor: [0.0, 0.0, 0.0, 1.0],
       ticks: 0,
@@ -4456,8 +4458,9 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
           if (!_this.height) {
             _this.height = canvas.height;
           }
+          _this.viewport = new cc.Viewport(_this.width, _this.height, _this.width, _this.height);
           try {
-            _this.renderer = new cc.gl.Renderer(canvas, _this.resources, _this.width, _this.height);
+            _this.renderer = new cc.gl.Renderer(canvas, _this.resources, _this.width, _this.height, _this.viewport);
           } catch (e) {
             alert("sorry WebGL is not enabled/supported in your browser, please try Firefox or Chrome " + e.stack);
             return;
@@ -4490,10 +4493,10 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         this.entities.push(entity);
         return this.entitiesById[entity.id] = this._updates[entity.id] = entity;
       },
-      addSurface: function(sheet, tileIdx, x, y, width, height) {
+      addSurface: function(sheet, tileIdx, x, y, width, height, bounciness) {
         var surface;
         this._hasUpdates = true;
-        surface = new cc.Surface(this, sheet, tileIdx, x, y, width, height);
+        surface = new cc.Surface(this, sheet, tileIdx, x, y, width, height, bounciness);
         surface.id = ++this._thingCount;
         this.surfaces.push(surface);
         return this.surfacesById[surface.id] = this._updates[surface.id] = surface;
@@ -4516,7 +4519,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
       draw: function() {
         var entity, surface, _i, _j, _len, _len1, _ref, _ref1;
         if (!this.tick) {
-          return ++this.skips;
+          ++this.skips;
         } else {
           this.physicsClient.signalPaint();
           ++this.ticks;
@@ -4533,7 +4536,81 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
             surface = _ref1[_j];
             surface.draw();
           }
-          return this.tick = 0;
+          this.tick = 0;
+        }
+      }
+    }));
+  });
+
+}).call(this);
+(function() {
+
+  cc.module('cc.Viewport').defines(function() {
+    return this.set(cc.Class.extend({
+      init: function(width, height, _screenWidth, _screenHeight, x, y) {
+        this.width = width;
+        this.height = height;
+        this.x = x != null ? x : 0;
+        this.y = y != null ? y : 0;
+        this.maxX = this.width - _screenWidth;
+        return this.maxY = this.height - _screenHeight;
+      },
+      setWidth: function(width) {
+        this.maxX += width - this.width;
+        this.width = width;
+      },
+      setHeight: function(height) {
+        this.maxX += height - this.width;
+        this.height = height;
+      },
+      checkX: function() {
+        if (this.x > this.maxX) {
+          this.x = this.maxX;
+        } else if (this.x < 0) {
+          this.x = 0;
+        }
+      },
+      checkY: function() {
+        if (this.y > this.maxY) {
+          this.y = this.maxY;
+        } else if (this.y < 0) {
+          this.y = 0;
+        }
+      },
+      scrollTo: function(x, y) {
+        this.x = x;
+        this.y = y;
+        this.checkX();
+        this.checkY();
+      },
+      scroll: function(sx, sy) {
+        this.x += sx;
+        this.y += sy;
+        this.checkX();
+        this.checkY();
+      },
+      scrollUp: function(s) {
+        this.y -= s;
+        if (this.y < 0) {
+          this.y = 0;
+        }
+      },
+      scrollRight: function(s) {
+        this.x += s;
+        if (this.x > this.maxX) {
+          this.x = this.maxX;
+        }
+      },
+      scrollDown: function(s) {
+        this.y += s;
+        if (this.y > this.maxY) {
+          this.y = this.maxY;
+        }
+      },
+      scrollLeft: function(s) {
+        this.x -= s;
+        if (this.x < 0) {
+          this.x = 0;
         }
       }
     }));
@@ -4644,8 +4721,9 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 
   cc.module('cc.gl.Renderer').defines(function() {
     return this.set(cc.Class.extend({
-      init: function(canvas, resources, width, height) {
+      init: function(canvas, resources, width, height, viewport) {
         var path, spriteSheet, _ref;
+        this.viewport = viewport;
         this._getGlContext(canvas, width, height);
         this._activatedTextureId = -1;
         this._shdr = new cc.gl.SpriteShaderProgram;
@@ -4699,13 +4777,13 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         this._shdr.modeSurfaceEntity();
       },
       drawEntity: function(x, y, z, flipX) {
-        this._shdr.drawAt(x, y, z);
+        this._shdr.drawAt(x - this.viewport.x, y - this.viewport.y, z);
         this._shdr.flipX(flipX);
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this._shdr.spriteVertices.numItems);
         return this;
       },
       drawSurface: function(x, y, z) {
-        this._shdr.drawAt(x, y, z);
+        this._shdr.drawAt(x - this.viewport.x, y - this.viewport.y, z);
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this._shdr.spriteVertices.numItems);
         return this;
       },
@@ -4937,7 +5015,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
     },
     _attachSpriteFragmentShader: function() {
       var content, shader;
-      content = "precision mediump float;\n\nvarying vec2 vTextureCoord;\n\nuniform vec2 tileSize;   // tile size in percentage of texture size\nuniform vec2 tileOffset; // index of tile e.g. (1,1) = (1 down, 1 right)\nuniform vec2 tileCoord;  // offset into texture of first pixel\n\n// used for mode 2 only... how often to repeat texture\nuniform vec2 tileRepeat;\n\n// used for mode 3 only... solid colour\nuniform vec4 color;\n\nuniform sampler2D sampler;\n\nuniform int mode;\n\nuniform bool flipX;\n\n// this converts the tile coordinate system to the gl coordinate system\n// First it flips the y-axis. Then it reverses the direction it scans\n// for the current pixel. It also has to add one to the y-offset to make\n// up for it being from the top left rather than the bottom right.\nvoid main(void) {\n  vec2 _tileOffset = vec2(tileOffset.s, tileOffset.t + 1.0);\n  vec2 _texCoord   = vec2(vTextureCoord.s, -vTextureCoord.t);\n\n  if (mode == 1) {\n    if (flipX) {\n      _texCoord.s = -_texCoord.s;\n      _tileOffset.s += 1.0;\n    }\n\n    gl_FragColor = texture2D(sampler,\n      vec2(1, -1) * (\n        (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n  }\n  else if (mode == 2) {\n    _texCoord.s = mod(_texCoord.s * tileRepeat.s, 1.0);\n    _texCoord.t = -mod(-_texCoord.t * tileRepeat.t, 1.0);\n\n    gl_FragColor = texture2D(sampler,\n      vec2(1, -1) * (\n        (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n  }\n  else if (mode == 3) {\n    gl_FragColor = color;\n  }\n}";
+      content = "precision mediump float;\n\nvarying vec2 vTextureCoord;\nuniform int mode;\n\n// for mode 1\nuniform bool flipX;\n\n// for modes 1 and 2\nuniform sampler2D sampler;\nuniform vec2 tileSize;   // tile size in percentage of texture size\nuniform vec2 tileOffset; // index of tile e.g. (1,1) = (1 down, 1 right)\nuniform vec2 tileCoord;  // offset into texture of first pixel\n\n// for mode 2\nuniform vec2 tileRepeat;\n\n// for mode 3\nuniform vec4 color;\n\n// this converts the tile coordinate system to the gl coordinate system\n// First it flips the y-axis. Then it reverses the direction it scans\n// for the current pixel. It also has to add one to the y-offset to make\n// up for it being from the top left rather than the bottom right.\nvoid main(void) {\n  vec2 _tileOffset = vec2(tileOffset.s, tileOffset.t + 1.0);\n  vec2 _texCoord   = vec2(vTextureCoord.s, -vTextureCoord.t);\n\n  if (mode == 1) {\n    if (flipX) {\n      _texCoord.s = -_texCoord.s;\n      _tileOffset.s += 1.0;\n    }\n\n    gl_FragColor = texture2D(sampler,\n      vec2(1, -1) * (\n        (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n  }\n  else if (mode == 2) {\n    _texCoord.s = mod(_texCoord.s * tileRepeat.s, 1.0);\n    _texCoord.t = -mod(-_texCoord.t * tileRepeat.t, 1.0);\n\n    gl_FragColor = texture2D(sampler,\n      vec2(1, -1) * (\n        (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n  }\n  else if (mode == 3) {\n    gl_FragColor = color;\n  }\n}";
       shader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
       return this._attachShader(shader, content);
     },
@@ -5096,6 +5174,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         filter.set_categoryBits(0xffffffff);
         filter.set_maskBits(0xffffffff);
         this._fixDef.set_filter(filter);
+        this._fixDef.set_restitution(p[4]);
         this._bodyDef = new b2BodyDef;
         this._bodyDef.set_type(Box2D.b2_staticBody);
         this._bodyDef.set_position(new b2Vec2(p[0] / s + this.width / 2, p[1] / s + this.height / 2));
@@ -5290,6 +5369,6 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 }).call(this);
 (function() {
 
-  cc.module('cc.gamer').requires('cc.Core', 'cc.Image', 'cc.Entity', 'cc.Surface', 'cc.Resources', 'cc.LoadingScreen', 'cc.Sprite', 'cc.SpriteSheet', 'cc.Game', 'cc.Input', 'cc.gl.Renderer', 'cc.gl.TextureAtlas', 'cc.gl.SpriteShaderProgram', 'cc.physics.Box2dEntity', 'cc.physics.Box2dSurface', 'cc.physics.Box2dWorld', 'cc.physics.Worker', 'cc.physics.Client').empty();
+  cc.module('cc.gamer').requires('cc.Core', 'cc.Image', 'cc.Entity', 'cc.Surface', 'cc.Resources', 'cc.LoadingScreen', 'cc.Sprite', 'cc.SpriteSheet', 'cc.Game', 'cc.Viewport', 'cc.Input', 'cc.gl.Renderer', 'cc.gl.TextureAtlas', 'cc.gl.SpriteShaderProgram', 'cc.physics.Box2dEntity', 'cc.physics.Box2dSurface', 'cc.physics.Box2dWorld', 'cc.physics.Worker', 'cc.physics.Client').empty();
 
 }).call(this);
