@@ -4686,7 +4686,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         var bind, code;
         code = e.keyCode;
         bind = this._bindings[code];
-        if (bind) {
+        if (bind && !this.state[bind]) {
           this.pressed[bind] = code;
           this.state[bind] = code;
         }
