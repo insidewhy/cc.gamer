@@ -79,6 +79,7 @@ MyEntity = cc.Entity.extend {
 HeroEntity = MyEntity.extend {
   # TODO: add timer for random velocity
   # define main sprite, with tile width and height
+  friction: 0
   bounciness: 0
   category: 1
   density: 1
