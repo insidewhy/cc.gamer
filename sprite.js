@@ -93,9 +93,7 @@
     },
     update: function() {
       var vY;
-      if (this.pos.x > 160) {
-        this.game.viewport.scrollTo(this.pos.x - 160, 0);
-      }
+      this.game.viewport.scrollTo(this.pos.x - (160 / this.game.scale), this.pos.y - 64);
       this.parent();
       if (this.game.input.released.toggle_autopilot) {
         this.setV(0, 0);

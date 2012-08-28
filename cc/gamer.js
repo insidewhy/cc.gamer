@@ -4039,6 +4039,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
       friction: 0.5,
       density: 1.0,
       _knownByPhysicsServer: false,
+      _events: [],
       _setPos: function(x, y) {
         this.pos.x = x;
         this.pos.y = y;
@@ -4058,18 +4059,15 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         return [x, y, this.v.x, this.v.y, this.a.x, this.a.y, width, height, this.category, this.mask, this.bounciness, this.friction, this.density];
       },
       compressedPhysics: function() {
-        var x, y;
+        var ev;
         if (!this._knownByPhysicsServer) {
           this._knownByPhysicsServer = true;
           return this._compressedPhysicsForNew();
+        } else {
+          ev = this._events;
+          this._events = [];
+          return ev;
         }
-        x = this.pos.x;
-        y = this.pos.y;
-        if (this.hitbox) {
-          x += this.hitbox.offset.x;
-          y += this.hitbox.offset.y;
-        }
-        return [x, y, this.v.x, this.v.y, this.a.x, this.a.y];
       },
       uncompressPhysics: function(p) {
         this.pos.x = p[0], this.pos.y = p[1], this.v.x = p[2], this.v.y = p[3], this.a.x = p[4], this.a.y = p[5];
@@ -4135,19 +4133,25 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         this.sprite.update();
       }
     },
-    mark: function() {
+    _mark: function() {
       this.game._hasUpdates = true;
       return this.game._updates[this.id] = this;
     },
     setV: function(vx, vy) {
       this.v.x = vx;
       this.v.y = vy;
-      return this.mark();
+      this._events.push('v', this.v.x, this.v.y);
+      return this._mark();
     },
     setPos: function(px, py) {
       this.pos.x = px;
       this.pos.y = py;
-      return this.mark();
+      if (this.hitbox) {
+        px += this.hitbox.offset.x;
+        py += this.hitbox.offset.y;
+      }
+      this._events.push('p', px, py);
+      return this._mark();
     },
     draw: function() {
       this.game.renderer.setSize(this.width, this.height);
@@ -4371,8 +4375,6 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         y: 0
       },
       scale: 1,
-      maxX: 0,
-      maxY: 0,
       box2dScale: 30,
       _thingCount: 0,
       renderer: null,
@@ -4427,9 +4429,8 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
       },
       setScale: function(scale) {
         this.scale = scale;
+        this.viewport.setScreenDimensions(this.width / this.scale, this.height / this.scale);
         this.renderer.setScale(this.scale);
-        this.maxX = this.width / this.scale + cc.ZERO;
-        this.maxY = this.height / this.scale + cc.ZERO;
       },
       main: function(canvas, options) {
         var _this = this;
@@ -4547,13 +4548,16 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 
   cc.module('cc.Viewport').defines(function() {
     return this.set(cc.Class.extend({
-      init: function(width, height, _screenWidth, _screenHeight, x, y) {
+      init: function(width, height, screenWidth, screenHeight, x, y) {
         this.width = width;
         this.height = height;
         this.x = x != null ? x : 0;
         this.y = y != null ? y : 0;
-        this.maxX = this.width - _screenWidth;
-        return this.maxY = this.height - _screenHeight;
+        this.setScreenDimensions(screenWidth, screenHeight);
+      },
+      setScreenDimensions: function(screenWidth, screenHeight) {
+        this.maxX = this.width - screenWidth;
+        this.maxY = this.height - screenHeight;
       },
       setWidth: function(width) {
         this.maxX += width - this.width;
@@ -4580,6 +4584,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
       scrollTo: function(x, y) {
         this.x = x;
         this.y = y;
+        console.log("cock " + x + ", " + y);
         this.checkX();
         this.checkY();
       },
@@ -5105,8 +5110,38 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
 }).call(this);
 (function() {
 
-  cc.module('cc.physics.Box2dEntity').defines(function() {
+  cc.module('cc.physics.Box2dEntityEvents').defines(function() {
     return this.set(cc.Class.extend({
+      v: function(entity, args, idx) {
+        var m, s, v;
+        s = entity.world.scale;
+        v = entity._body.GetLinearVelocity();
+        m = entity._body.GetMass();
+        entity._body.ApplyLinearImpulse(new b2Vec2(m * (args[idx] / s - v.get_x()), m * (args[idx + 1] / s - v.get_y())), entity._body.GetWorldCenter());
+        return 3;
+      },
+      p: function(entity, args, idx) {
+        var s;
+        s = entity.world.scale;
+        entity._body.SetTransform(new b2Vec2(args[idx] / s + entity.width / 2, args[idx + 1] / s + entity.height / 2), entity._body.GetAngle());
+        return 3;
+      },
+      update: function(entity, events) {
+        var idx;
+        idx = this[events[0]](entity, events, 1);
+        while (idx < events.length) {
+          idx = this[events[idx]](entity, args, idx + 1);
+        }
+      }
+    }));
+  });
+
+}).call(this);
+(function() {
+
+  cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').defines(function() {
+    return this.set(cc.Class.extend({
+      _evHandler: new cc.physics.Box2dEntityEvents,
       init: function(p, world) {
         var filter, s, shape;
         this.world = world;
@@ -5146,14 +5181,7 @@ function ea(b){throw b}var ra=void 0,Ra=!0,rb=null,yb=!1;function zb(){return(fu
         return [(p.get_x() - this.width / 2) * s, (p.get_y() - this.height / 2) * s, v.get_x() * s, v.get_y() * s, this.a.x * s, this.a.y * s];
       },
       uncompressPhysics: function(p) {
-        var m, s, v;
-        s = this.world.scale;
-        this._body.SetTransform(new b2Vec2(p[0] / s + this.width / 2, p[1] / s + this.height / 2), this._body.GetAngle());
-        v = this._body.GetLinearVelocity();
-        m = this._body.GetMass();
-        this._body.ApplyLinearImpulse(new b2Vec2(m * (p[2] / s - v.get_x()), m * (p[3] / s - v.get_y())), this._body.GetWorldCenter());
-        this.a.x = p[4] / s;
-        this.a.y = p[5] / s;
+        this._evHandler.update(this, p);
       }
     }));
   });
