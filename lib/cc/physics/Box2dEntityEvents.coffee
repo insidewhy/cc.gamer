@@ -9,7 +9,7 @@ cc.module('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
       entity._body.GetWorldCenter()
     3
 
-  p: (entity, args, idx)
+  p: (entity, args, idx) ->
     s = entity.world.scale
     entity._body.SetTransform(
       new b2Vec2(args[idx] / s + entity.width / 2,

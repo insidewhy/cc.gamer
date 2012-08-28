@@ -1,7 +1,12 @@
 cc.module('cc.Viewport').defines -> @set cc.Class.extend {
-  init: (@width, @height, _screenWidth, _screenHeight, @x = 0, @y = 0) ->
-    @maxX = @width - _screenWidth
-    @maxY = @height - _screenHeight
+  init: (@width, @height, screenWidth, screenHeight, @x = 0, @y = 0) ->
+    @setScreenDimensions screenWidth, screenHeight
+    return
+
+  setScreenDimensions: (screenWidth, screenHeight) ->
+    @maxX = @width - screenWidth
+    @maxY = @height - screenHeight
+    return
 
   setWidth: (width) ->
     @maxX += (width - @width)

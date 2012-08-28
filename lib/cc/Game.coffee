@@ -13,8 +13,6 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   gravity: { x: 0, y: 0 }  # world gravity
   # maxTick must be set before main is called for the physic client to get it
   scale: 1      # zoom
-  maxX: 0       # max x-pixel TODO: move to Viewport class?
-  maxY: 0       # max y-pixel
   box2dScale: 30 # how much to scale pixels down by for box2d
   _thingCount: 0  # counter used to generate id for entities/surfaces
   renderer: null
@@ -61,9 +59,8 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   # change scale of game.
   # can do this while the game is running.
   setScale: (@scale) ->
+    @viewport.setScreenDimensions @width / @scale, @height / @scale
     @renderer.setScale @scale
-    @maxX = @width / @scale + cc.ZERO
-    @maxY = @height / @scale + cc.ZERO
     return
 
   main: (canvas, options) ->

@@ -92,8 +92,7 @@ HeroEntity = MyEntity.extend {
     @parent game, x, y, settings
 
   update: ->
-    if @pos.x > 160
-      @game.viewport.scrollTo @pos.x - 160, 0
+    @game.viewport.scrollTo @pos.x - (160 / @game.scale), @pos.y - 64
 
     do @parent
     if @game.input.released.toggle_autopilot
