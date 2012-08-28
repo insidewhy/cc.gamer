@@ -10,6 +10,7 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
   maxV: { x: 200, y: 100 } # maximum velocity
   a:    { x: 0, y: 0 }     # acceleration
   bounciness: 0.5          # box2d restitution
+  standing: false          # whether standing on ground
   friction:   0.5
   density:    1.0
   # optional - hitbox: { width, height, offset { x, y } }
@@ -33,7 +34,7 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
       width  = @hitbox.width
       height = @hitbox.height
     [ x, y, @v.x, @v.y, @a.x, @a.y, width, height, @category, @mask,
-      @bounciness, @friction, @density ]
+      @bounciness, @friction, @density, @maxV.x, @maxV.y ]
 
   # compressed physics for update
   # TODO: rotation
@@ -50,7 +51,7 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
   # uncompress physics sent from network, always for update as physics engine
   # can't create new entity
   uncompressPhysics: (p) ->
-    [ @pos.x, @pos.y, @v.x, @v.y, @a.x, @a.y ] = p  # :)
+    [ @pos.x, @pos.y, @v.x, @v.y, @standing ] = p  # :)
     if @hitbox
       @pos.x -= @hitbox.offset.x
       @pos.y -= @hitbox.offset.y

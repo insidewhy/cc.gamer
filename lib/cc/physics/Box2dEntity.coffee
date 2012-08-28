@@ -1,6 +1,10 @@
 cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
   _evHandler: new cc.physics.Box2dEntityEvents
 
+  maxV: { x: 200, y: 100 } # maximum velocity
+
+  standing: false
+
   init: (p, @world) ->
     @world.entities.push this
 
@@ -16,16 +20,19 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     @_fixDef.set_restitution p[10]
     @_fixDef.set_friction p[11]
     @_fixDef.set_density p[12]
+    @maxV.x = p[13]
+    @maxV.y = p[14]
 
     @_bodyDef = new b2BodyDef
     # @_bodyDef.set_userData this
     @_bodyDef.set_type Box2D.b2_dynamicBody
 
-    # b2 uses centre position so adjust..
-    @_bodyDef.set_position new b2Vec2(p[0] / s + @width / 2, p[1] / s + @height / 2)
-    @_bodyDef.set_linearVelocity new b2Vec2(p[2] / s, p[3] / s)
+    width = @width / 2
+    height = @height / 2
 
-    # TODO: add ground sensor
+    # b2 uses centre position so adjust..
+    @_bodyDef.set_position new b2Vec2(p[0] / s + width, p[1] / s + height)
+    @_bodyDef.set_linearVelocity new b2Vec2(p[2] / s, p[3] / s)
 
     @a =
       x: p[4] / s
@@ -35,11 +42,22 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     @_bodyDef.set_fixedRotation true
 
     shape = new b2PolygonShape
-    shape.SetAsBox @width / 2, @height / 2
+    shape.SetAsBox width, height
     @_fixDef.set_shape shape
 
     @_body = @world.b2.CreateBody @_bodyDef
-    @_body.CreateFixture @_fixDef
+    fix = @_body.CreateFixture @_fixDef
+    fix.entity = this
+
+    # add foot sensor
+    @_ftSensorDef = new b2FixtureDef
+    ftShape = new b2PolygonShape
+    # scale = units to 1 pixel, make the foot a height of 1/3 pixel
+    ftShape.SetAsBox(width, s / (3 * 2), new b2Vec2(0, -height), 0.0)
+    @_ftSensorDef.set_shape ftShape
+    @_ftSensorDef.set_isSensor true
+    footFixt = @_body.CreateFixture @_fixDef
+    footFixt.foot = { entity: this, touches: 0 }
 
     return
 
@@ -53,9 +71,8 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     p = @_body.GetPosition()
     [ (p.get_x() - @width / 2) * s,
       (p.get_y() - @height / 2) * s,
-      v.get_x() * s,
-      v.get_y() * s,
-      @a.x * s, @a.y  * s ]
+      v.get_x() * s, v.get_y() * s,
+      @standing ]
 
   uncompressPhysics: (p) ->
     @_evHandler.update this, p
