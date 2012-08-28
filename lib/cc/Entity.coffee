@@ -48,21 +48,24 @@ cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
     return
 
   # mark that physics have changed and need to be sent back to physics worker
-  # if you don't call this after overriding or changing properties manually
-  # then the web worker thread will miss them
-  mark: ->
+  _mark: ->
     @game._hasUpdates = true
     @game._updates[@id] = this
 
   setV: (vx, vy) ->
     @v.x = vx
     @v.y = vy
-    do @mark
+    @_events.push 'v', @v.x, @v.y
+    @_mark()
 
   setPos: (px, py) ->
     @pos.x = px
     @pos.y = py
-    do @mark
+    if @hitbox
+      px += @hitbox.offset.x
+      py += @hitbox.offset.y
+    @_events.push 'p', px, py
+    @_mark()
 
   draw: ->
     @game.renderer.setSize @width, @height

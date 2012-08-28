@@ -1,4 +1,6 @@
-cc.module('cc.physics.Box2dEntity').defines -> @set cc.Class.extend {
+cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
+  _evHandler: new cc.physics.Box2dEntityEvents
+
   init: (p, @world) ->
     @world.entities.push this
 
@@ -22,6 +24,8 @@ cc.module('cc.physics.Box2dEntity').defines -> @set cc.Class.extend {
     # b2 uses centre position so adjust..
     @_bodyDef.set_position new b2Vec2(p[0] / s + @width / 2, p[1] / s + @height / 2)
     @_bodyDef.set_linearVelocity new b2Vec2(p[2] / s, p[3] / s)
+
+    # TODO: add ground sensor
 
     @a =
       x: p[4] / s
@@ -54,18 +58,7 @@ cc.module('cc.physics.Box2dEntity').defines -> @set cc.Class.extend {
       @a.x * s, @a.y  * s ]
 
   uncompressPhysics: (p) ->
-    s = @world.scale
-    @_body.SetTransform(
-      new b2Vec2(p[0] / s + @width / 2, p[1] / s + @height / 2), @_body.GetAngle())
-
-    # @_body.SetLinearVelocity new b2Vec2(p[2] / s, p[3] / s)
-    v = @_body.GetLinearVelocity()
-    m = @_body.GetMass()
-    @_body.ApplyLinearImpulse new b2Vec2(m * (p[2] / s - v.get_x()),
-                                         m * (p[3] / s - v.get_y())), @_body.GetWorldCenter()
-
-    @a.x = p[4] / s
-    @a.y = p[5] / s
+    @_evHandler.update this, p
     return
 }
 # vim:ts=2 sw=2

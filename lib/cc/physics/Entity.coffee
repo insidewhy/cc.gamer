@@ -14,6 +14,7 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
   density:    1.0
   # optional - hitbox: { width, height, offset { x, y } }
   _knownByPhysicsServer: false
+  _events: [] # physics update events to be sent to physics thread
 
   _setPos: (x, y) ->
     @pos.x = x
@@ -40,13 +41,11 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
     if not @_knownByPhysicsServer
       @_knownByPhysicsServer = true
       return do @_compressedPhysicsForNew
-
-    x = @pos.x
-    y = @pos.y
-    if @hitbox
-      x += @hitbox.offset.x
-      y += @hitbox.offset.y
-    [ x, y, @v.x, @v.y, @a.x, @a.y ]
+    else
+      ev = @_events
+      @_events = []
+      return ev
+    return
 
   # uncompress physics sent from network, always for update as physics engine
   # can't create new entity
