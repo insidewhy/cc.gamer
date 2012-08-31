@@ -7,7 +7,8 @@ cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
 
   # not to be called externally!! use Game.spawnEntity
   init: (@game, x, y, settings) ->
-    @_setPos x, y
+    @pos.x = x
+    @pos.y = y
     # does not call parent.. only sets x and y the rest come from the
     # physics client
     return

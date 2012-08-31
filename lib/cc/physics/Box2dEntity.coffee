@@ -3,7 +3,18 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
 
   maxV: { x: 200, y: 100 } # maximum velocity
 
-  standing: false
+  groundTouches: 0 # how many elements the foot sensor touches
+  standing: false  # is on ground.. when groundTouches == 0
+
+  groundContact: ->
+    if ++@groundTouches is 1
+      @standing = true
+    return
+
+  groundLoseContact: ->
+    if not --@groundTouches
+      @standing = false
+    return
 
   init: (p, @world) ->
     @world.entities.push this
@@ -57,7 +68,8 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     @_ftSensorDef.set_shape ftShape
     @_ftSensorDef.set_isSensor true
     footFixt = @_body.CreateFixture @_fixDef
-    footFixt.foot = { entity: this, touches: 0 }
+    footFixt.entity = this
+    footFixt.foot = true
 
     return
 

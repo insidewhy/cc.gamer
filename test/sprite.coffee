@@ -79,8 +79,6 @@ MyEntity = cc.Entity.extend {
 HeroEntity = MyEntity.extend {
   # TODO: add timer for random velocity
   # define main sprite, with tile width and height
-  friction: 0
-  bounciness: 0
   category: 1
   density: 1
   mask: 2 # what categories this collides with
@@ -105,7 +103,7 @@ HeroEntity = MyEntity.extend {
       # be overridden by the physics thread
       do @timer.reset # rearm the timer for another second
 
-    vY = if @game.input.pressed.jump then -300 else @v.y
+    vY = if @standing and @game.input.pressed.jump then -300 else @v.y
 
     if @game.input.state.left
       @setV -200, vY
@@ -118,7 +116,7 @@ HeroEntity = MyEntity.extend {
 }
 
 ImpostorEntity = MyEntity.extend {
-  bounciness: 0.7
+  # bounciness: 0.7
   density: 0.2
   category: 2
   mask: 1

@@ -9,18 +9,13 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
   v:    { x: 0, y: 0 }     # velocity
   maxV: { x: 200, y: 100 } # maximum velocity
   a:    { x: 0, y: 0 }     # acceleration
-  bounciness: 0.5          # box2d restitution
+  bounciness: 0            # box2d restitution
   standing: false          # whether standing on ground
   friction:   0.5
   density:    1.0
   # optional - hitbox: { width, height, offset { x, y } }
   _knownByPhysicsServer: false
   _events: [] # physics update events to be sent to physics thread
-
-  _setPos: (x, y) ->
-    @pos.x = x
-    @pos.y = y
-    return
 
   # compress physics for new entity
   _compressedPhysicsForNew: ->
@@ -41,6 +36,7 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
   compressedPhysics: ->
     if not @_knownByPhysicsServer
       @_knownByPhysicsServer = true
+      @_events = []
       return do @_compressedPhysicsForNew
     else
       ev = @_events
@@ -55,6 +51,8 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
     if @hitbox
       @pos.x -= @hitbox.offset.x
       @pos.y -= @hitbox.offset.y
+
+    @update()
     return
 }
 # vim:ts=2 sw=2

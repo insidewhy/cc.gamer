@@ -72,7 +72,7 @@ The test system will automatically reload and re-generate cc/gamer.js as you edi
 # dependencies
 All dependencies are included in cc.gamer.js. They incude the excellent:
 
-* [box2dweb](http://code.google.com/p/box2dweb/)
+* [box2d-js](http://code.google.com/kripken/box2d.js)
 * [gl-matrix](https://github.com/toji/gl-matrix)
 
 # status
@@ -82,7 +82,9 @@ All dependencies are included in cc.gamer.js. They incude the excellent:
     * Spritesheet Animation: done
     * Pushing many Spritesheets into a WebGL texture: done
     * Shader API for entities: done
-    * Shader API for surfaces (tessellating tiles, tile coverings): todo
+    * Shader API for surfaces
+        * tessellating tiles: done
+        * tile coverings/corners: todo
 * Canvas backend: to do
 * Resource loading/caching: done
 * Physics (using Box2D js):
@@ -92,16 +94,17 @@ All dependencies are included in cc.gamer.js. They incude the excellent:
     * Velocity/Position/Acceleration updating: done
     * Spritesheet animations: done
     * Optional hitbox: done
-    * Detect if hero is standing on surface (box2d sensor under feet): todo
+    * Detect if entity is standing on surface (box2d sensor under feet): done
     * Physics:
         * Collision detection: done
         * Collision events: todo
-        * Positioning and velocity: done
+        * Set velocity: done
+        * Initial position: done
+        * Teleport position: todo
         * Gravity: done
-        * Collision events: todo
         * Acceleration: todo
 * Input: done
-* Surface: todo
+* Surface: done
 * Loading Screen: to do
 
 # notes

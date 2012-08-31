@@ -34,12 +34,13 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   # options are optional, @resources is the resource loader
   init: (@resources, options) ->
     @physicsClient = new cc.physics.Client @box2dScale, (data, tick) =>
+      @tick = tick
+      @now += tick
+
       for own id, uent of data
         entity = @entitiesById[id]
         entity.uncompressPhysics uent if entity
 
-      @tick = tick
-      @now += tick
       do @update
     @setOptions options
     @input = new cc.Input
@@ -133,7 +134,7 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
   update: ->
     # update intercepts
     ++@updates
-    do entity.update for entity in @entities
+    # do entity.update for entity in @entities
 
     # entities spawned/movements made by entities' update methods
     if @_hasUpdates

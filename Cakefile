@@ -21,7 +21,7 @@ task 'web', 'build cc/gamer.js for use in websites', (options) ->
     fs.mkdirSync 'cc' unless fs.existsSync 'cc'),
     """([ -f cc/gl-matrix.js ] || wget --no-check-certificate https://raw.github.com/toji/gl-matrix/master/gl-matrix.js -P cc) &&
     [ -f cc/box2d.js ] || (
-      wget --no-check-certificate -c https://raw.github.com/kripken/box2d.js/master/box2d.js -O cc/box2d.js &&
+      wget --no-check-certificate -c https://raw.github.com/nuisanceofcats/box2d.js/master/box2d.js -O cc/box2d.js &&
       echo ';' >> cc/box2d.js) &&
     coffee -c test""",
     ->
