@@ -79,8 +79,6 @@
   });
 
   HeroEntity = MyEntity.extend({
-    friction: 0,
-    bounciness: 0,
     category: 1,
     density: 1,
     mask: 2,
@@ -104,7 +102,7 @@
         }
         this.timer.reset();
       }
-      vY = this.game.input.pressed.jump ? -300 : this.v.y;
+      vY = this.standing && this.game.input.pressed.jump ? -300 : this.v.y;
       if (this.game.input.state.left) {
         this.setV(-200, vY);
       } else if (this.game.input.state.right) {
@@ -116,7 +114,6 @@
   });
 
   ImpostorEntity = MyEntity.extend({
-    bounciness: 0.7,
     density: 0.2,
     category: 2,
     mask: 1,
