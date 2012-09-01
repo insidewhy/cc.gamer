@@ -4086,6 +4086,7 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
     sprite: null,
     category: 1,
     mask: 1,
+    facingLeft: true,
     init: function(game, x, y, settings) {
       this.game = game;
       this.pos.x = x;
@@ -4093,8 +4094,7 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
     },
     setSprite: function(name) {
       this.sprite = this.sprites[name];
-      this.sprite.timer = new cc.Timer(this.game);
-      this.sprite.timer.setDuration(this.sprite.frameLength);
+      this.sprite.timer = this.game.syncTimer(this.sprite.frameLength);
       return this.sprite;
     },
     addSprite: function(name, frameLength, frames) {
@@ -4137,9 +4137,15 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
       this.game._hasUpdates = true;
       return this.game._updates[this.id] = this;
     },
+    _detectFacing: function() {
+      if ((this.facingLeft && this.v.x > 1) || (!this.facingLeft && this.v.x < -1)) {
+        this.facingLeft = !this.facingLeft;
+      }
+    },
     setV: function(vx, vy) {
       this.v.x = vx;
       this.v.y = vy;
+      this._detectFacing();
       this._events.push('v', this.v.x, this.v.y);
       return this._mark();
     },
@@ -4156,7 +4162,8 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
     draw: function() {
       this.game.renderer.setSize(this.width, this.height);
       this.game.renderer.selectSprite(this.sprite);
-      this.game.renderer.drawEntity(this.pos.x, this.pos.y, this.pos.z, this.v.x < 0);
+      this._detectFacing();
+      this.game.renderer.drawEntity(this.pos.x, this.pos.y, this.pos.z, this.facingLeft);
     }
   });
 
@@ -4323,43 +4330,9 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
 
 }).call(this);
 (function() {
-
-  cc.module('cc.Timer').defines(function() {
-    return this.set(cc.Class.extend({
-      init: function(_game, duration, offset) {
-        this._game = _game;
-        this.duration = duration != null ? duration : 0;
-        this.offset = offset != null ? offset : 0;
-        if (this.duration) {
-          this.reset();
-        } else {
-          this.pause();
-        }
-      },
-      expired: function() {
-        return this._game.now >= this.expires;
-      },
-      delta: function() {
-        return this.game.now - this.expires;
-      },
-      setDuration: function(duration) {
-        this.duration = duration;
-        this.reset();
-      },
-      pause: function() {
-        this.expires = Number.MAX_VALUE;
-      },
-      reset: function() {
-        this.expires = Math.floor((this._game.now / this.duration) - this.offset) * this.duration + this.duration + this.offset;
-      }
-    }));
-  });
-
-}).call(this);
-(function() {
   var __hasProp = {}.hasOwnProperty;
 
-  cc.module('cc.Game').requires('cc.Timer').defines(function() {
+  cc.module('cc.Game').defines(function() {
     return this.set(cc.Class.extend({
       now: 0,
       tick: 1,
@@ -4423,6 +4396,9 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
         if (options.height) {
           return this.height = options.height;
         }
+      },
+      syncTimer: function(expiresIn) {
+        return new cc.SyncTimer(this, expiresIn);
       },
       timer: function(expiresIn) {
         return new cc.Timer(this, expiresIn);
@@ -4711,6 +4687,54 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
         return this._bindings[key] = state;
       }
     }));
+  });
+
+}).call(this);
+(function() {
+
+  cc.module('cc.SyncTimer').defines(function() {
+    return this.set(cc.Class.extend({
+      init: function(_game, duration, offset) {
+        this._game = _game;
+        this.duration = duration != null ? duration : 0;
+        this.offset = offset != null ? offset : 0;
+        if (this.duration) {
+          this.reset();
+        } else {
+          this.pause();
+        }
+      },
+      expired: function() {
+        return this._game.now >= this.expires;
+      },
+      delta: function() {
+        return this._game.now - this.expires;
+      },
+      setDuration: function(duration) {
+        this.duration = duration;
+        this.reset();
+      },
+      pause: function() {
+        this.expires = Number.MAX_VALUE;
+      },
+      reset: function() {
+        this.expires = Math.floor((this._game.now / this.duration) - this.offset) * this.duration + this.duration + this.offset;
+      }
+    }));
+  });
+
+}).call(this);
+(function() {
+
+  cc.module('cc.Timer').parent('cc.SyncTimer').jClass({
+    init: function(_game, duration) {
+      this._game = _game;
+      this.duration = duration;
+      this.reset();
+    },
+    reset: function() {
+      this.expires = this._game.now + this.duration;
+    }
   });
 
 }).call(this);
@@ -5461,6 +5485,6 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
 }).call(this);
 (function() {
 
-  cc.module('cc.gamer').requires('cc.Core', 'cc.Image', 'cc.Entity', 'cc.Surface', 'cc.Resources', 'cc.LoadingScreen', 'cc.Sprite', 'cc.SpriteSheet', 'cc.Game', 'cc.Viewport', 'cc.Input', 'cc.gl.Renderer', 'cc.gl.TextureAtlas', 'cc.gl.SpriteShaderProgram', 'cc.physics.Box2dEntity', 'cc.physics.Box2dSurface', 'cc.physics.Box2dWorld', 'cc.physics.Worker', 'cc.physics.Client').empty();
+  cc.module('cc.gamer').requires('cc.Core', 'cc.Image', 'cc.Entity', 'cc.Surface', 'cc.Resources', 'cc.LoadingScreen', 'cc.Sprite', 'cc.SpriteSheet', 'cc.Game', 'cc.Viewport', 'cc.Input', 'cc.SyncTimer', 'cc.Timer', 'cc.gl.Renderer', 'cc.gl.TextureAtlas', 'cc.gl.SpriteShaderProgram', 'cc.physics.Box2dEntity', 'cc.physics.Box2dSurface', 'cc.physics.Box2dWorld', 'cc.physics.Worker', 'cc.physics.Client').empty();
 
 }).call(this);
