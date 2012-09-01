@@ -2,6 +2,7 @@
 # Shared by Web Worker and main thread.
 # The physics updating part of the code is only used by the main thread in
 # case Web Workers aren't available (IE9, some mobile browsers).
+# Deriving class must define "_mark"
 cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
   pos: { x: 0, y: 0, z: 0 } # position
   width:  0
@@ -16,6 +17,7 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
   # optional - hitbox: { width, height, offset { x, y } }
   _knownByPhysicsServer: false
   _events: [] # physics update events to be sent to physics thread
+  facingLeft: true # whether the entity is facing left
 
   # compress physics for new entity
   _compressedPhysicsForNew: ->
@@ -54,5 +56,26 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
 
     @update()
     return
+
+  _detectFacing: ->
+    if (@facingLeft and @v.x > 1) or (not @facingLeft and @v.x < -1)
+      @facingLeft = not @facingLeft
+    return
+
+  setV: (vx, vy) ->
+    @v.x = vx
+    @v.y = vy
+    @_detectFacing()
+    @_events.push 'v', @v.x, @v.y
+    @_mark()
+
+  setPos: (px, py) ->
+    @pos.x = px
+    @pos.y = py
+    if @hitbox
+      px += @hitbox.offset.x
+      py += @hitbox.offset.y
+    @_events.push 'p', px, py
+    @_mark()
 }
 # vim:ts=2 sw=2

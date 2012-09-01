@@ -1,4 +1,5 @@
 cc.module('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
+  # velocity
   v: (entity, args, idx) ->
     s = entity.world.scale
     v = entity._body.GetLinearVelocity()
@@ -9,6 +10,7 @@ cc.module('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
       entity._body.GetWorldCenter()
     3
 
+  # position
   p: (entity, args, idx) ->
     s = entity.world.scale
     entity._body.SetTransform(
@@ -16,6 +18,11 @@ cc.module('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
                  args[idx + 1] / s + entity.height / 2),
       entity._body.GetAngle())
     3
+
+  # friction
+  f: (entity, args, idx) ->
+    entity._fix.SetFriction args[idx]
+    2
 
   update: (entity, events) ->
     idx = this[events[0]](entity, events, 1)

@@ -59,6 +59,7 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     @_body = @world.b2.CreateBody @_bodyDef
     fix = @_body.CreateFixture @_fixDef
     fix.entity = this
+    @_fix = fix
 
     # add foot sensor
     @_ftSensorDef = new b2FixtureDef

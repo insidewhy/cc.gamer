@@ -4,7 +4,6 @@ cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
   category: 1 # mask defining what can collide with this
   mask: 1     # mask defining what this can collide with
   # spriteSheet: null  # must be defined in deriving class
-  facingLeft: true # whether the entity is facing left
 
   # not to be called externally!! use Game.spawnEntity
   init: (@game, x, y, settings) ->
@@ -53,33 +52,11 @@ cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
     @game._hasUpdates = true
     @game._updates[@id] = this
 
-  _detectFacing: ->
-    if (@facingLeft and @v.x > 1) or (not @facingLeft and @v.x < -1)
-      @facingLeft = not @facingLeft
-    return
-
-  setV: (vx, vy) ->
-    @v.x = vx
-    @v.y = vy
-    @_detectFacing()
-    @_events.push 'v', @v.x, @v.y
-    @_mark()
-
-  setPos: (px, py) ->
-    @pos.x = px
-    @pos.y = py
-    if @hitbox
-      px += @hitbox.offset.x
-      py += @hitbox.offset.y
-    @_events.push 'p', px, py
-    @_mark()
-
   draw: ->
     @game.renderer.setSize @width, @height
     @game.renderer.selectSprite @sprite
     @_detectFacing()
     @game.renderer.drawEntity @pos.x, @pos.y, @pos.z, @facingLeft
     return
-
 }
 # vim:ts=2 sw=2
