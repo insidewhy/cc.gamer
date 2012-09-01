@@ -83,7 +83,7 @@ HeroEntity = MyEntity.extend {
   density: 1
   mask: 2 # what categories this collides with
   init: (game, x, y, settings) ->
-    @timer = game.timer 1 # time 1 second of game time
+    @timer = game.syncTimer 1 # time 1 second of game time
     @parent game, x, y, settings
     @pos.y = 80
     @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]

@@ -1,4 +1,4 @@
-cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
+cc.module('cc.Game').defines -> @set cc.Class.extend {
   now: 0        # current game world time
   tick: 1       # length of previous frame
   # tick is set to 0 after each draw to avoid two draws with no output, so
@@ -54,6 +54,9 @@ cc.module('cc.Game').requires('cc.Timer').defines -> @set cc.Class.extend {
 
   # create a new timer referencing this game's time
   # expiresIn: optional expiry time in seconds
+  syncTimer: (expiresIn) ->
+    new cc.SyncTimer(this, expiresIn)
+
   timer: (expiresIn) ->
     new cc.Timer(this, expiresIn)
 

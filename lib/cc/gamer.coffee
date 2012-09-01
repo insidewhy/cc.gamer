@@ -11,6 +11,8 @@ cc.module('cc.gamer').requires(
   'cc.Game'
   'cc.Viewport'
   'cc.Input'
+  'cc.SyncTimer'
+  'cc.Timer'
 
   # cc.gamer's internal gl only backend
   'cc.gl.Renderer'
