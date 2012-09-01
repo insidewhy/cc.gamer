@@ -1,8 +1,8 @@
 # resource loader
 resources = new cc.Resources
 
-MAX_IMPOSTORS = 20
-MAX_FRIENDS = 5
+SPAWN_IMPOSTORS = 10
+SPAWN_FRIENDS = 10
 
 Game = cc.Game.extend {
   # setting overrides used as configuration
@@ -12,6 +12,22 @@ Game = cc.Game.extend {
   surfaceSheet: resources.spriteSheet 'surfaces.png', 64, 64
 
   autopilot: false # custom setting for this game
+
+  _spawnImpostors: ->
+    i = 0
+    loop
+      @spawnEntity ImpostorEntity, cc.rand(64, @viewport.width - 64),
+                                   cc.rand(64, @viewport.height - 64)
+      break if ++i is SPAWN_IMPOSTORS
+    return
+
+  _spawnFriends: ->
+    i = 0
+    loop
+      @spawnEntity FriendEntity, cc.rand(64, @viewport.width - 64),
+                                 cc.rand(64, @viewport.height - 64)
+      break if ++i is SPAWN_FRIENDS
+    return
 
   # called after all resources have loaded
   booted: ->
@@ -25,6 +41,8 @@ Game = cc.Game.extend {
     @input.bind cc.key.x,     'jump'
     @input.bind cc.key.up,    'jump'
 
+    @input.bind cc.key.i,     'spawn_impostors'
+    @input.bind cc.key.f,     'spawn_friends'
     @input.bind cc.key.a,     'toggle_autopilot'
     @input.bind cc.key.t,     'toggle_scale'
     @input.bind cc.key.r,     'reload'
@@ -40,18 +58,8 @@ Game = cc.Game.extend {
 
     @hero = @spawnEntity HeroEntity, 64 + 30, 0
 
-    i = 0
-    loop
-      @spawnEntity ImpostorEntity, cc.rand(64, @viewport.width - 64),
-                                   cc.rand(64, @viewport.height - 64)
-      break if ++i is MAX_IMPOSTORS
-
-    i = 0
-    loop
-      @spawnEntity FriendEntity, cc.rand(64, @viewport.width - 64),
-                                 cc.rand(64, @viewport.height - 64)
-      break if ++i is MAX_FRIENDS
-
+    @_spawnImpostors()
+    @_spawnFriends()
     return
 
   update: ->
@@ -64,7 +72,13 @@ Game = cc.Game.extend {
     if @input.pressed.toggle_autopilot
       @autopilot = ! @autopilot
 
-    do @parent
+    if @input.pressed.spawn_friends
+      @_spawnFriends()
+
+    if @input.pressed.spawn_impostors
+      @_spawnImpostors()
+
+    @parent()
 
   # draw: ->
 }
