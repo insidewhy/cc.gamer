@@ -30,9 +30,9 @@
       this.input.bind(cc.key.t, 'toggle_scale');
       this.input.bind(cc.key.r, 'reload');
       this.viewport.setWidth(this.width * 2);
-      this.addSurface(this.surfaceSheet, 0, 0, this.height - 64, this.viewport.width, 64);
-      this.addSurface(this.surfaceSheet, 6, 0, 0, 64, this.height - 64, 0.7);
-      this.addSurface(this.surfaceSheet, 6, this.viewport.width - 64, 0, 64, this.height - 64, 0.3);
+      this.addSurface(this.surfaceSheet, 0, 0, this.height - 64, this.viewport.width, 64, 0.5);
+      this.addSurface(this.surfaceSheet, 6, 0, 0, 64, this.height - 64);
+      this.addSurface(this.surfaceSheet, 6, this.viewport.width - 64, 0, 64, this.height - 64);
       this.hero = this.spawnEntity(HeroEntity, 64, 0);
       i = 0;
       while (true) {

@@ -4041,6 +4041,7 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
       density: 1.0,
       _knownByPhysicsServer: false,
       _events: [],
+      facingLeft: true,
       _compressedPhysicsForNew: function() {
         var height, width, x, y;
         x = this.pos.x;
@@ -4074,6 +4075,28 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
           this.pos.y -= this.hitbox.offset.y;
         }
         this.update();
+      },
+      _detectFacing: function() {
+        if ((this.facingLeft && this.v.x > 1) || (!this.facingLeft && this.v.x < -1)) {
+          this.facingLeft = !this.facingLeft;
+        }
+      },
+      setV: function(vx, vy) {
+        this.v.x = vx;
+        this.v.y = vy;
+        this._detectFacing();
+        this._events.push('v', this.v.x, this.v.y);
+        return this._mark();
+      },
+      setPos: function(px, py) {
+        this.pos.x = px;
+        this.pos.y = py;
+        if (this.hitbox) {
+          px += this.hitbox.offset.x;
+          py += this.hitbox.offset.y;
+        }
+        this._events.push('p', px, py);
+        return this._mark();
       }
     }));
   });
@@ -4086,7 +4109,6 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
     sprite: null,
     category: 1,
     mask: 1,
-    facingLeft: true,
     init: function(game, x, y, settings) {
       this.game = game;
       this.pos.x = x;
@@ -4137,28 +4159,6 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
       this.game._hasUpdates = true;
       return this.game._updates[this.id] = this;
     },
-    _detectFacing: function() {
-      if ((this.facingLeft && this.v.x > 1) || (!this.facingLeft && this.v.x < -1)) {
-        this.facingLeft = !this.facingLeft;
-      }
-    },
-    setV: function(vx, vy) {
-      this.v.x = vx;
-      this.v.y = vy;
-      this._detectFacing();
-      this._events.push('v', this.v.x, this.v.y);
-      return this._mark();
-    },
-    setPos: function(px, py) {
-      this.pos.x = px;
-      this.pos.y = py;
-      if (this.hitbox) {
-        px += this.hitbox.offset.x;
-        py += this.hitbox.offset.y;
-      }
-      this._events.push('p', px, py);
-      return this._mark();
-    },
     draw: function() {
       this.game.renderer.setSize(this.width, this.height);
       this.game.renderer.selectSprite(this.sprite);
@@ -4173,7 +4173,7 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
   cc.module('cc.Surface').defines(function() {
     return this.set(cc.Class.extend({
       tile: null,
-      init: function(game, sheet, tileIdx, x, y, width, height, bounciness) {
+      init: function(game, sheet, tileIdx, x, y, width, height, friction, bounciness) {
         var nCols;
         this.game = game;
         this.sheet = sheet;
@@ -4181,13 +4181,14 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
         this.y = y;
         this.width = width;
         this.height = height;
+        this.friction = friction != null ? friction : 0;
         this.bounciness = bounciness != null ? bounciness : 0;
         nCols = this.sheet.imgWidth() / this.sheet.tileWidth;
         this.tile = vec2.createFrom(tileIdx % nCols, Math.floor(tileIdx / nCols));
         return this._tileRepeat = vec2.createFrom(this.width / this.sheet.tileWidth, this.height / this.sheet.tileHeight);
       },
       compressedPhysics: function() {
-        return [this.x, this.y, this.width, this.height, this.bounciness];
+        return [this.x, this.y, this.width, this.height, this.friction, this.bounciness];
       },
       draw: function() {
         this.game.renderer.setSize(this.width, this.height);
@@ -5143,6 +5144,10 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
         entity._body.SetTransform(new b2Vec2(args[idx] / s + entity.width / 2, args[idx + 1] / s + entity.height / 2), entity._body.GetAngle());
         return 3;
       },
+      f: function(entity, args, idx) {
+        entity._fix.SetFriction(args[idx]);
+        return 2;
+      },
       update: function(entity, events) {
         var idx;
         idx = this[events[0]](entity, events, 1);
@@ -5209,6 +5214,7 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
         this._body = this.world.b2.CreateBody(this._bodyDef);
         fix = this._body.CreateFixture(this._fixDef);
         fix.entity = this;
+        this._fix = fix;
         this._ftSensorDef = new b2FixtureDef;
         ftShape = new b2PolygonShape;
         ftShape.SetAsBox(width, s / (3 * 2), new b2Vec2(0, -height), 0.0);
@@ -5248,7 +5254,8 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
         filter.set_categoryBits(0xffffffff);
         filter.set_maskBits(0xffffffff);
         this._fixDef.set_filter(filter);
-        this._fixDef.set_restitution(p[4]);
+        this._fixDef.set_friction(p[4]);
+        this._fixDef.set_restitution(p[5]);
         this._bodyDef = new b2BodyDef;
         this._bodyDef.set_type(Box2D.b2_staticBody);
         this._bodyDef.set_position(new b2Vec2(p[0] / s + this.width / 2, p[1] / s + this.height / 2));
