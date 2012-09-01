@@ -31,12 +31,12 @@ Game = cc.Game.extend {
 
     @viewport.setWidth @width * 2
 
-    # ground
-    @addSurface @surfaceSheet, 0, 0, @height - 64, @viewport.width, 64
+    # ground, give it friction
+    @addSurface @surfaceSheet, 0, 0, @height - 64, @viewport.width, 64, 0.5
     # left wall
-    @addSurface @surfaceSheet, 6, 0, 0, 64, @height - 64, 0.7
+    @addSurface @surfaceSheet, 6, 0, 0, 64, @height - 64
     # right wall
-    @addSurface @surfaceSheet, 6, @viewport.width - 64, 0, 64, @height - 64, 0.3
+    @addSurface @surfaceSheet, 6, @viewport.width - 64, 0, 64, @height - 64
 
     @hero = @spawnEntity HeroEntity, 64, 0
 
