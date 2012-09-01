@@ -11,8 +11,6 @@ Game = cc.Game.extend {
 
   surfaceSheet: resources.spriteSheet 'surfaces.png', 64, 64
 
-  autopilot: false # custom setting for this game
-
   _spawnImpostors: ->
     i = 0
     loop
@@ -43,7 +41,6 @@ Game = cc.Game.extend {
 
     @input.bind cc.key.i,     'spawn_impostors'
     @input.bind cc.key.f,     'spawn_friends'
-    @input.bind cc.key.a,     'toggle_autopilot'
     @input.bind cc.key.t,     'toggle_scale'
     @input.bind cc.key.r,     'reload'
 
@@ -69,9 +66,6 @@ Game = cc.Game.extend {
     if @input.pressed.toggle_scale
       @setScale if @scale == 2 then 1 else 2
 
-    if @input.pressed.toggle_autopilot
-      @autopilot = ! @autopilot
-
     if @input.pressed.spawn_friends
       @_spawnFriends()
 
@@ -91,13 +85,11 @@ MyEntity = cc.Entity.extend {
 }
 
 HeroEntity = MyEntity.extend {
-  # TODO: add timer for random velocity
   # define main sprite, with tile width and height
   category: 1
   density: 1
   mask: 2 # what categories this collides with
   init: (game, x, y, settings) ->
-    @timer = game.syncTimer 1 # time 1 second of game time
     @parent game, x, y, settings
     @pos.y = 80
     @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]
@@ -107,15 +99,6 @@ HeroEntity = MyEntity.extend {
     @game.viewport.scrollTo @pos.x - (160 / @game.scale), @pos.y - 64
 
     do @parent
-    if @game.input.released.toggle_autopilot
-      @setV 0, 0
-
-    if @timer.expired()
-      # if one second of game time has passed update velocity
-      @setV cc.rand(-200, 200), cc.rand(-200, 100) if @game.autopilot
-      # setV updates the entities v.x and v.y and marks it to
-      # be overridden by the physics thread
-      do @timer.reset # rearm the timer for another second
 
     jumped = @standing and @game.input.pressed.jump
     vY = if jumped then -300 else @v.y

@@ -67,10 +67,11 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     @_ftSensorDef = new b2FixtureDef
     ftShape = new b2PolygonShape
     # subtract ftHeight from width to prevent jumping up walls
-    ftShape.SetAsBox(width - ftHeight, ftHeight, new b2Vec2(0, height), 0.0)
-
+    ftShape.SetAsBox(width - ftHeight, # * 8 # * 8 stops jumping up when pressing
+                     ftHeight,
+                     new b2Vec2(0, height + ftHeight),
+                     0.0)
     @_ftSensorDef.set_shape ftShape
-
     @_ftSensorDef.set_isSensor true
     footFixt = @_body.CreateFixture @_ftSensorDef
     footFixt.entity = this
