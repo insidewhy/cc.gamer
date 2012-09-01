@@ -33,7 +33,7 @@
       this.addSurface(this.surfaceSheet, 0, 0, this.height - 64, this.viewport.width, 64, 0.5);
       this.addSurface(this.surfaceSheet, 6, 0, 0, 64, this.height - 64);
       this.addSurface(this.surfaceSheet, 6, this.viewport.width - 64, 0, 64, this.height - 64);
-      this.hero = this.spawnEntity(HeroEntity, 64, 0);
+      this.hero = this.spawnEntity(HeroEntity, 64 + 30, 0);
       i = 0;
       while (true) {
         this.spawnEntity(ImpostorEntity, cc.rand(64, this.viewport.width - 64), cc.rand(64, this.viewport.height - 64));

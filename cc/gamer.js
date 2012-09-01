@@ -5181,7 +5181,7 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
         }
       },
       init: function(p, world) {
-        var filter, fix, footFixt, ftShape, height, s, shape, width;
+        var filter, fix, footFixt, ftHeight, ftShape, height, s, shape, width;
         this.world = world;
         this.world.entities.push(this);
         s = this.world.scale;
@@ -5215,12 +5215,13 @@ function ja(b){throw b}var Ha=void 0,Sa=!0,Ab=null,Gb=!1;function Hb(){return(fu
         fix = this._body.CreateFixture(this._fixDef);
         fix.entity = this;
         this._fix = fix;
+        ftHeight = 1 / (s * 3 * 2);
         this._ftSensorDef = new b2FixtureDef;
         ftShape = new b2PolygonShape;
-        ftShape.SetAsBox(width, s / (3 * 2), new b2Vec2(0, -height), 0.0);
+        ftShape.SetAsBox(width - ftHeight, ftHeight, new b2Vec2(0, height), 0.0);
         this._ftSensorDef.set_shape(ftShape);
         this._ftSensorDef.set_isSensor(true);
-        footFixt = this._body.CreateFixture(this._fixDef);
+        footFixt = this._body.CreateFixture(this._ftSensorDef);
         footFixt.entity = this;
         footFixt.foot = true;
       },
