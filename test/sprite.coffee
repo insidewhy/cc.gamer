@@ -103,13 +103,14 @@ HeroEntity = MyEntity.extend {
       # be overridden by the physics thread
       do @timer.reset # rearm the timer for another second
 
-    vY = if @standing and @game.input.pressed.jump then -300 else @v.y
+    jumped = @standing and @game.input.pressed.jump
+    vY = if jumped then -300 else @v.y
 
     if @game.input.state.left
       @setV -200, vY
     else if @game.input.state.right
       @setV 200, vY
-    else if vY
+    else if jumped
       @setV @v.x, vY
 
     return
