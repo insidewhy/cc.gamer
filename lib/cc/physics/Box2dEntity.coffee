@@ -61,14 +61,18 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     fix.entity = this
     @_fix = fix
 
+    # scale = make foot height of 1/3rd of a pixel
+    ftHeight = 1 / (s * 3 * 2)
     # add foot sensor
     @_ftSensorDef = new b2FixtureDef
     ftShape = new b2PolygonShape
-    # scale = units to 1 pixel, make the foot a height of 1/3 pixel
-    ftShape.SetAsBox(width, s / (3 * 2), new b2Vec2(0, -height), 0.0)
+    # subtract ftHeight from width to prevent jumping up walls
+    ftShape.SetAsBox(width - ftHeight, ftHeight, new b2Vec2(0, height), 0.0)
+
     @_ftSensorDef.set_shape ftShape
+
     @_ftSensorDef.set_isSensor true
-    footFixt = @_body.CreateFixture @_fixDef
+    footFixt = @_body.CreateFixture @_ftSensorDef
     footFixt.entity = this
     footFixt.foot = true
 

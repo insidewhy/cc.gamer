@@ -38,7 +38,7 @@ Game = cc.Game.extend {
     # right wall
     @addSurface @surfaceSheet, 6, @viewport.width - 64, 0, 64, @height - 64
 
-    @hero = @spawnEntity HeroEntity, 64, 0
+    @hero = @spawnEntity HeroEntity, 64 + 30, 0
 
     i = 0
     loop
