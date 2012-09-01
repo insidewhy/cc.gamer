@@ -6,14 +6,27 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
   groundTouches: 0 # how many elements the foot sensor touches
   standing: false  # is on ground.. when groundTouches == 0
 
+  _setFriction: (val) ->
+    @_fix.SetFriction val
+    contactEdge =  @_body.GetContactList()
+    loop
+      break if Box2D.compare(contactEdge, Box2D.NULL)
+      contactEdge.get_contact().ResetFriction()
+      contactEdge = contactEdge.get_next()
+    return
+
   groundContact: ->
     if ++@groundTouches is 1
       @standing = true
+      @_fix.SetFriction @friction
+      @_setFriction @friction
     return
 
   groundLoseContact: ->
     if not --@groundTouches
+      # friction is set to 0 when jumping to avoid sticking to walls
       @standing = false
+      @_setFriction 0
     return
 
   init: (p, @world) ->
@@ -22,6 +35,7 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     s = @world.scale
     @width = p[6] / s
     @height = p[7] / s
+    @friction = p[11]
 
     @_fixDef = new b2FixtureDef
     filter = new b2Filter
@@ -29,7 +43,7 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     filter.set_maskBits p[9]
     @_fixDef.set_filter filter
     @_fixDef.set_restitution p[10]
-    @_fixDef.set_friction p[11]
+    @_fixDef.set_friction @friction
     @_fixDef.set_density p[12]
     @maxV.x = p[13]
     @maxV.y = p[14]
