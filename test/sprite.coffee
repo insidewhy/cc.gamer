@@ -46,7 +46,8 @@ Game = cc.Game.extend {
 
     @viewport.setWidth @width * 2
 
-    # ground, give it friction
+    # all surfaces have a friction of 0.5
+    # ground
     @addSurface @surfaceSheet, 0, 0, @height - 64, @viewport.width, 64, 0.5
     # left wall
     @addSurface @surfaceSheet, 6, 0, 0, 64, @height - 64, 0.5

@@ -6,6 +6,8 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
   groundTouches: 0 # how many elements the foot sensor touches
   standing: false  # is on ground.. when groundTouches == 0
 
+  _onUpdate: null # optional callback to perform on next update
+
   _setFriction: (val) ->
     @_fix.SetFriction val
     contactEdge =  @_body.GetContactList()
@@ -16,10 +18,13 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     return
 
   groundContact: ->
-    if ++@groundTouches is 1
+    ++@groundTouches
+    if not @standing
       @standing = true
-      @_fix.SetFriction @friction
-      @_setFriction @friction
+      # groundSensor can fire before actually touching causing the landing
+      # force to stop the object sliding on land
+      @_onUpdate = ->
+        @_setFriction @friction if @standing
     return
 
   groundLoseContact: ->
@@ -76,12 +81,16 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     @_fix = fix
 
     # scale = make foot height of 1/3rd of a pixel
+    # too tall and friction can be disabled before it hits the ground
+    # making skidding after a jump not happen, too small and bouncing
+    # softly against the ground can disable jumping
     ftHeight = 1 / (s * 3 * 2)
+    # space around side of foot, to prevent jumping up walls
+    ftFree = 1 / (s * 3)
     # add foot sensor
     @_ftSensorDef = new b2FixtureDef
     ftShape = new b2PolygonShape
-    # subtract ftHeight from width to prevent jumping up walls
-    ftShape.SetAsBox(width - ftHeight, # * 8 # * 8 stops jumping up when pressing
+    ftShape.SetAsBox(width - ftFree,
                      ftHeight,
                      new b2Vec2(0, height + ftHeight),
                      0.0)
@@ -97,7 +106,11 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     # TODO: handle acceleration
     return
 
-  compressedPhysics: ->
+  update: ->
+    if @_onUpdate
+      @_onUpdate()
+      @_onUpdate = null
+
     s = @world.scale
     v = @_body.GetLinearVelocity()
     p = @_body.GetPosition()

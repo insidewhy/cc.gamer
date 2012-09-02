@@ -48,7 +48,7 @@ cc.module('cc.physics.Box2dWorld').defines -> @set cc.Class.extend {
 
     data = {}
     for ent in @entities
-      data[ent.id] = do ent.compressedPhysics
+      data[ent.id] = ent.update()
 
     data
 }
