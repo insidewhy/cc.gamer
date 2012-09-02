@@ -15,7 +15,6 @@
       y: 20
     },
     surfaceSheet: resources.spriteSheet('surfaces.png', 64, 64),
-    autopilot: false,
     _spawnImpostors: function() {
       var i;
       i = 0;
@@ -47,13 +46,12 @@
       this.input.bind(cc.key.up, 'jump');
       this.input.bind(cc.key.i, 'spawn_impostors');
       this.input.bind(cc.key.f, 'spawn_friends');
-      this.input.bind(cc.key.a, 'toggle_autopilot');
       this.input.bind(cc.key.t, 'toggle_scale');
       this.input.bind(cc.key.r, 'reload');
       this.viewport.setWidth(this.width * 2);
       this.addSurface(this.surfaceSheet, 0, 0, this.height - 64, this.viewport.width, 64, 0.5);
-      this.addSurface(this.surfaceSheet, 6, 0, 0, 64, this.height - 64);
-      this.addSurface(this.surfaceSheet, 6, this.viewport.width - 64, 0, 64, this.height - 64);
+      this.addSurface(this.surfaceSheet, 6, 0, 0, 64, this.height - 64, 0.5);
+      this.addSurface(this.surfaceSheet, 6, this.viewport.width - 64, 0, 64, this.height - 64, 0.5);
       this.hero = this.spawnEntity(HeroEntity, 64 + 30, 0);
       this._spawnImpostors();
       this._spawnFriends();
@@ -64,9 +62,6 @@
       }
       if (this.input.pressed.toggle_scale) {
         this.setScale(this.scale === 2 ? 1 : 2);
-      }
-      if (this.input.pressed.toggle_autopilot) {
-        this.autopilot = !this.autopilot;
       }
       if (this.input.pressed.spawn_friends) {
         this._spawnFriends();
@@ -98,7 +93,6 @@
     density: 1,
     mask: 2,
     init: function(game, x, y, settings) {
-      this.timer = game.syncTimer(1);
       this.parent(game, x, y, settings);
       this.pos.y = 80;
       this.addSprite('walk', 0.1, [30, 31, 32, 31]);
@@ -108,15 +102,6 @@
       var jumped, vY;
       this.game.viewport.scrollTo(this.pos.x - (160 / this.game.scale), this.pos.y - 64);
       this.parent();
-      if (this.game.input.released.toggle_autopilot) {
-        this.setV(0, 0);
-      }
-      if (this.timer.expired()) {
-        if (this.game.autopilot) {
-          this.setV(cc.rand(-200, 200), cc.rand(-200, 100));
-        }
-        this.timer.reset();
-      }
       jumped = this.standing && this.game.input.pressed.jump;
       vY = jumped ? -300 : this.v.y;
       if (this.game.input.state.left) {
