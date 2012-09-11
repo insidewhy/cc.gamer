@@ -103,13 +103,19 @@
       this.game.viewport.scrollTo(this.pos.x - (160 / this.game.scale), this.pos.y - 64);
       this.parent();
       jumped = this.standing && this.game.input.pressed.jump;
-      vY = jumped ? -300 : this.v.y;
-      if (this.game.input.state.left) {
-        this.setV(-200, vY);
+      if (jumped) {
+        vY = -300;
+        if (this.game.input.state.left) {
+          this.jump(-200, vY);
+        } else if (this.game.input.state.right) {
+          this.jump(200, vY);
+        } else {
+          this.jump(this.v.x, vY);
+        }
+      } else if (this.game.input.state.left) {
+        this.setV(-200, this.v.y);
       } else if (this.game.input.state.right) {
-        this.setV(200, vY);
-      } else if (jumped) {
-        this.setV(this.v.x, vY);
+        this.setV(200, this.v.y);
       }
     }
   });

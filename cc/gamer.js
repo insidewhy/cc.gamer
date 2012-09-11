@@ -4081,12 +4081,18 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
           this.facingLeft = !this.facingLeft;
         }
       },
-      setV: function(vx, vy) {
+      _setV: function(t, vx, vy) {
         this.v.x = vx;
         this.v.y = vy;
         this._detectFacing();
-        this._events.push('v', this.v.x, this.v.y);
+        this._events.push(t, this.v.x, this.v.y);
         return this._mark();
+      },
+      setV: function(vx, vy) {
+        return this._setV('v', vx, vy);
+      },
+      jump: function(vx, vy) {
+        return this._setV('j', vx, vy);
       },
       setPos: function(px, py) {
         this.pos.x = px;
@@ -5138,6 +5144,10 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
         entity._body.ApplyLinearImpulse(new b2Vec2(m * (args[idx] / s - v.get_x()), m * (args[idx + 1] / s - v.get_y())), entity._body.GetWorldCenter());
         return 3;
       },
+      j: function(entity, args, idx) {
+        entity._setFriction(0);
+        return this.v(entity, args, idx);
+      },
       p: function(entity, args, idx) {
         var s;
         s = entity.world.scale;
@@ -5145,7 +5155,7 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
         return 3;
       },
       f: function(entity, args, idx) {
-        entity._fix.SetFriction(args[idx]);
+        entity._setFriction(args[idx]);
         return 2;
       },
       update: function(entity, events) {
@@ -5195,7 +5205,7 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
         }
       },
       groundLoseContact: function() {
-        if (!--this.groundTouches) {
+        if (!--this.groundTouches && this.standing) {
           this.standing = false;
           this._setFriction(0);
         }
