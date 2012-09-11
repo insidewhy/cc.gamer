@@ -102,14 +102,18 @@ HeroEntity = MyEntity.extend {
     do @parent
 
     jumped = @standing and @game.input.pressed.jump
-    vY = if jumped then -300 else @v.y
-
-    if @game.input.state.left
-      @setV -200, vY
+    if jumped
+      vY = -300
+      if @game.input.state.left
+        @jump -200, vY
+      else if @game.input.state.right
+        @jump 200, vY
+      else
+        @jump @v.x, vY
+    else if @game.input.state.left
+      @setV -200, @v.y
     else if @game.input.state.right
-      @setV 200, vY
-    else if jumped
-      @setV @v.x, vY
+      @setV 200, @v.y
 
     return
 }

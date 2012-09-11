@@ -62,12 +62,18 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
       @facingLeft = not @facingLeft
     return
 
-  setV: (vx, vy) ->
+  _setV: (t, vx, vy) ->
     @v.x = vx
     @v.y = vy
     @_detectFacing()
-    @_events.push 'v', @v.x, @v.y
+    @_events.push t, @v.x, @v.y
     @_mark()
+
+  setV: (vx, vy) ->
+    @_setV 'v', vx, vy
+
+  jump: (vx, vy) ->
+    @_setV 'j', vx, vy
 
   setPos: (px, py) ->
     @pos.x = px

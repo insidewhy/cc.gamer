@@ -28,7 +28,7 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     return
 
   groundLoseContact: ->
-    if not --@groundTouches
+    if not --@groundTouches and @standing
       # friction is set to 0 when jumping to avoid sticking to walls
       @standing = false
       @_setFriction 0

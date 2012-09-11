@@ -10,6 +10,13 @@ cc.module('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
       entity._body.GetWorldCenter()
     3
 
+  # jump.. like velocity but sets friction to 0 also
+  # otherwise when jumping and pressing against a wall friction will have
+  # a chance to act before the next tick making the jump shallower
+  j: (entity, args, idx) ->
+    entity._setFriction 0
+    @v entity, args, idx
+
   # position
   p: (entity, args, idx) ->
     s = entity.world.scale
@@ -21,7 +28,7 @@ cc.module('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
 
   # friction
   f: (entity, args, idx) ->
-    entity._fix.SetFriction args[idx]
+    entity._setFriction args[idx]
     2
 
   update: (entity, events) ->
