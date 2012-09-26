@@ -3,7 +3,7 @@ cc.module('cc.Resources').requires('cc.Image').defines -> @set cc.Class.extend {
   images: {}       # images including spriteSheets
   spriteSheets: {} # subset of images that are spriteSheets
   audios: {}
-  completeCallbacks: []
+  _completeCallbacks: []
   nToLoad: 0
   nLoaded: 0
 
@@ -13,7 +13,7 @@ cc.module('cc.Resources').requires('cc.Image').defines -> @set cc.Class.extend {
   _loaded: ->
     ++@nLoaded
     completeness = do @completeness
-    callback completeness for callback in @completeCallbacks
+    callback completeness for callback in @_completeCallbacks
     return
 
   image: (path) ->
@@ -36,10 +36,10 @@ cc.module('cc.Resources').requires('cc.Image').defines -> @set cc.Class.extend {
   # updates until disabled
   onLoadStatusUpdate: (callback) ->
     callback(do @completeness)
-    @completeCallbacks.push callback
+    @_completeCallbacks.push callback
     return
 
-  clearLoadStatusUpdates: -> @completeCallbacks.length = 0 ; return
+  clearLoadStatusUpdates: -> @_completeCallbacks.length = 0 ; return
 }
 
 # vim:ts=2 sw=2

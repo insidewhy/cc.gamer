@@ -58,5 +58,15 @@ cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
     @_detectFacing()
     @game.renderer.drawEntity @pos.x, @pos.y, @pos.z, @facingLeft
     return
+
+  # register callback for stomping other entity or surface
+  onStomp: (callback) ->
+    @_getStompEvents()
+    @_onStomp = callback
+
+  # register callback for colliding with other entity
+  onHit: (callback) ->
+    @_getHitEvents()
+    @_onHit = callback
 }
 # vim:ts=2 sw=2

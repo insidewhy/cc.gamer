@@ -30,23 +30,24 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
       y     += @hitbox.offset.y
       width  = @hitbox.width
       height = @hitbox.height
-    [ x, y, @v.x, @v.y, @a.x, @a.y, width, height, @category, @mask,
-      @bounciness, @friction, @density, @maxV.x, @maxV.y ]
+    [ 'E', x, y, @v.x, @v.y, @a.x, @a.y, width, height, @category,
+      @mask, @bounciness, @friction, @density, @maxV.x, @maxV.y ].concat @_events
 
   # compressed physics for update
   # TODO: rotation
   compressedPhysics: ->
     if not @_knownByPhysicsServer
       @_knownByPhysicsServer = true
+      ev = @_compressedPhysicsForNew()
       @_events = []
-      return do @_compressedPhysicsForNew
+      return ev
     else
       ev = @_events
       @_events = []
       return ev
     return
 
-  # uncompress physics sent from network, always for update as physics engine
+  # uncompress physics sent from worker, always for update as physics engine
   # can't create new entity
   uncompressPhysics: (p) ->
     [ @pos.x, @pos.y, @v.x, @v.y, @standing ] = p  # :)
@@ -74,6 +75,16 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
 
   jump: (vx, vy) ->
     @_setV 'j', vx, vy
+
+  _getHitEvents: ->
+    @_events.push 'h'
+    @_mark() if @id # if @id .. so can call in constructor
+    return
+
+  _getStompEvents: ->
+    @_events.push 's'
+    @_mark() if @id
+    return
 
   setPos: (px, py) ->
     @pos.x = px

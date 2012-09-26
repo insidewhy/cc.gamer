@@ -96,6 +96,10 @@ HeroEntity = MyEntity.extend {
     @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]
     @parent game, x, y, settings
 
+    # TODO:
+    @onStomp (entity) =>
+    @onHit (entity) =>
+
   update: ->
     @game.viewport.scrollTo @pos.x - (160 / @game.scale), @pos.y - 64
 

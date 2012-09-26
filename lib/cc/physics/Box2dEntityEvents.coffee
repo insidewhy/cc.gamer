@@ -31,11 +31,22 @@ cc.module('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
     entity._setFriction args[idx]
     2
 
+  # request stomp events
+  s: ->
+    # TODO:
+    1
+
+  # request hit events
+  h: ->
+    # TODO:
+    1
+
   update: (entity, events) ->
-    idx = this[events[0]](entity, events, 1)
+    @updateFrom entity, events, this[events[0]](entity, events, 1)
 
+  updateFrom: (entity, events, idx) ->
     while idx < events.length
-      idx = this[events[idx]](entity, args, idx + 1)
-
+      idx = idx + this[events[idx]](entity, events, idx + 1)
     return
+
 }

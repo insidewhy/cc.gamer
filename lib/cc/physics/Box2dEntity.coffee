@@ -38,20 +38,20 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     @world.entities.push this
 
     s = @world.scale
-    @width = p[6] / s
-    @height = p[7] / s
-    @friction = p[11]
+    @width = p[7] / s
+    @height = p[8] / s
+    @friction = p[12]
 
     @_fixDef = new b2FixtureDef
     filter = new b2Filter
-    filter.set_categoryBits p[8]
-    filter.set_maskBits p[9]
+    filter.set_categoryBits p[9]
+    filter.set_maskBits p[10]
     @_fixDef.set_filter filter
-    @_fixDef.set_restitution p[10]
+    @_fixDef.set_restitution p[11]
     @_fixDef.set_friction @friction
-    @_fixDef.set_density p[12]
-    @maxV.x = p[13]
-    @maxV.y = p[14]
+    @_fixDef.set_density p[13]
+    @maxV.x = p[14]
+    @maxV.y = p[15]
 
     @_bodyDef = new b2BodyDef
     # @_bodyDef.set_userData this
@@ -61,12 +61,12 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     height = @height / 2
 
     # b2 uses centre position so adjust..
-    @_bodyDef.set_position new b2Vec2(p[0] / s + width, p[1] / s + height)
-    @_bodyDef.set_linearVelocity new b2Vec2(p[2] / s, p[3] / s)
+    @_bodyDef.set_position new b2Vec2(p[1] / s + width, p[2] / s + height)
+    @_bodyDef.set_linearVelocity new b2Vec2(p[3] / s, p[4] / s)
 
     @a =
-      x: p[4] / s
-      y: p[5] / s
+      x: p[5] / s
+      y: p[6] / s
 
     # TODO: support entities without fixed rotation
     @_bodyDef.set_fixedRotation true
@@ -99,6 +99,8 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     footFixt = @_body.CreateFixture @_ftSensorDef
     footFixt.entity = this
     footFixt.foot = true
+
+    @_evHandler.updateFrom this, p, 16
 
     return
 

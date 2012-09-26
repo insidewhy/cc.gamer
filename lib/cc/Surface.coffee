@@ -9,7 +9,7 @@ cc.module('cc.Surface').defines -> @set cc.Class.extend {
     @_tileRepeat =
       vec2.createFrom(@width / @sheet.tileWidth, @height / @sheet.tileHeight)
 
-  compressedPhysics: -> [ @x, @y, @width, @height, @friction, @bounciness ]
+  compressedPhysics: -> [ 'S', @x, @y, @width, @height, @friction, @bounciness ]
 
   draw: ->
     @game.renderer.setSize @width, @height

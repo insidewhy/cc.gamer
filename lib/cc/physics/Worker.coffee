@@ -33,7 +33,7 @@ cc.module('cc.physics.Worker').defines -> @set cc.Class.extend {
     self.onmessage = (event) => @onMessage event.data
     return
 
-  _isEntity: (data) -> data.length is 15
+  _isEntity: (data) -> data[0] is 'E'
 
   onMessage: (data) ->
     if data.p
