@@ -2,6 +2,20 @@ cc.module('cc.physics.Box2dWorld').defines -> @set cc.Class.extend {
   scale: 30.0 # scale from pixels to physics.. 30 pixels per metre
   entities: []
 
+  _checkContact: (a, b) ->
+    return unless a.entity
+
+    # test if game thread has requested hit/stomp events and send
+    # through events array as shown
+    if a.foot
+      a.entity.groundContact()
+      # TODO: handle player -> surface stomp?
+      if a.entity.stompEvents and b.entity
+        a.entity._events.push 's', b.entity.id
+    else if a.entity.hitEvents and b.entity
+      a.entity._events.push 'h', b.entity.id
+    return
+
   init: ->
     @b2 = new b2World(new b2Vec2(0 , 0))
     _listener = new b2ContactListener
@@ -15,10 +29,8 @@ cc.module('cc.physics.Box2dWorld').defines -> @set cc.Class.extend {
         a = c.GetFixtureA()
         b = c.GetFixtureB()
 
-        if a.foot
-          a.entity.groundContact()
-        if b.foot
-          b.entity.groundContact()
+        @_checkContact a, b
+        @_checkContact b, a
         return
     },
     {

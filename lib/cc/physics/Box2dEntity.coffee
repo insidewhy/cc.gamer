@@ -1,5 +1,8 @@
 cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
   _evHandler: new cc.physics.Box2dEntityEvents
+  _events: [] # events to be posted back to game (e.g. stomp/hit)
+
+  isEntity: true
 
   maxV: { x: 200, y: 100 } # maximum velocity
 
@@ -116,10 +119,14 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     s = @world.scale
     v = @_body.GetLinearVelocity()
     p = @_body.GetPosition()
-    [ (p.get_x() - @width / 2) * s,
+
+    ret = [ (p.get_x() - @width / 2) * s,
       (p.get_y() - @height / 2) * s,
       v.get_x() * s, v.get_y() * s,
-      @standing ]
+      @standing ].concat @_events
+
+    @_events.length = 0
+    return ret
 
   uncompressPhysics: (p) ->
     @_evHandler.update this, p

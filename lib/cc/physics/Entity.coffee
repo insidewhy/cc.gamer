@@ -39,13 +39,10 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
     if not @_knownByPhysicsServer
       @_knownByPhysicsServer = true
       ev = @_compressedPhysicsForNew()
-      @_events = []
-      return ev
     else
       ev = @_events
-      @_events = []
-      return ev
-    return
+    @_events = []
+    return ev
 
   # uncompress physics sent from worker, always for update as physics engine
   # can't create new entity
@@ -54,6 +51,10 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
     if @hitbox
       @pos.x -= @hitbox.offset.x
       @pos.y -= @hitbox.offset.y
+
+    # TODO: see if there is a h or s at end
+    # if p.length > 5
+    # console.log "caffoon", p[5..p.length]
 
     @update()
     return

@@ -1,4 +1,6 @@
 cc.module('cc.physics.Box2dSurface').defines -> @set cc.Class.extend {
+  isSurface: true
+
   init: (p, @world) ->
     s = @world.scale
     @width = p[3] / s

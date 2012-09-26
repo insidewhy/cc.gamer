@@ -32,13 +32,13 @@ cc.module('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
     2
 
   # request stomp events
-  s: ->
-    # TODO:
+  s: (entity) ->
+    entity.stompEvents = true
     1
 
   # request hit events
-  h: ->
-    # TODO:
+  h: (entity) ->
+    entity.hitEvents = true
     1
 
   update: (entity, events) ->
