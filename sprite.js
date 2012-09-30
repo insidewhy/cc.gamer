@@ -139,14 +139,16 @@
       return this.onHit(function(entity) {});
     },
     update: function() {
+      var accel;
       this.game.viewport.scrollTo(this.pos.x - (160 / this.game.scale), this.pos.y - 64);
       this.parent();
+      accel = this.standing ? 1000 : 500;
       if (this.game.input.released.left || this.game.input.released.right) {
         this.setA(0, this.a.y);
       } else if (this.game.input.state.left) {
-        this.setA(-1000, this.a.y);
+        this.setA(-accel, this.a.y);
       } else if (this.game.input.state.right) {
-        this.setA(1000, this.a.y);
+        this.setA(accel, this.a.y);
       }
       if (this.standing && this.game.input.pressed.jump) {
         this.jump(this.v.x, -300);
