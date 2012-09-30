@@ -103,11 +103,15 @@ HeroEntity = MyEntity.extend {
     @addSprite 'walk', 0.1, [ 30, 31, 32, 31 ]
     @parent game, x, y, settings
 
-    # TODO:
     @onStomp (entity) =>
-      #console.log "stomped #{entity.id}"
+      # TODO: kill other entity?
+      if @game.input.state.jump
+        @jump @v.x, -300
+      else
+        @jump @v.x, -170
+
     @onHit (entity) =>
-      #console.log "hit #{entity.id}"
+      # TODO: take damage, set invulnerable for a while
 
   update: ->
     @game.viewport.scrollTo @pos.x - (160 / @game.scale), @pos.y - 64
