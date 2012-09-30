@@ -53,8 +53,8 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     @_fixDef.set_restitution p[11]
     @_fixDef.set_friction @friction
     @_fixDef.set_density p[13]
-    @maxV.x = p[14]
-    @maxV.y = p[15]
+    @maxV.x = p[14] / s
+    @maxV.y = p[15] / s
 
     @_bodyDef = new b2BodyDef
     # @_bodyDef.set_userData this
@@ -121,8 +121,29 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
 
     s = @world.scale
     v = @_body.GetLinearVelocity()
-    p = @_body.GetPosition()
 
+    if @a.x or @a.y
+      newVx = v.get_x() + (@world.tick * @a.x)
+      newVy = v.get_y() + (@world.tick * @a.y)
+
+      if @a.x > 0
+        newVx = @maxV.x if newVx > @maxV.x
+      else if @a.x < 0
+        newVx = -@maxV.x if newVx < -@maxV.x
+
+      if @a.y > 0
+        newVy = @maxV.y if newVy > @maxV.y
+      else if @a.y < 0
+        newVy = -@maxV.y if newVy < -@maxV.y
+
+      if newVx isnt v.x or newVy isnt v.y
+        m = @_body.GetMass()
+        @_body.ApplyLinearImpulse new b2Vec2(
+            m * (newVx - v.get_x()),
+            m * (newVy - v.get_y())),
+          @_body.GetWorldCenter()
+
+    p = @_body.GetPosition()
     ret = [ (p.get_x() - @width / 2) * s,
       (p.get_y() - @height / 2) * s,
       v.get_x() * s, v.get_y() * s,

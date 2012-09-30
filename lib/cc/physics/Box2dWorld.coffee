@@ -54,8 +54,8 @@ cc.module('cc.physics.Box2dWorld').defines -> @set cc.Class.extend {
     @b2.SetGravity new b2Vec2(g.x, g.y)
     return
 
-  update: (tick) ->
-    @b2.Step tick, 4, 8
+  update: (@tick) ->
+    @b2.Step @tick, 4, 8
     @b2.ClearForces()
 
     data = {}

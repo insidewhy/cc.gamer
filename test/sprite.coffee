@@ -99,28 +99,23 @@ HeroEntity = MyEntity.extend {
 
     # TODO:
     @onStomp (entity) =>
-      console.log "stomped #{entity.id}"
+      #console.log "stomped #{entity.id}"
     @onHit (entity) =>
-      console.log "hit #{entity.id}"
+      #console.log "hit #{entity.id}"
 
   update: ->
     @game.viewport.scrollTo @pos.x - (160 / @game.scale), @pos.y - 64
 
     do @parent
 
-    jumped = @standing and @game.input.pressed.jump
-    if jumped
-      vY = -300
-      if @game.input.state.left
-        @jump -200, vY
-      else if @game.input.state.right
-        @jump 200, vY
-      else
-        @jump @v.x, vY
+    if @game.input.released.left or @game.input.released.right
+      @setA 0, @a.y
     else if @game.input.state.left
-      @setV -200, @v.y
+      @setA -1000, @a.y
     else if @game.input.state.right
-      @setV 200, @v.y
+      @setA 1000, @a.y
+
+    @jump @v.x, -300 if @standing and @game.input.pressed.jump
 
     return
 }

@@ -47,8 +47,9 @@ cc.module('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
     3
 
   a: (entity, args, idx) ->
-    entity.a.x = args[idx]
-    entity.a.y = args[idx + 1]
+    s = entity.world.scale
+    entity.a.x = args[idx] / s
+    entity.a.y = args[idx + 1] / s
     3
 
   update: (entity, events) ->
