@@ -36,6 +36,7 @@
       }
     },
     booted: function() {
+      var h, w;
       this.input.fallthrough = true;
       this.input.bind(cc.key.z, 'left');
       this.input.bind(cc.key.z, 'left');
@@ -49,10 +50,13 @@
       this.input.bind(cc.key.t, 'toggle_scale');
       this.input.bind(cc.key.r, 'reload');
       this.viewport.setWidth(this.width * 2);
-      this.addSurface(this.surfaceSheet, 0, 0, this.height - 64, this.viewport.width, 64, 0.5);
-      this.addSurface(this.surfaceSheet, 6, 0, 0, 64, this.height - 64, 0.5);
-      this.addSurface(this.surfaceSheet, 6, this.viewport.width - 64, 0, 64, this.height - 64, 0.5);
-      this.hero = this.spawnEntity(HeroEntity, 64 + 30, 0);
+      w = this.surfaceSheet.tileWidth;
+      h = this.surfaceSheet.tileWidth;
+      this.addSurface(this.surfaceSheet, 0, 0, this.height - w, this.viewport.width, w, 0.5);
+      this.addSurface(this.surfaceSheet, 1, w * 5, this.height - (2 * h), this.viewport.width - (w * 10), h, 0.5);
+      this.addSurface(this.surfaceSheet, 6, 0, 0, w, this.height - h, 0.5);
+      this.addSurface(this.surfaceSheet, 6, this.viewport.width - w, 0, w, this.height - h, 0.5);
+      this.hero = this.spawnEntity(HeroEntity, w + 30, 0);
       this._spawnImpostors();
       this._spawnFriends();
     },
@@ -102,7 +106,13 @@
       this.pos.y = 80;
       this.addSprite('walk', 0.1, [30, 31, 32, 31]);
       this.parent(game, x, y, settings);
-      this.onStomp(function(entity) {});
+      this.onStomp(function(entity) {
+        if (_this.game.input.state.jump) {
+          return _this.jump(_this.v.x, -300);
+        } else {
+          return _this.jump(_this.v.x, -170);
+        }
+      });
       return this.onHit(function(entity) {});
     },
     update: function() {
