@@ -141,12 +141,14 @@ HeroEntity = MyEntity.extend {
 
     do @parent
 
+    accel = if @standing then 1000 else 500
+
     if @game.input.released.left or @game.input.released.right
       @setA 0, @a.y
     else if @game.input.state.left
-      @setA -1000, @a.y
+      @setA -accel, @a.y
     else if @game.input.state.right
-      @setA 1000, @a.y
+      @setA accel, @a.y
 
     @jump @v.x, -300 if @standing and @game.input.pressed.jump
 
