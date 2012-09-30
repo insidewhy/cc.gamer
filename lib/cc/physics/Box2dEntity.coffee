@@ -88,8 +88,11 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     # making skidding after a jump not happen, too small and bouncing
     # softly against the ground can disable jumping
     ftHeight = 1 / (s * 3 * 2)
+
     # space around side of foot, to prevent jumping up walls
-    ftFree = 1 / (s * 3)
+    # I've found that setting this any lower than 4/s gives a lot
+    # of false stomp events.
+    ftFree = 4 / s
     # add foot sensor
     @_ftSensorDef = new b2FixtureDef
     ftShape = new b2PolygonShape

@@ -81,6 +81,7 @@ Game = cc.Game.extend {
 game = new Game resources, scale: 1
 
 MyEntity = cc.Entity.extend {
+  maxV: { x: 200, y: 200 }
   spriteSheet: resources.spriteSheet 'chars.png', 32, 48
   hitbox: { width: 24, height: 42, offset: { y: 6 } }
 }
@@ -98,7 +99,9 @@ HeroEntity = MyEntity.extend {
 
     # TODO:
     @onStomp (entity) =>
+      console.log "stomped #{entity.id}"
     @onHit (entity) =>
+      console.log "hit #{entity.id}"
 
   update: ->
     @game.viewport.scrollTo @pos.x - (160 / @game.scale), @pos.y - 64

@@ -52,9 +52,20 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
       @pos.x -= @hitbox.offset.x
       @pos.y -= @hitbox.offset.y
 
-    # TODO: see if there is a h or s at end
-    # if p.length > 5
-    # console.log "caffoon", p[5..p.length]
+    # scan optional events
+    if p.length > 5
+      i = 5
+      loop
+        break if i >= p.length
+        if p[i] is 's'
+          if @_onStomp
+            stompee = @game.entitiesById[p[i + 1]]
+            @_onStomp stompee if stompee
+        else if p[i] is 'h'
+          if @_onHit
+            hit = @game.entitiesById[p[i + 1]]
+            @_onHit hit if hit
+        i += 2
 
     @update()
     return
@@ -68,7 +79,7 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
     @v.x = vx
     @v.y = vy
     @_detectFacing()
-    @_events.push t, @v.x, @v.y
+    @_events.push t, vx, vy
     @_mark()
 
   setV: (vx, vy) ->
@@ -76,6 +87,12 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
 
   jump: (vx, vy) ->
     @_setV 'j', vx, vy
+
+  setA: (ax, ay) ->
+    @a.x = ax
+    @a.y = ay
+    @_events.push 'a', ax, ay
+    @_mark()
 
   _getHitEvents: ->
     @_events.push 'h'

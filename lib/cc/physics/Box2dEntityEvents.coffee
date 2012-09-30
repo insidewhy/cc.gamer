@@ -41,6 +41,16 @@ cc.module('cc.physics.Box2dEntityEvents').defines -> @set cc.Class.extend {
     entity.hitEvents = true
     1
 
+  m: (entity, args, idx) ->
+    entity.maxV.x = args[idx]
+    entity.maxV.y = args[idx + 1]
+    3
+
+  a: (entity, args, idx) ->
+    entity.a.x = args[idx]
+    entity.a.y = args[idx + 1]
+    3
+
   update: (entity, events) ->
     @updateFrom entity, events, this[events[0]](entity, events, 1)
 
