@@ -63,10 +63,21 @@ cc.module('cc.Entity').parent('cc.physics.Entity').jClass {
   onStomp: (callback) ->
     @_getStompEvents()
     @_onStomp = callback
+    return
 
   # register callback for colliding with other entity
   onHit: (callback) ->
     @_getHitEvents()
     @_onHit = callback
+    return
+
+  # remove entity from game. This schedules the object deletion for
+  # before the next draw/update in case the game is currently inside
+  # the draw/update event where entity deletion will break everything.
+  kill: ->
+    @removeFromPhysicsServer()
+    delete @game.entitiesById[@id]
+    @game._deleteEntity this
+    return
 }
 # vim:ts=2 sw=2

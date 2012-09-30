@@ -37,6 +37,7 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
       @_setFriction 0
     return
 
+  # When adding elements to p make sure to /note:
   init: (p, @world) ->
     @world.entities.push this
 
@@ -56,20 +57,28 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     @maxV.x = p[14] / s
     @maxV.y = p[15] / s
 
+    @a =
+      x: p[5] / s
+      y: p[6] / s
+
+    @_createBody p[1], p[2], p[3], p[4]
+
+    # note: 16 relates to last non event argument in p
+    @_evHandler.updateFrom this, p, 16
+    return
+
+  _createBody: (px, py, vx = 0, vy = 0) ->
+    s = @world.scale
+
     @_bodyDef = new b2BodyDef
-    # @_bodyDef.set_userData this
     @_bodyDef.set_type Box2D.b2_dynamicBody
 
     width = @width / 2
     height = @height / 2
 
     # b2 uses centre position so adjust..
-    @_bodyDef.set_position new b2Vec2(p[1] / s + width, p[2] / s + height)
-    @_bodyDef.set_linearVelocity new b2Vec2(p[3] / s, p[4] / s)
-
-    @a =
-      x: p[5] / s
-      y: p[6] / s
+    @_bodyDef.set_position new b2Vec2(px / s + width, py / s + height)
+    @_bodyDef.set_linearVelocity new b2Vec2(vx / s, vy / s)
 
     # TODO: support entities without fixed rotation
     @_bodyDef.set_fixedRotation true
@@ -91,7 +100,7 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
 
     # space around side of foot, to prevent jumping up walls
     # I've found that setting this any lower than 4/s gives a lot
-    # of false stomp events.
+    # of false stomp events when approaching objects from the side
     ftFree = 4 / s
     # add foot sensor
     @_ftSensorDef = new b2FixtureDef
@@ -105,9 +114,6 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     footFixt = @_body.CreateFixture @_ftSensorDef
     footFixt.entity = this
     footFixt.foot = true
-
-    @_evHandler.updateFrom this, p, 16
-
     return
 
   _step: (tick) ->
@@ -153,7 +159,16 @@ cc.module('cc.physics.Box2dEntity').requires('cc.physics.Box2dEntityEvents').def
     return ret
 
   uncompressPhysics: (p) ->
-    @_evHandler.update this, p
+    # 1 for E
+    if p.length is 1
+      @world.b2.DestroyBody @_body
+      for ent, idx in @world.entities
+        if ent.id is @id
+          @world.entities.splice idx, 1
+          break
+    else
+      @_evHandler.update this, p
+
     return
 }
 # vim:ts=2 sw=2

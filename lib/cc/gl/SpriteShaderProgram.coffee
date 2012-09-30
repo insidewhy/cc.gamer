@@ -43,6 +43,9 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
       // for mode 3
       uniform vec4 color;
 
+      // opacity, currently only affects mode 1
+      uniform float opacity;
+
       // this converts the tile coordinate system to the gl coordinate system
       // First it flips the y-axis. Then it reverses the direction it scans
       // for the current pixel. It also has to add one to the y-offset to make
@@ -60,6 +63,8 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
           gl_FragColor = texture2D(sampler,
             vec2(1, -1) * (
               (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));
+
+          gl_FragColor.a *= opacity;
         }
         else if (mode == 2) {
           _texCoord.s = mod(_texCoord.s * tileRepeat.s, 1.0);
@@ -171,6 +176,9 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
   setColor: (color) ->
     @gl.uniform4fv @u.color, color
 
+  setOpacity: (opacity) ->
+    @gl.uniform1f @u.opacity, opacity
+
   # link gl program and then grab pointers to all uniforms and attributes
   link: ->
     # this is the standard texture used to draw pretty much all sprites
@@ -199,21 +207,25 @@ cc.module('cc.gl.SpriteShaderProgram').parent('cc.gl.ShaderProgram').jClass {
     @spriteVertices.itemSize = 3
     @spriteVertices.numItems = 4
 
-    do @_attachSpriteFragmentShader
-    do @_attachSpriteVertexShader
-    do @parent
+    @_attachSpriteFragmentShader()
+    @_attachSpriteVertexShader()
+    @parent()
     @_attribVertices "vertexPosition", "textureCoord"
-    @_uniforms "tileSize", "tileOffset", "tileCoord", "tileRepeat",
-               "sampler",
-               "pMatrix", "mvMatrix", "position",
-               "size", "flipX", "mode", "color"
+    @_uniforms "mode", "flipX", "sampler",
+               "tileSize", "tileOffset", "tileCoord", "tileRepeat",
+               "color", "opacity", # from here is shader
+               "mvMatrix", "pMatrix", "position",
+               "size"
 
-    do @_glOptions
+    @_glOptions()
 
     # send shape to vertex
     @gl.bindBuffer @gl.ARRAY_BUFFER, @spriteVertices
     @gl.vertexAttribPointer @a.vertexPosition,
       @spriteVertices.itemSize, @gl.FLOAT, false, 0, 0
+
+    # default opacity
+    @setOpacity 1
 
     this
 }

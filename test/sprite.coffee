@@ -87,9 +87,31 @@ Game = cc.Game.extend {
 game = new Game resources, scale: 1
 
 MyEntity = cc.Entity.extend {
+
+  _killedTimer: null
   maxV: { x: 200, y: 200 }
   spriteSheet: resources.spriteSheet 'chars.png', 32, 48
   hitbox: { width: 24, height: 42, offset: { y: 6 } }
+
+  draw: ->
+    if not @_killedTimer
+      @parent()
+    else
+      # TODO: remove memory when expired
+      if @_killedTimer.expired()
+        @kill()
+      else
+        opacity = @_killedTimer.delta() / @_killedTimer.duration
+        @game.renderer.setOpacity opacity
+        @parent()
+        @game.renderer.setOpacity 1
+    return
+
+  scheduleDeath: ->
+    if @_knownByPhysicsServer
+      @removeFromPhysicsServer()
+      @_killedTimer = @game.timer 1
+    return
 }
 
 HeroEntity = MyEntity.extend {
@@ -104,11 +126,12 @@ HeroEntity = MyEntity.extend {
     @parent game, x, y, settings
 
     @onStomp (entity) =>
-      # TODO: kill other entity?
       if @game.input.state.jump
         @jump @v.x, -300
       else
         @jump @v.x, -170
+
+      entity.scheduleDeath()
 
     @onHit (entity) =>
       # TODO: take damage, set invulnerable for a while

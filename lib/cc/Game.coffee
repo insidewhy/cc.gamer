@@ -5,6 +5,8 @@ cc.module('cc.Game').defines -> @set cc.Class.extend {
   # it starts at 1 so the first draw can run
   entities: []      # all alive entities in this game
   entitiesById: {}  # same as above but hashed by id
+  _hasDeleteIds: false # whether deleteIds contains anything
+  _deleteIds: {} # IDs of entities to delete before next loop
   surfaces: []
   surfacesById: {}
   _updates: {}  # entities that have been updated
@@ -39,6 +41,7 @@ cc.module('cc.Game').defines -> @set cc.Class.extend {
 
       for own id, uent of data
         entity = @entitiesById[id]
+        # this calls update on the entity
         entity.uncompressPhysics uent if entity
 
       do @update
@@ -110,11 +113,29 @@ cc.module('cc.Game').defines -> @set cc.Class.extend {
       @_updates = {}
 
       do mainLoop = =>
-        cc.requestAnimationFrame mainLoop
         # do @update # done by worker thread
-        do @draw
+        if @_hasDeleteIds
+          idx = 0
+          loop
+            break if idx >= @entities.length
+            if @_deleteIds[@entities[idx].id]
+              @entities.splice idx, 1
+            else
+              ++idx
+          @_hasDeleteIds = false
+          @_deleteIds.length = 0
+
+        cc.requestAnimationFrame mainLoop
+        @draw()
 
       return
+
+  # schedule entity deletion from game on next loop
+  # see Entity.kill
+  _deleteEntity: (entity) ->
+    @_hasDeleteIds = true
+    @_deleteIds[entity.id] = true
+    return
 
   spawnEntity: (type, x, y, settings) ->
     @_hasUpdates = true
@@ -131,9 +152,7 @@ cc.module('cc.Game').defines -> @set cc.Class.extend {
     @surfaces.push surface
     @surfacesById[surface.id] = @_updates[surface.id] = surface
 
-  # update.. only to be called when running the physics engine in the main
-  # javascript process. when a web worker is used the physics data is
-  # retrieved via messaging
+  # Send updates to physics thread and update input state
   update: ->
     # update intercepts
     ++@updates

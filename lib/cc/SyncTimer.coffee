@@ -13,7 +13,11 @@ cc.module('cc.SyncTimer').defines -> @set cc.Class.extend {
     return
 
   expired: -> @_game.now >= @expires
-  delta: -> @_game.now - @expires
+
+  # time until expiration
+  delta: -> @expires - @_game.now
+
+  # set duration and schedule another timer event
   setDuration: (@duration) -> @reset() ; return
 
   # set timer to expire at end of world

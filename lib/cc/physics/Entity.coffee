@@ -36,11 +36,15 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
   # compressed physics for update
   # TODO: rotation
   compressedPhysics: ->
-    if not @_knownByPhysicsServer
-      @_knownByPhysicsServer = true
-      ev = @_compressedPhysicsForNew()
-    else
+    if @_knownByPhysicsServer
       ev = @_events
+    else
+      if @_deletePhysics
+        return ['E']
+      else
+        @_knownByPhysicsServer = true
+        ev = @_compressedPhysicsForNew()
+
     @_events = []
     return ev
 
@@ -111,6 +115,12 @@ cc.module('cc.physics.Entity').defines -> @set cc.Class.extend {
       px += @hitbox.offset.x
       py += @hitbox.offset.y
     @_events.push 'p', px, py
+    @_mark()
+
+  removeFromPhysicsServer: ->
+    return unless @_knownByPhysicsServer
+    @_knownByPhysicsServer = false
+    @_deletePhysics = true
     @_mark()
 }
 # vim:ts=2 sw=2

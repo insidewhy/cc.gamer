@@ -55,6 +55,10 @@ cc.module('cc.gl.Renderer').defines -> @set cc.Class.extend {
     @_shdr.modeSurfaceEntity()
     return
 
+  setOpacity: (opacity) ->
+    @_shdr.setOpacity(opacity)
+    return
+
   drawEntity: (x, y, z, flipX) ->
     @_shdr.drawAt x - @viewport.x, y - @viewport.y, z
     @_shdr.flipX flipX
