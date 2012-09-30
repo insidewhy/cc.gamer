@@ -46,15 +46,21 @@ Game = cc.Game.extend {
 
     @viewport.setWidth @width * 2
 
+    w = @surfaceSheet.tileWidth
+    h = @surfaceSheet.tileWidth
+
     # all surfaces have a friction of 0.5
     # ground
-    @addSurface @surfaceSheet, 0, 0, @height - 64, @viewport.width, 64, 0.5
+    @addSurface @surfaceSheet, 0, 0, @height - w, @viewport.width, w, 0.5
+    # platform
+    @addSurface @surfaceSheet, 1,
+      w * 5, @height - (2 * h), @viewport.width - (w * 10), h, 0.5
     # left wall
-    @addSurface @surfaceSheet, 6, 0, 0, 64, @height - 64, 0.5
+    @addSurface @surfaceSheet, 6, 0, 0, w, @height - h, 0.5
     # right wall
-    @addSurface @surfaceSheet, 6, @viewport.width - 64, 0, 64, @height - 64, 0.5
+    @addSurface @surfaceSheet, 6, @viewport.width - w, 0, w, @height - h, 0.5
 
-    @hero = @spawnEntity HeroEntity, 64 + 30, 0
+    @hero = @spawnEntity HeroEntity, w + 30, 0
 
     @_spawnImpostors()
     @_spawnFriends()
