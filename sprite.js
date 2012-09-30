@@ -78,6 +78,10 @@
   });
 
   MyEntity = cc.Entity.extend({
+    maxV: {
+      x: 200,
+      y: 200
+    },
     spriteSheet: resources.spriteSheet('chars.png', 32, 48),
     hitbox: {
       width: 24,
@@ -93,29 +97,26 @@
     density: 1,
     mask: 2,
     init: function(game, x, y, settings) {
+      var _this = this;
       this.parent(game, x, y, settings);
       this.pos.y = 80;
       this.addSprite('walk', 0.1, [30, 31, 32, 31]);
-      return this.parent(game, x, y, settings);
+      this.parent(game, x, y, settings);
+      this.onStomp(function(entity) {});
+      return this.onHit(function(entity) {});
     },
     update: function() {
-      var jumped, vY;
       this.game.viewport.scrollTo(this.pos.x - (160 / this.game.scale), this.pos.y - 64);
       this.parent();
-      jumped = this.standing && this.game.input.pressed.jump;
-      if (jumped) {
-        vY = -300;
-        if (this.game.input.state.left) {
-          this.jump(-200, vY);
-        } else if (this.game.input.state.right) {
-          this.jump(200, vY);
-        } else {
-          this.jump(this.v.x, vY);
-        }
+      if (this.game.input.released.left || this.game.input.released.right) {
+        this.setA(0, this.a.y);
       } else if (this.game.input.state.left) {
-        this.setV(-200, this.v.y);
+        this.setA(-1000, this.a.y);
       } else if (this.game.input.state.right) {
-        this.setV(200, this.v.y);
+        this.setA(1000, this.a.y);
+      }
+      if (this.standing && this.game.input.pressed.jump) {
+        this.jump(this.v.x, -300);
       }
     }
   });
