@@ -4058,11 +4058,15 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
       },
       compressedPhysics: function() {
         var ev;
-        if (!this._knownByPhysicsServer) {
-          this._knownByPhysicsServer = true;
-          ev = this._compressedPhysicsForNew();
-        } else {
+        if (this._knownByPhysicsServer) {
           ev = this._events;
+        } else {
+          if (this._deletePhysics) {
+            return ['E'];
+          } else {
+            this._knownByPhysicsServer = true;
+            ev = this._compressedPhysicsForNew();
+          }
         }
         this._events = [];
         return ev;
@@ -4145,6 +4149,14 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
         }
         this._events.push('p', px, py);
         return this._mark();
+      },
+      removeFromPhysicsServer: function() {
+        if (!this._knownByPhysicsServer) {
+          return;
+        }
+        this._knownByPhysicsServer = false;
+        this._deletePhysics = true;
+        return this._mark();
       }
     }));
   });
@@ -4215,11 +4227,16 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
     },
     onStomp: function(callback) {
       this._getStompEvents();
-      return this._onStomp = callback;
+      this._onStomp = callback;
     },
     onHit: function(callback) {
       this._getHitEvents();
-      return this._onHit = callback;
+      this._onHit = callback;
+    },
+    kill: function() {
+      this.removeFromPhysicsServer();
+      delete this.game.entitiesById[this.id];
+      this.game._deleteEntity(this);
     }
   });
 
@@ -4395,6 +4412,8 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
       tick: 1,
       entities: [],
       entitiesById: {},
+      _hasDeleteIds: false,
+      _deleteIds: {},
       surfaces: [],
       surfacesById: {},
       _updates: {},
@@ -4514,10 +4533,30 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
           _this.physicsClient.sendUpdates(_this._updates);
           _this._updates = {};
           (mainLoop = function() {
+            var idx;
+            if (_this._hasDeleteIds) {
+              idx = 0;
+              while (true) {
+                if (idx >= _this.entities.length) {
+                  break;
+                }
+                if (_this._deleteIds[_this.entities[idx].id]) {
+                  _this.entities.splice(idx, 1);
+                } else {
+                  ++idx;
+                }
+              }
+              _this._hasDeleteIds = false;
+              _this._deleteIds.length = 0;
+            }
             cc.requestAnimationFrame(mainLoop);
             return _this.draw();
           })();
         });
+      },
+      _deleteEntity: function(entity) {
+        this._hasDeleteIds = true;
+        this._deleteIds[entity.id] = true;
       },
       spawnEntity: function(type, x, y, settings) {
         var entity;
@@ -4765,7 +4804,7 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
         return this._game.now >= this.expires;
       },
       delta: function() {
-        return this._game.now - this.expires;
+        return this.expires - this._game.now;
       },
       setDuration: function(duration) {
         this.duration = duration;
@@ -4854,6 +4893,9 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
       },
       drawingSurfaces: function() {
         this._shdr.modeSurfaceEntity();
+      },
+      setOpacity: function(opacity) {
+        this._shdr.setOpacity(opacity);
       },
       drawEntity: function(x, y, z, flipX) {
         this._shdr.drawAt(x - this.viewport.x, y - this.viewport.y, z);
@@ -5094,7 +5136,7 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
     },
     _attachSpriteFragmentShader: function() {
       var content, shader;
-      content = "precision mediump float;\n\nvarying vec2 vTextureCoord;\nuniform int mode;\n\n// for mode 1\nuniform bool flipX;\n\n// for modes 1 and 2\nuniform sampler2D sampler;\nuniform vec2 tileSize;   // tile size in percentage of texture size\nuniform vec2 tileOffset; // index of tile e.g. (1,1) = (1 down, 1 right)\nuniform vec2 tileCoord;  // offset into texture of first pixel\n\n// for mode 2\nuniform vec2 tileRepeat;\n\n// for mode 3\nuniform vec4 color;\n\n// this converts the tile coordinate system to the gl coordinate system\n// First it flips the y-axis. Then it reverses the direction it scans\n// for the current pixel. It also has to add one to the y-offset to make\n// up for it being from the top left rather than the bottom right.\nvoid main(void) {\n  vec2 _tileOffset = vec2(tileOffset.s, tileOffset.t + 1.0);\n  vec2 _texCoord   = vec2(vTextureCoord.s, -vTextureCoord.t);\n\n  if (mode == 1) {\n    if (flipX) {\n      _texCoord.s = -_texCoord.s;\n      _tileOffset.s += 1.0;\n    }\n\n    gl_FragColor = texture2D(sampler,\n      vec2(1, -1) * (\n        (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n  }\n  else if (mode == 2) {\n    _texCoord.s = mod(_texCoord.s * tileRepeat.s, 1.0);\n    _texCoord.t = -mod(-_texCoord.t * tileRepeat.t, 1.0);\n\n    gl_FragColor = texture2D(sampler,\n      vec2(1, -1) * (\n        (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n  }\n  else if (mode == 3) {\n    gl_FragColor = color;\n  }\n}";
+      content = "precision mediump float;\n\nvarying vec2 vTextureCoord;\nuniform int mode;\n\n// for mode 1\nuniform bool flipX;\n\n// for modes 1 and 2\nuniform sampler2D sampler;\nuniform vec2 tileSize;   // tile size in percentage of texture size\nuniform vec2 tileOffset; // index of tile e.g. (1,1) = (1 down, 1 right)\nuniform vec2 tileCoord;  // offset into texture of first pixel\n\n// for mode 2\nuniform vec2 tileRepeat;\n\n// for mode 3\nuniform vec4 color;\n\n// opacity, currently only affects mode 1\nuniform float opacity;\n\n// this converts the tile coordinate system to the gl coordinate system\n// First it flips the y-axis. Then it reverses the direction it scans\n// for the current pixel. It also has to add one to the y-offset to make\n// up for it being from the top left rather than the bottom right.\nvoid main(void) {\n  vec2 _tileOffset = vec2(tileOffset.s, tileOffset.t + 1.0);\n  vec2 _texCoord   = vec2(vTextureCoord.s, -vTextureCoord.t);\n\n  if (mode == 1) {\n    if (flipX) {\n      _texCoord.s = -_texCoord.s;\n      _tileOffset.s += 1.0;\n    }\n\n    gl_FragColor = texture2D(sampler,\n      vec2(1, -1) * (\n        (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n\n    gl_FragColor.a *= opacity;\n  }\n  else if (mode == 2) {\n    _texCoord.s = mod(_texCoord.s * tileRepeat.s, 1.0);\n    _texCoord.t = -mod(-_texCoord.t * tileRepeat.t, 1.0);\n\n    gl_FragColor = texture2D(sampler,\n      vec2(1, -1) * (\n        (_texCoord * tileSize) + (tileSize * _tileOffset) + tileCoord));\n  }\n  else if (mode == 3) {\n    gl_FragColor = color;\n  }\n}";
       shader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
       return this._attachShader(shader, content);
     },
@@ -5155,6 +5197,9 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
     setColor: function(color) {
       return this.gl.uniform4fv(this.u.color, color);
     },
+    setOpacity: function(opacity) {
+      return this.gl.uniform1f(this.u.opacity, opacity);
+    },
     link: function() {
       var textureCoords, vertices;
       this.textureBuffer = this.gl.createBuffer();
@@ -5173,10 +5218,11 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
       this._attachSpriteVertexShader();
       this.parent();
       this._attribVertices("vertexPosition", "textureCoord");
-      this._uniforms("tileSize", "tileOffset", "tileCoord", "tileRepeat", "sampler", "pMatrix", "mvMatrix", "position", "size", "flipX", "mode", "color");
+      this._uniforms("mode", "flipX", "sampler", "tileSize", "tileOffset", "tileCoord", "tileRepeat", "color", "opacity", "mvMatrix", "pMatrix", "position", "size");
       this._glOptions();
       this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.spriteVertices);
       this.gl.vertexAttribPointer(this.a.vertexPosition, this.spriteVertices.itemSize, this.gl.FLOAT, false, 0, 0);
+      this.setOpacity(1);
       return this;
     }
   });
@@ -5284,7 +5330,7 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
         }
       },
       init: function(p, world) {
-        var filter, fix, footFixt, ftFree, ftHeight, ftShape, height, s, shape, width;
+        var filter, s;
         this.world = world;
         this.world.entities.push(this);
         s = this.world.scale;
@@ -5301,16 +5347,28 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
         this._fixDef.set_density(p[13]);
         this.maxV.x = p[14] / s;
         this.maxV.y = p[15] / s;
-        this._bodyDef = new b2BodyDef;
-        this._bodyDef.set_type(Box2D.b2_dynamicBody);
-        width = this.width / 2;
-        height = this.height / 2;
-        this._bodyDef.set_position(new b2Vec2(p[1] / s + width, p[2] / s + height));
-        this._bodyDef.set_linearVelocity(new b2Vec2(p[3] / s, p[4] / s));
         this.a = {
           x: p[5] / s,
           y: p[6] / s
         };
+        this._createBody(p[1], p[2], p[3], p[4]);
+        this._evHandler.updateFrom(this, p, 16);
+      },
+      _createBody: function(px, py, vx, vy) {
+        var fix, footFixt, ftFree, ftHeight, ftShape, height, s, shape, width;
+        if (vx == null) {
+          vx = 0;
+        }
+        if (vy == null) {
+          vy = 0;
+        }
+        s = this.world.scale;
+        this._bodyDef = new b2BodyDef;
+        this._bodyDef.set_type(Box2D.b2_dynamicBody);
+        width = this.width / 2;
+        height = this.height / 2;
+        this._bodyDef.set_position(new b2Vec2(px / s + width, py / s + height));
+        this._bodyDef.set_linearVelocity(new b2Vec2(vx / s, vy / s));
         this._bodyDef.set_fixedRotation(true);
         shape = new b2PolygonShape;
         shape.SetAsBox(width, height);
@@ -5329,7 +5387,6 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
         footFixt = this._body.CreateFixture(this._ftSensorDef);
         footFixt.entity = this;
         footFixt.foot = true;
-        this._evHandler.updateFrom(this, p, 16);
       },
       _step: function(tick) {},
       update: function() {
@@ -5372,7 +5429,20 @@ function ja(b){throw b}var Ha=void 0,Na=!0,Ab=null,Gb=!1;function Hb(){return(fu
         return ret;
       },
       uncompressPhysics: function(p) {
-        this._evHandler.update(this, p);
+        var ent, idx, _i, _len, _ref;
+        if (p.length === 1) {
+          this.world.b2.DestroyBody(this._body);
+          _ref = this.world.entities;
+          for (idx = _i = 0, _len = _ref.length; _i < _len; idx = ++_i) {
+            ent = _ref[idx];
+            if (ent.id === this.id) {
+              this.world.entities.splice(idx, 1);
+              break;
+            }
+          }
+        } else {
+          this._evHandler.update(this, p);
+        }
       }
     }));
   });

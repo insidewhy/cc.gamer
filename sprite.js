@@ -82,6 +82,7 @@
   });
 
   MyEntity = cc.Entity.extend({
+    _killedTimer: null,
     maxV: {
       x: 200,
       y: 200
@@ -92,6 +93,27 @@
       height: 42,
       offset: {
         y: 6
+      }
+    },
+    draw: function() {
+      var opacity;
+      if (!this._killedTimer) {
+        this.parent();
+      } else {
+        if (this._killedTimer.expired()) {
+          this.kill();
+        } else {
+          opacity = this._killedTimer.delta() / this._killedTimer.duration;
+          this.game.renderer.setOpacity(opacity);
+          this.parent();
+          this.game.renderer.setOpacity(1);
+        }
+      }
+    },
+    scheduleDeath: function() {
+      if (this._knownByPhysicsServer) {
+        this.removeFromPhysicsServer();
+        this._killedTimer = this.game.timer(1);
       }
     }
   });
@@ -108,10 +130,11 @@
       this.parent(game, x, y, settings);
       this.onStomp(function(entity) {
         if (_this.game.input.state.jump) {
-          return _this.jump(_this.v.x, -300);
+          _this.jump(_this.v.x, -300);
         } else {
-          return _this.jump(_this.v.x, -170);
+          _this.jump(_this.v.x, -170);
         }
+        return entity.scheduleDeath();
       });
       return this.onHit(function(entity) {});
     },
