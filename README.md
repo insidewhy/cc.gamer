@@ -97,19 +97,15 @@ All dependencies are included in cc.gamer.js. They incude the excellent:
     * Detect if entity is standing on surface (box2d sensor under feet): done
     * Physics:
         * Collision detection: done
-        * Collision events: todo
+        * Collision events: done
         * Set velocity: done
         * Initial position: done
-        * Teleport position: todo
         * Gravity: done
-        * Acceleration: todo
+        * Acceleration: done
+        * Teleport position: todo
 * Input: done
 * Surface: done
 * Loading Screen: to do
 
 # notes
-* The box2d web project (which is a port of action script's box2d) seems to provide the best performance. cc.gamer also works with the box2d 2.2 port from llvm bytecode via emscripten in the "emscripten" branch.
-
-# links
-* [Box2D: constant speed](http://www.iforce2d.net/b2dtut/constant-speed)
-* [Box2D: jumping](http://www.iforce2d.net/b2dtut/jumping)
+* cc.gamer uses a port of box2d 2.2 compiled from C++ to JavaScript using emscripten. 
